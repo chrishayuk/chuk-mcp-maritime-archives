@@ -415,17 +415,20 @@ class ArchiveManager:
         features = []
         for w in wrecks:
             pos = w.get("position", {})
-            lat = pos.get("lat", 0)
-            lon = pos.get("lon", 0)
+            lat = pos.get("lat") if pos else None
+            lon = pos.get("lon") if pos else None
+            has_position = lat is not None and lon is not None
 
             properties: dict[str, Any] = {
                 "wreck_id": w.get("wreck_id"),
                 "ship_name": w.get("ship_name"),
                 "loss_date": w.get("loss_date"),
+                "loss_location": w.get("loss_location"),
+                "region": w.get("region"),
                 "status": w.get("status"),
             }
 
-            if include_uncertainty:
+            if include_uncertainty and has_position:
                 properties["uncertainty_km"] = pos.get("uncertainty_km", 50)
 
             if include_voyage_data:
@@ -435,13 +438,15 @@ class ArchiveManager:
                 properties["lives_lost"] = w.get("lives_lost")
                 properties["depth_m"] = w.get("depth_estimate_m")
 
+            # Use null geometry for wrecks without known coordinates
+            geometry: dict[str, Any] | None = (
+                {"type": "Point", "coordinates": [lon, lat]} if has_position else None
+            )
+
             features.append(
                 {
                     "type": "Feature",
-                    "geometry": {
-                        "type": "Point",
-                        "coordinates": [lon, lat],
-                    },
+                    "geometry": geometry,
                     "properties": properties,
                 }
             )

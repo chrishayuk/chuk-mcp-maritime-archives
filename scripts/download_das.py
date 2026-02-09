@@ -131,6 +131,196 @@ def extract_wreck_status(particulars: str) -> str:
     return "unfound"
 
 
+def extract_loss_date(particulars: str, departure_date: str) -> str:
+    """
+    Extract the actual loss date from Particulars text.
+
+    Looks for DD-MM-YYYY date patterns in the text. When multiple dates
+    are found, returns the one nearest to (or after) a loss keyword.
+    Falls back to departure_date if no date is found.
+    """
+    if not particulars:
+        return departure_date
+
+    # Find all DD-MM-YYYY dates in the text
+    dates = re.findall(r"(\d{2}-\d{2}-\d{4})", particulars)
+    if not dates:
+        return departure_date
+
+    # If only one date, use it
+    if len(dates) == 1:
+        return convert_date(dates[0])
+
+    # Find dates near loss keywords -- look for a date within 30 chars after keyword
+    lower = particulars.lower()
+    for keyword in LOSS_KEYWORDS:
+        idx = lower.find(keyword)
+        if idx >= 0:
+            # Look for dates in the vicinity (up to 80 chars after keyword)
+            nearby = particulars[max(0, idx - 20) : idx + 80]
+            nearby_dates = re.findall(r"(\d{2}-\d{2}-\d{4})", nearby)
+            if nearby_dates:
+                return convert_date(nearby_dates[-1])
+
+    # Fall back to the last date in the text (most likely the incident date)
+    return convert_date(dates[-1])
+
+
+def extract_loss_location(particulars: str) -> str | None:
+    """
+    Extract the loss location description from Particulars text.
+
+    Looks for place descriptions after loss keywords like
+    "Wrecked on the Wallabi Group" or "Captured off Manila".
+    """
+    if not particulars:
+        return None
+
+    # Pattern: loss_keyword + preposition + location
+    m = re.search(
+        r"(?:wrecked|lost|sunk|burnt|burned|captured|stranded|foundered"
+        r"|ran aground|set on fire|blown up|seized|taken by)"
+        r"\s+(?:on|at|off|near|before|in|along)\s+"
+        r"(.{3,80}?)[\.,;]",
+        particulars,
+        re.I,
+    )
+    if m:
+        return m.group(1).strip()
+    return None
+
+
+def _load_gazetteer_for_regions() -> dict[str, str]:
+    """
+    Load gazetteer data to map place-name fragments to regions.
+
+    Returns a dict of {lowercase_name_or_alias: region}.
+    """
+    gazetteer_path = DATA_DIR / "gazetteer.json"
+    if not gazetteer_path.exists():
+        return {}
+
+    import json as _json
+
+    with open(gazetteer_path) as f:
+        entries = _json.load(f)
+
+    lookup: dict[str, str] = {}
+    for entry in entries:
+        name = entry["name"]
+        region = entry["region"]
+        lookup[name.lower()] = region
+        for alias in entry.get("aliases", []):
+            lookup[alias.lower()] = region
+    return lookup
+
+
+# Well-known place names that may appear in Particulars but not in gazetteer
+_EXTRA_REGION_HINTS: dict[str, str] = {
+    "wallabi": "indian_ocean",  # Houtman Abrolhos, Western Australia
+    "abrolhos": "indian_ocean",  # Houtman Abrolhos, Western Australia
+    "houtman": "indian_ocean",
+    "western australia": "indian_ocean",
+    "west coast of australia": "indian_ocean",
+    "west-coast of australia": "indian_ocean",
+    "shetland": "north_sea",
+    "needles of wight": "north_sea",
+    "english channel": "north_sea",
+    "isle of wight": "north_sea",
+    "channel": "north_sea",
+    "texel": "north_sea",
+    "portugal": "atlantic_europe",
+    "canary": "atlantic_europe",
+    "canaries": "atlantic_europe",
+    "boa vista": "atlantic_europe",
+    "cape verde": "atlantic_europe",
+    "mayo": "atlantic_europe",
+    "st. helena": "atlantic_crossing",
+    "ascension": "atlantic_crossing",
+    "mauritius": "indian_ocean",
+    "reunion": "indian_ocean",
+    "madagascar": "mozambique_channel",
+    "mozambique": "mozambique_channel",
+    "mombasa": "mozambique_channel",
+    "zanzibar": "mozambique_channel",
+    "sofala": "mozambique_channel",
+    "surat": "malabar",
+    "goa": "malabar",
+    "cochin": "malabar",
+    "malabar": "malabar",
+    "coromandel": "coromandel",
+    "pulicat": "coromandel",
+    "nagapatnam": "coromandel",
+    "masulipatnam": "coromandel",
+    "ceylon": "ceylon",
+    "colombo": "ceylon",
+    "galle": "ceylon",
+    "negombo": "ceylon",
+    "bengal": "bengal",
+    "malacca": "malacca",
+    "maledive": "indian_ocean",
+    "maldive": "indian_ocean",
+    "sumatra": "indonesia",
+    "java": "indonesia",
+    "batavia": "indonesia",
+    "jakarta": "indonesia",
+    "borneo": "indonesia",
+    "celebes": "indonesia",
+    "moluccas": "indonesia",
+    "ternate": "indonesia",
+    "ambon": "indonesia",
+    "amboina": "indonesia",
+    "banda": "indonesia",
+    "bawean": "indonesia",
+    "halmaheira": "indonesia",
+    "sunda": "indonesia",
+    "engano": "indonesia",
+    "manila": "south_china_sea",
+    "philippines": "south_china_sea",
+    "formosa": "south_china_sea",
+    "taiwan": "south_china_sea",
+    "china": "south_china_sea",
+    "vietnam": "south_china_sea",
+    "pescadores": "south_china_sea",
+    "macau": "south_china_sea",
+    "japan": "japan",
+    "hirado": "japan",
+    "nagasaki": "japan",
+    "deshima": "japan",
+    "caribbean": "caribbean",
+}
+
+
+def resolve_region(location_text: str | None, particulars: str | None) -> str | None:
+    """
+    Resolve a region code from location text and/or Particulars.
+
+    Tries the gazetteer first, then well-known place name hints.
+    """
+    # Load gazetteer mapping (cached at module level after first call)
+    global _GAZETTEER_REGIONS
+    if "_GAZETTEER_REGIONS" not in globals():
+        _GAZETTEER_REGIONS = _load_gazetteer_for_regions()
+
+    # Try location text first, then full particulars
+    for text in [location_text, particulars]:
+        if not text:
+            continue
+        lower = text.lower()
+
+        # Check gazetteer entries
+        for name, region in _GAZETTEER_REGIONS.items():
+            if name in lower:
+                return region
+
+        # Check extra hints
+        for hint, region in _EXTRA_REGION_HINTS.items():
+            if hint in lower:
+                return region
+
+    return None
+
+
 def parse_voyages_csv(csv_text: str) -> list[dict]:
     """Parse the semicolon-delimited voyage details CSV."""
     reader = csv.DictReader(io.StringIO(csv_text), delimiter=";")
@@ -255,6 +445,15 @@ def extract_wrecks(voyages: list[dict]) -> list[dict]:
         if not fate:
             continue
         particulars = v.get("particulars", "")
+        departure_date = v.get("departure_date", "")
+
+        # Extract actual loss date from Particulars (not departure date)
+        loss_date = extract_loss_date(particulars, departure_date)
+
+        # Extract loss location and region
+        location = extract_loss_location(particulars)
+        region = resolve_region(location, particulars)
+
         wreck = {
             "wreck_id": f"maarer:{v['voyage_number']}",
             "voyage_id": v["voyage_id"],
@@ -264,7 +463,9 @@ def extract_wrecks(voyages: list[dict]) -> list[dict]:
             "captain": v.get("captain"),
             "chamber": v.get("chamber"),
             "loss_cause": fate,
-            "loss_date": v.get("departure_date"),
+            "loss_date": loss_date,
+            "loss_location": location,
+            "region": region,
             "departure_port": v.get("departure_port"),
             "destination_port": v.get("destination_port"),
             "status": extract_wreck_status(particulars),
@@ -331,7 +532,13 @@ def main() -> None:
     wrecks = extract_wrecks(voyages)
     print(f"  Extracted {len(wrecks)} loss events")
     found = sum(1 for w in wrecks if w.get("status") == "found")
+    with_date = sum(1 for w in wrecks if w.get("loss_date") and w["loss_date"] != "")
+    with_location = sum(1 for w in wrecks if w.get("loss_location"))
+    with_region = sum(1 for w in wrecks if w.get("region"))
     print(f"    Found: {found}  Unfound: {len(wrecks) - found}")
+    print(
+        f"    With loss date: {with_date}  With location: {with_location}  With region: {with_region}"
+    )
 
     # Step 5: Save JSON files
     print("\nStep 5: Saving JSON files...")
