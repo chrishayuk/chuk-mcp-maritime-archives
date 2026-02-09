@@ -61,8 +61,7 @@ def register_location_tools(mcp: object, manager: object) -> None:
             if result is None:
                 return format_response(
                     ErrorResponse(
-                        error=f"Location '{name}' not found in VOC gazetteer. "
-                        "Try maritime_list_locations to browse available places.",
+                        error=ErrorMessages.LOCATION_NOT_FOUND.format(name),
                     ),
                     output_mode,
                 )

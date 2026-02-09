@@ -45,13 +45,17 @@ async def main() -> None:
         print("\n   Wreck sites:")
         for feat in result["geojson"]["features"]:
             props = feat["properties"]
-            coords = feat["geometry"]["coordinates"]
+            geom = feat.get("geometry")
             name = props.get("ship_name", "?")
             status = props.get("status", "?")
             unc = props.get("uncertainty_km", "?")
-            print(
-                f"     {name:25s}  [{coords[0]:8.2f}, {coords[1]:7.2f}]  status={status}  +/-{unc}km"
-            )
+            if geom and geom.get("coordinates"):
+                coords = geom["coordinates"]
+                print(
+                    f"     {name:25s}  [{coords[0]:8.2f}, {coords[1]:7.2f}]  status={status}  +/-{unc}km"
+                )
+            else:
+                print(f"     {name:25s}  [no coords]  status={status}")
 
     # ----- Export 2: Found wrecks only ------------------------------
     print("\n2. Export only found wrecks")

@@ -1,6 +1,6 @@
 # chuk-mcp-maritime-archives Specification
 
-Version 0.1.0
+Version 0.5.0
 
 ## Overview
 
@@ -9,7 +9,7 @@ structured access to historical maritime shipping records, vessel specifications
 crew muster rolls, cargo manifests, and shipwreck databases from the Dutch East India
 Company (VOC) era, 1595-1795.
 
-- **26 tools** for searching, retrieving, analysing, and exporting maritime archival data
+- **29 tools** for searching, retrieving, analysing, and exporting maritime archival data
 - **Dual output mode** -- all tools return JSON (default) or human-readable text via `output_mode` parameter
 - **Async-first** -- tool entry points are async; sync HTTP I/O runs in thread pools
 - **Pluggable storage** -- exported data stored via chuk-artifacts (memory, filesystem, S3)
@@ -482,6 +482,7 @@ interpolation between standard waypoints assuming typical sailing times.
 | `route_id` | `str` | *required* | Route identifier (from `maritime_list_routes`) |
 | `departure_date` | `str` | *required* | Ship's departure date as `YYYY-MM-DD` |
 | `target_date` | `str` | *required* | Date to estimate position for as `YYYY-MM-DD` |
+| `use_speed_profiles` | `bool` | `false` | Enrich estimate with CLIWOC-derived speed statistics for the current segment |
 
 **Response:** `PositionEstimateResponse`
 
@@ -508,6 +509,102 @@ interpolation between standard waypoints assuming typical sailing times.
 | `segment.progress` | `float` | 0.0-1.0 progress through current segment |
 | `confidence` | `str` | `high` (at port), `moderate` (between waypoints), `low` (past arrival) |
 | `caveats` | `str[]` | Important caveats about estimate accuracy |
+| `speed_profile` | `dict?` | Present when `use_speed_profiles=True` and data exists for the segment |
+
+**Speed Profile Fields (when present):**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `mean_km_day` | `float` | Mean historical speed for this segment (km/day) |
+| `std_dev_km_day` | `float` | Standard deviation of historical speeds |
+| `sample_count` | `int` | Number of CLIWOC observations used |
+| `departure_month` | `int?` | Month-specific data (null = all-months aggregate) |
+
+---
+
+### Speed Profile Tools
+
+#### `maritime_get_speed_profile`
+
+Get historical sailing speed statistics per route segment, derived from CLIWOC 2.1
+daily position data. Profiles give mean, median, standard deviation, and percentile
+speeds (km/day) for each segment of a route, optionally broken down by departure month
+for seasonal variation.
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `route_id` | `str` | *required* | Route identifier (e.g., `"outward_outer"`, `"return"`) |
+| `departure_month` | `int?` | `None` | Month (1-12) for seasonal data; omit for all-months aggregates |
+
+**Response:** `SpeedProfileResponse`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `route_id` | `str` | Route identifier |
+| `departure_month` | `int?` | Month filter applied (null = all-months) |
+| `segment_count` | `int` | Number of segments with data |
+| `segments` | `SegmentSpeedInfo[]` | Per-segment speed statistics |
+| `notes` | `str?` | Additional context |
+| `message` | `str` | Result message |
+
+**SegmentSpeedInfo fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `segment_from` | `str` | Origin waypoint name |
+| `segment_to` | `str` | Destination waypoint name |
+| `departure_month` | `int?` | Month-specific data (null = all-months aggregate) |
+| `sample_count` | `int` | Number of CLIWOC observations |
+| `mean_km_day` | `float` | Mean speed in km/day |
+| `median_km_day` | `float` | Median speed in km/day |
+| `std_dev_km_day` | `float` | Standard deviation of speed |
+| `min_km_day` | `float?` | Minimum observed speed |
+| `max_km_day` | `float?` | Maximum observed speed |
+| `p25_km_day` | `float?` | 25th percentile speed |
+| `p75_km_day` | `float?` | 75th percentile speed |
+
+---
+
+### Timeline Tools
+
+#### `maritime_get_timeline`
+
+Build a chronological timeline of events for a DAS voyage, combining data from the
+voyage database, route estimates, CLIWOC ship tracks, and wreck records. Useful for
+understanding the full sequence of events in a voyage.
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `voyage_id` | `str` | *required* | DAS voyage identifier (e.g., `"das:0372.1"`) |
+| `include_positions` | `bool` | `false` | Include sampled CLIWOC daily positions as events |
+| `max_positions` | `int` | `20` | Maximum CLIWOC positions to include (when `include_positions=True`) |
+
+**Response:** `TimelineResponse`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `voyage_id` | `str` | Voyage identifier |
+| `ship_name` | `str?` | Ship name from voyage record |
+| `event_count` | `int` | Total number of events |
+| `events` | `TimelineEvent[]` | Chronological event list |
+| `geojson` | `dict?` | GeoJSON LineString from positioned events |
+| `data_sources` | `str[]` | Data sources used (e.g., `["das", "route_estimate", "cliwoc", "maarer"]`) |
+| `message` | `str` | Result message |
+
+**TimelineEvent fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `date` | `str` | Event date (YYYY-MM-DD or partial) |
+| `type` | `str` | Event type: `departure`, `waypoint_estimate`, `cliwoc_position`, `loss`, `arrival` |
+| `title` | `str` | Human-readable event title |
+| `details` | `dict` | Additional event-specific data |
+| `position` | `dict?` | `{lat, lon}` if position is known |
+| `source` | `str` | Data source: `das`, `route_estimate`, `cliwoc`, `maarer` |
 
 ---
 
@@ -525,6 +622,7 @@ positions from 1662-1855, 8 European maritime nations).
 | `nationality` | `str?` | `None` | Two-letter nationality code: NL, UK, ES, FR, SE, US, DE, DK |
 | `year_start` | `int?` | `None` | Earliest year to include |
 | `year_end` | `int?` | `None` | Latest year to include |
+| `ship_name` | `str?` | `None` | Ship name or partial name (case-insensitive; requires CLIWOC 2.1 Full data) |
 | `max_results` | `int` | `50` | Maximum results to return |
 | `output_mode` | `str` | `"json"` | `"json"` or `"text"` |
 
@@ -614,6 +712,44 @@ positions and returns tracks with positions within the search radius.
 | `end_date` | `str?` | Voyage end date |
 | `duration_days` | `int?` | Voyage duration |
 | `position_count` | `int` | Total positions in track |
+
+---
+
+### Cross-Archive Linking Tools
+
+#### `maritime_get_voyage_full`
+
+Get a unified view of a voyage with all linked records: wreck, vessel,
+hull profile, and CLIWOC track. This is the primary tool for cross-archive
+investigation — it follows all links between the DAS voyage database,
+wreck records, vessel registry, hull profiles, and CLIWOC ship tracks
+automatically in a single call.
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `voyage_id` | `str` | required | DAS voyage identifier (e.g. `"das:0372.1"` or `"0372.1"`) |
+| `output_mode` | `str` | `"json"` | `"json"` or `"text"` |
+
+**Response: `VoyageFullResponse`**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `voyage` | `dict` | The DAS voyage record |
+| `wreck` | `dict?` | Linked wreck record (if ship was lost) |
+| `vessel` | `dict?` | Linked vessel record (from DAS vessel registry) |
+| `hull_profile` | `dict?` | Hull profile for the ship type |
+| `cliwoc_track` | `dict?` | Linked CLIWOC track summary (without positions) |
+| `links_found` | `str[]` | Names of linked records found (e.g. `["wreck", "vessel"]`) |
+| `message` | `str` | Human-readable summary |
+
+**Linking strategy:**
+
+1. **Wreck**: Found by matching `voyage_id` in wreck records
+2. **Vessel**: Found by reverse lookup in vessel `voyage_ids` arrays
+3. **Hull profile**: Found by matching voyage `ship_type` to hull profile data
+4. **CLIWOC track**: Found by DAS number (exact match) or ship name + date overlap (fuzzy match)
 
 ---
 

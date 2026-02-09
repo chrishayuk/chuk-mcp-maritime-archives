@@ -2,11 +2,12 @@
 """
 Track Explorer Demo -- chuk-mcp-maritime-archives
 
-Explore CLIWOC historical ship track data (1662-1855): ~261K daily
-logbook positions from 8 European maritime nations.
+Explore CLIWOC 2.1 Full historical ship track data (1662-1855): ~261K
+daily logbook positions from 8 European maritime nations with ship
+names, company affiliations, and voyage endpoints.
 
 Demonstrates:
-    maritime_search_tracks (search by nationality, year range)
+    maritime_search_tracks (search by nationality, year range, ship name)
     maritime_get_track (full position history for a voyage)
     maritime_nearby_tracks (find ships near a position on a date)
 
@@ -84,9 +85,26 @@ async def main() -> None:
         )
 
     # ---------------------------------------------------------------
-    # 4. Get full track detail
+    # 4. Search by ship name (CLIWOC 2.1 Full)
     # ---------------------------------------------------------------
-    print("\n--- Full track detail ---")
+    print("\n--- Search by ship name (CLIWOC 2.1 Full) ---")
+    result = await runner.run("maritime_search_tracks", ship_name="ABEL TASMAN", max_results=5)
+    print(f"  Tracks matching 'ABEL TASMAN': {result['track_count']}")
+    for t in result["tracks"]:
+        nat = t.get("nationality") or "?"
+        company = t.get("company") or "?"
+        vf = t.get("voyage_from") or "?"
+        vt = t.get("voyage_to") or "?"
+        print(
+            f"  Voyage {t['voyage_id']:5d}  [{nat}/{company}]  "
+            f"{vf} -> {vt}  "
+            f"{t.get('start_date', '?'):12s} to {t.get('end_date', '?'):12s}"
+        )
+
+    # ---------------------------------------------------------------
+    # 5. Get full track detail (showing CLIWOC 2.1 Full metadata)
+    # ---------------------------------------------------------------
+    print("\n--- Full track detail (with CLIWOC 2.1 Full metadata) ---")
     # Get first Dutch track
     search = await runner.run("maritime_search_tracks", nationality="NL", max_results=1)
     vid = search["tracks"][0]["voyage_id"]
@@ -94,10 +112,16 @@ async def main() -> None:
     track = result["track"]
 
     print(f"  CLIWOC Voyage {track['voyage_id']}")
+    print(f"  Ship:        {track.get('ship_name', '?')}")
+    print(f"  Company:     {track.get('company', '?')}")
     print(f"  Nationality: {track.get('nationality', '?')}")
-    print(f"  Period: {track.get('start_date', '?')} to {track.get('end_date', '?')}")
-    print(f"  Duration: ~{track.get('duration_days', '?')} days")
-    print(f"  Positions: {track.get('position_count', 0)}")
+    print(f"  From:        {track.get('voyage_from', '?')}")
+    print(f"  To:          {track.get('voyage_to', '?')}")
+    print(f"  Period:      {track.get('start_date', '?')} to {track.get('end_date', '?')}")
+    print(f"  Duration:    ~{track.get('duration_days', '?')} days")
+    print(f"  Positions:   {track.get('position_count', 0)}")
+    if track.get("das_number"):
+        print(f"  DAS Number:  {track['das_number']}")
     print("\n  First 10 positions:")
     for pos in track["positions"][:10]:
         print(
@@ -109,7 +133,7 @@ async def main() -> None:
         print(f"    ... and {len(track['positions']) - 10} more")
 
     # ---------------------------------------------------------------
-    # 5. Find nearby ships
+    # 6. Find nearby ships
     # ---------------------------------------------------------------
     print("\n" + "-" * 60)
     print("Nearby Ships -- who else was in the area?")
@@ -145,21 +169,21 @@ async def main() -> None:
         print(f"  {result.get('error', 'No results')}")
 
     # ---------------------------------------------------------------
-    # 6. Text mode -- track search
+    # 7. Text mode -- track search
     # ---------------------------------------------------------------
     print("\n--- Text mode: French tracks ---")
     text = await runner.run_text("maritime_search_tracks", nationality="FR", max_results=3)
     print(text)
 
     # ---------------------------------------------------------------
-    # 7. Text mode -- track detail
+    # 8. Text mode -- track detail
     # ---------------------------------------------------------------
     print("\n--- Text mode: track detail ---")
     text = await runner.run_text("maritime_get_track", voyage_id=vid)
     print(text)
 
     # ---------------------------------------------------------------
-    # 8. Full JSON for a nearby search
+    # 9. Full JSON for a nearby search
     # ---------------------------------------------------------------
     print("\n--- Full JSON: nearby tracks ---")
     result = await runner.run(
@@ -173,9 +197,11 @@ async def main() -> None:
     print(json.dumps(result, indent=2))
 
     print("\n" + "=" * 60)
-    print("Demo complete! CLIWOC track tools let LLMs search ~261K")
-    print("historical ship positions to find context around maritime")
-    print("events, reconstruct routes, and discover nearby vessels.")
+    print("Demo complete! CLIWOC 2.1 Full track tools let LLMs search")
+    print("~261K historical ship positions with ship names, company")
+    print("affiliations, and voyage endpoints to find context around")
+    print("maritime events, reconstruct routes, and discover nearby")
+    print("vessels.")
     print("=" * 60)
 
 

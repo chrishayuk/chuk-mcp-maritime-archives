@@ -96,6 +96,7 @@ SAMPLE_VESSELS = [
         "type": "retourschip",
         "tonnage": 600,
         "chamber": "Amsterdam",
+        "voyage_ids": ["das:3456"],
     },
     {
         "vessel_id": "das_vessel:002",
@@ -103,6 +104,7 @@ SAMPLE_VESSELS = [
         "type": "retourschip",
         "tonnage": 700,
         "chamber": "Amsterdam",
+        "voyage_ids": ["das:1234"],
     },
 ]
 
@@ -153,6 +155,7 @@ SAMPLE_CARGO = [
 SAMPLE_WRECKS = [
     {
         "wreck_id": "maarer:VOC-0789",
+        "voyage_id": "das:3456",
         "ship_name": "Batavia",
         "loss_date": "1629-06-04",
         "loss_cause": "reef",

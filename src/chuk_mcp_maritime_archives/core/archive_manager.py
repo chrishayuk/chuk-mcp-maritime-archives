@@ -11,6 +11,7 @@ Manages:
 """
 
 import logging
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -19,7 +20,13 @@ from ..constants import (
     NAVIGATION_ERAS,
 )
 from .clients import CargoClient, CrewClient, DASClient, WreckClient
+from .cliwoc_tracks import (
+    find_track_for_voyage,
+    get_track,
+    get_track_by_das_number,
+)
 from .hull_profiles import HULL_PROFILES
+from .voc_routes import estimate_position, get_route as get_route_detail, suggest_route
 
 logger = logging.getLogger(__name__)
 
@@ -101,6 +108,270 @@ class ArchiveManager:
     async def get_voyage(self, voyage_id: str) -> dict | None:
         """Get full voyage details."""
         return await self._das_client.get_by_id(voyage_id)
+
+    # --- Cross-Archive Linking ----------------------------------------------
+
+    async def get_voyage_full(self, voyage_id: str) -> dict | None:
+        """
+        Get unified view of a voyage with all linked records.
+
+        Returns the voyage record enriched with related wreck, vessel,
+        hull profile, and CLIWOC track data (where available).
+        """
+        voyage = await self.get_voyage(voyage_id)
+        if not voyage:
+            return None
+
+        # Find linked wreck record (via voyage_id)
+        wreck = await self._wreck_client.get_by_voyage_id(voyage_id)
+
+        # Find linked vessel record (via voyage_ids array)
+        vessel = self._das_client.get_vessel_for_voyage(voyage_id)
+
+        # Find hull profile for ship type
+        ship_type = voyage.get("ship_type")
+        hull_profile = self.get_hull_profile(ship_type) if ship_type else None
+
+        # Find linked CLIWOC track
+        cliwoc_track = self._find_cliwoc_track_for_voyage(voyage)
+
+        links_found = [
+            k
+            for k, v in {
+                "wreck": wreck,
+                "vessel": vessel,
+                "hull_profile": hull_profile,
+                "cliwoc_track": cliwoc_track,
+            }.items()
+            if v
+        ]
+
+        return {
+            "voyage": voyage,
+            "wreck": wreck,
+            "vessel": vessel,
+            "hull_profile": hull_profile,
+            "cliwoc_track": cliwoc_track,
+            "links_found": links_found,
+        }
+
+    def _find_cliwoc_track_for_voyage(self, voyage: dict) -> dict | None:
+        """Try to find a CLIWOC track linked to this DAS voyage."""
+        # Try DASnumber first (from CLIWOC 2.1 Full data)
+        voyage_number = voyage.get("voyage_number")
+        if voyage_number:
+            track = get_track_by_das_number(voyage_number)
+            if track:
+                # Return summary without full positions
+                return {k: v for k, v in track.items() if k != "positions"}
+
+        # Fall back to ship name + date matching
+        ship_name = voyage.get("ship_name")
+        if ship_name:
+            return find_track_for_voyage(
+                ship_name=ship_name,
+                departure_date=voyage.get("departure_date"),
+                nationality="NL",
+            )
+
+        return None
+
+    # --- Timeline -----------------------------------------------------------
+
+    async def build_timeline(
+        self,
+        voyage_id: str,
+        include_positions: bool = False,
+        max_positions: int = 20,
+    ) -> dict | None:
+        """
+        Build a chronological timeline of events for a voyage.
+
+        Assembles events from multiple archives:
+        - DAS voyage: departure, arrival
+        - Route estimates: waypoint positions
+        - CLIWOC tracks: observed ship positions
+        - MAARER wrecks: loss event
+        """
+        voyage = await self.get_voyage(voyage_id)
+        if not voyage:
+            return None
+
+        events: list[dict] = []
+        data_sources: list[str] = []
+        ship_name = voyage.get("ship_name")
+
+        # --- Departure event ---
+        dep_date = voyage.get("departure_date")
+        dep_port = voyage.get("departure_port", "Unknown")
+        if dep_date:
+            data_sources.append("das")
+            events.append(
+                {
+                    "date": dep_date,
+                    "type": "departure",
+                    "title": f"Departed {dep_port}",
+                    "details": {
+                        "port": dep_port,
+                        "ship_name": ship_name,
+                        "captain": voyage.get("captain"),
+                    },
+                    "position": None,
+                    "source": "das",
+                }
+            )
+
+        # --- Route waypoint estimates ---
+        if dep_date:
+            route_matches = suggest_route(
+                departure_port=voyage.get("departure_port"),
+                destination_port=voyage.get("destination_port"),
+            )
+            if route_matches:
+                route_id = route_matches[0]["route_id"]
+                route_data = get_route_detail(route_id)
+                if route_data:
+                    if "route_estimate" not in data_sources:
+                        data_sources.append("route_estimate")
+                    for wp in route_data.get("waypoints", [])[1:]:  # skip departure
+                        try:
+                            dep_dt = datetime.strptime(dep_date, "%Y-%m-%d")
+                        except ValueError:
+                            break
+                        wp_date = dep_dt + timedelta(days=wp["cumulative_days"])
+                        wp_date_str = wp_date.strftime("%Y-%m-%d")
+
+                        est = estimate_position(
+                            route_id=route_id,
+                            departure_date=dep_date,
+                            target_date=wp_date_str,
+                        )
+                        pos = None
+                        if est and "estimated_position" in est:
+                            ep = est["estimated_position"]
+                            pos = {"lat": ep["lat"], "lon": ep["lon"]}
+
+                        events.append(
+                            {
+                                "date": wp_date_str,
+                                "type": "waypoint_estimate",
+                                "title": f"Estimated at {wp['name']}",
+                                "details": {
+                                    "waypoint": wp["name"],
+                                    "region": wp.get("region", ""),
+                                    "cumulative_days": wp["cumulative_days"],
+                                },
+                                "position": pos,
+                                "source": "route_estimate",
+                            }
+                        )
+
+        # --- CLIWOC track positions ---
+        cliwoc_track_info = self._find_cliwoc_track_for_voyage(voyage)
+        if cliwoc_track_info and include_positions:
+            cliwoc_voyage_id = cliwoc_track_info.get("voyage_id")
+            if cliwoc_voyage_id is not None:
+                full_track = get_track(cliwoc_voyage_id)
+                if full_track:
+                    if "cliwoc" not in data_sources:
+                        data_sources.append("cliwoc")
+                    positions = full_track.get("positions", [])
+                    # Sample positions if there are too many
+                    if len(positions) > max_positions and max_positions > 0:
+                        step = max(1, len(positions) // max_positions)
+                        positions = positions[::step][:max_positions]
+                    for p in positions:
+                        if p.get("date") and p.get("lat") is not None:
+                            events.append(
+                                {
+                                    "date": p["date"],
+                                    "type": "cliwoc_position",
+                                    "title": f"CLIWOC position ({p.get('lat', '?')}N, {p.get('lon', '?')}E)",
+                                    "details": {
+                                        "nationality": full_track.get("nationality"),
+                                    },
+                                    "position": {"lat": p["lat"], "lon": p["lon"]},
+                                    "source": "cliwoc",
+                                }
+                            )
+        elif cliwoc_track_info:
+            if "cliwoc" not in data_sources:
+                data_sources.append("cliwoc")
+
+        # --- Wreck / loss event ---
+        wreck = await self._wreck_client.get_by_voyage_id(voyage_id)
+        if wreck:
+            if "maarer" not in data_sources:
+                data_sources.append("maarer")
+            loss_date = wreck.get("loss_date")
+            if loss_date:
+                pos = None
+                wreck_pos = wreck.get("position")
+                if wreck_pos and wreck_pos.get("lat") is not None:
+                    pos = {"lat": wreck_pos["lat"], "lon": wreck_pos["lon"]}
+                events.append(
+                    {
+                        "date": loss_date,
+                        "type": "loss",
+                        "title": f"Lost: {wreck.get('loss_cause', 'unknown cause')}",
+                        "details": {
+                            "wreck_id": wreck.get("wreck_id"),
+                            "loss_cause": wreck.get("loss_cause"),
+                            "loss_location": wreck.get("loss_location"),
+                            "region": wreck.get("region"),
+                        },
+                        "position": pos,
+                        "source": "maarer",
+                    }
+                )
+
+        # --- Arrival event ---
+        arrival_date = voyage.get("arrival_date")
+        dest_port = voyage.get("destination_port", "Unknown")
+        if arrival_date and voyage.get("fate") != "wrecked":
+            events.append(
+                {
+                    "date": arrival_date,
+                    "type": "arrival",
+                    "title": f"Arrived {dest_port}",
+                    "details": {
+                        "port": dest_port,
+                    },
+                    "position": None,
+                    "source": "das",
+                }
+            )
+
+        # Sort events chronologically
+        events.sort(key=lambda e: e["date"])
+
+        # Build GeoJSON LineString from positioned events
+        geojson = None
+        positioned = [
+            e for e in events if e.get("position") and e["position"].get("lat") is not None
+        ]
+        if len(positioned) >= 2:
+            coords = [[e["position"]["lon"], e["position"]["lat"]] for e in positioned]
+            geojson = {
+                "type": "Feature",
+                "geometry": {
+                    "type": "LineString",
+                    "coordinates": coords,
+                },
+                "properties": {
+                    "voyage_id": voyage_id,
+                    "ship_name": ship_name,
+                    "point_count": len(coords),
+                },
+            }
+
+        return {
+            "voyage_id": voyage_id,
+            "ship_name": ship_name,
+            "events": events,
+            "data_sources": data_sources,
+            "geojson": geojson,
+        }
 
     # --- Wreck Operations ---------------------------------------------------
 

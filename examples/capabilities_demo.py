@@ -60,6 +60,15 @@ async def main() -> None:
     for code, desc in caps["regions"].items():
         print(f"  {code:25s} {desc}")
 
+    # Single archive detail
+    # Single archive detail
+    print("\n--- Single archive detail (maritime_get_archive) ---")
+    das = await runner.run("maritime_get_archive", archive_id="das")
+    print(f"  Archive: {das['archive']['name']}")
+    print(f"  Org:     {das['archive']['organisation']}")
+    print(f"  Period:  {das['archive']['coverage_start']}-{das['archive']['coverage_end']}")
+    print(f"  Records: {das['archive'].get('total_records', '?')}")
+
     # Hull profiles
     profiles = await runner.run("maritime_list_hull_profiles")
     print(f"\nHull Profiles ({profiles['count']}):")

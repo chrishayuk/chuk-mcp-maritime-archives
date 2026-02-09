@@ -31,6 +31,7 @@ class DASClient(BaseArchiveClient):
         super().__init__(data_dir)
         self._voyage_index: dict[str, dict] | None = None
         self._vessel_index: dict[str, dict] | None = None
+        self._voyage_vessel_index: dict[str, dict] | None = None
 
     def _get_voyages(self) -> list[dict]:
         return self._load_json(self.VOYAGES_FILE)
@@ -134,6 +135,15 @@ class DASClient(BaseArchiveClient):
             results = self._filter_by_date_range(results, built_range, "built_year")
 
         return results[:max_results]
+
+    def get_vessel_for_voyage(self, voyage_id: str) -> dict | None:
+        """Find vessel whose voyage_ids array contains this voyage_id."""
+        if self._voyage_vessel_index is None:
+            self._voyage_vessel_index = {}
+            for v in self._get_vessels():
+                for vid in v.get("voyage_ids", []):
+                    self._voyage_vessel_index[vid] = v
+        return self._voyage_vessel_index.get(voyage_id)
 
     async def get_vessel_by_id(self, vessel_id: str) -> dict | None:
         """Retrieve a single vessel by ID."""

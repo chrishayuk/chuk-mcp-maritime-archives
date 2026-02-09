@@ -236,6 +236,54 @@ class TestEstimatePosition:
 
 
 # ---------------------------------------------------------------------------
+# estimate_position with speed profiles
+# ---------------------------------------------------------------------------
+
+
+class TestEstimatePositionWithSpeedProfiles:
+    def test_midway_with_speed_profiles(self):
+        result = estimate_position(
+            "outward_outer", "1628-10-28", "1628-12-27", use_speed_profiles=True
+        )
+        assert result is not None
+        # May or may not have speed_profile depending on data availability
+        if "speed_profile" in result:
+            sp = result["speed_profile"]
+            assert "mean_km_day" in sp
+            assert "std_dev_km_day" in sp
+            assert "sample_count" in sp
+            assert sp["mean_km_day"] > 0
+
+    def test_at_departure_no_speed_profile(self):
+        # At departure point, no interpolation happens
+        result = estimate_position(
+            "outward_outer", "1628-10-28", "1628-10-28", use_speed_profiles=True
+        )
+        assert result is not None
+        assert "speed_profile" not in result
+
+    def test_past_arrival_no_speed_profile(self):
+        result = estimate_position(
+            "outward_outer", "1628-10-28", "1629-07-06", use_speed_profiles=True
+        )
+        assert result is not None
+        assert "speed_profile" not in result
+
+    def test_nonexistent_route_with_speed_profiles(self):
+        result = estimate_position(
+            "nonexistent", "1628-10-28", "1628-12-27", use_speed_profiles=True
+        )
+        assert result is None
+
+    def test_without_speed_profiles_no_extra_field(self):
+        result = estimate_position(
+            "outward_outer", "1628-10-28", "1628-12-27", use_speed_profiles=False
+        )
+        assert result is not None
+        assert "speed_profile" not in result
+
+
+# ---------------------------------------------------------------------------
 # Route MCP tools
 # ---------------------------------------------------------------------------
 
@@ -376,6 +424,18 @@ class TestRouteTools:
             output_mode="text",
         )
         assert "Estimated position" in result or "Route" in result
+
+    @pytest.mark.asyncio
+    async def test_estimate_position_with_speed_profiles(self):
+        fn = self.mcp.get_tool("maritime_estimate_position")
+        result = await fn(
+            route_id="outward_outer",
+            departure_date="1628-10-28",
+            target_date="1629-02-15",
+            use_speed_profiles=True,
+        )
+        parsed = json.loads(result)
+        assert "estimate" in parsed
 
     @pytest.mark.asyncio
     async def test_estimate_position_error(self):

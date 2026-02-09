@@ -125,10 +125,16 @@ async def main() -> None:
 
         for feat in geojson["geojson"]["features"][:5]:
             props = feat["properties"]
-            coords = feat["geometry"]["coordinates"]
-            print(
-                f"     {props.get('ship_name', '?')}: [{coords[0]:.2f}, {coords[1]:.2f}] ({props.get('status', '?')})"
-            )
+            geom = feat.get("geometry")
+            if geom and geom.get("coordinates"):
+                coords = geom["coordinates"]
+                print(
+                    f"     {props.get('ship_name', '?')}: [{coords[0]:.2f}, {coords[1]:.2f}] ({props.get('status', '?')})"
+                )
+            else:
+                print(
+                    f"     {props.get('ship_name', '?')}: [no coords] ({props.get('status', '?')})"
+                )
 
         if geojson["geojson"]["features"]:
             print("\n   First feature (full):")

@@ -2,6 +2,7 @@
 
 import logging
 
+from ...constants import ErrorMessages
 from ...core.voc_routes import (
     estimate_position,
     get_route,
@@ -147,8 +148,7 @@ def register_route_tools(mcp: object, manager: object) -> None:
             if result is None:
                 return format_response(
                     ErrorResponse(
-                        error=f"Route '{route_id}' not found. "
-                        f"Available: {', '.join(get_route_ids())}",
+                        error=ErrorMessages.ROUTE_NOT_FOUND.format(route_id),
                     ),
                     output_mode,
                 )
@@ -172,6 +172,7 @@ def register_route_tools(mcp: object, manager: object) -> None:
         route_id: str,
         departure_date: str,
         target_date: str,
+        use_speed_profiles: bool = False,
         output_mode: str = "json",
     ) -> str:
         """
@@ -188,6 +189,8 @@ def register_route_tools(mcp: object, manager: object) -> None:
             departure_date: Ship's departure date as YYYY-MM-DD
             target_date: Date to estimate position for as YYYY-MM-DD
                 (e.g., last known date, or estimated loss date)
+            use_speed_profiles: If True, enrich estimate with CLIWOC-derived
+                speed statistics for the current route segment (default False)
             output_mode: Response format — "json" (default) or "text"
 
         Returns:
@@ -211,6 +214,7 @@ def register_route_tools(mcp: object, manager: object) -> None:
                 route_id=route_id,
                 departure_date=departure_date,
                 target_date=target_date,
+                use_speed_profiles=use_speed_profiles,
             )
 
             if result is None:

@@ -110,6 +110,7 @@ def estimate_position(
     route_id: str,
     departure_date: str,
     target_date: str,
+    use_speed_profiles: bool = False,
 ) -> dict[str, Any] | None:
     """
     Estimate a ship's position on a given date based on the standard route.
@@ -234,7 +235,22 @@ def estimate_position(
             # Determine region (use source region in first half, dest in second)
             region = wp_a["region"] if progress < 0.5 else wp_b["region"]
 
-            return _build_estimate(
+            # Enrich with speed profile data if requested
+            speed_profile = None
+            if use_speed_profiles:
+                from .speed_profiles import get_segment_speed
+
+                dep_month = dep.month
+                sp = get_segment_speed(route_id, wp_a["name"], wp_b["name"], dep_month)
+                if sp:
+                    speed_profile = {
+                        "mean_km_day": sp["mean_km_day"],
+                        "std_dev_km_day": sp["std_dev_km_day"],
+                        "sample_count": sp["sample_count"],
+                        "departure_month": sp.get("departure_month"),
+                    }
+
+            result = _build_estimate(
                 route_id=route_id,
                 route_name=route["name"],
                 departure_date=departure_date,
@@ -254,6 +270,11 @@ def estimate_position(
                     f"wind and weather."
                 ),
             )
+
+            if speed_profile:
+                result["speed_profile"] = speed_profile
+
+            return result
 
     return None
 

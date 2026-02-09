@@ -6,7 +6,8 @@
     "tonnage": 600,
     "chamber": "Amsterdam",
     "yard": "Peperwerf",
-    "built_year": "1628"
+    "built_year": "1628",
+    "voyage_ids": ["das:3456"]
   },
   {
     "vessel_id": "das_vessel:002",
@@ -15,6 +16,7 @@
     "tonnage": 700,
     "chamber": "Amsterdam",
     "yard": null,
-    "built_year": "1748"
+    "built_year": "1748",
+    "voyage_ids": ["das:1234"]
   }
 ]

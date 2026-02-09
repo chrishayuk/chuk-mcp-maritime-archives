@@ -1,6 +1,7 @@
 [
   {
     "wreck_id": "maarer:VOC-0789",
+    "voyage_id": "das:3456",
     "ship_name": "Batavia",
     "loss_date": "1629-06-04",
     "loss_cause": "reef",

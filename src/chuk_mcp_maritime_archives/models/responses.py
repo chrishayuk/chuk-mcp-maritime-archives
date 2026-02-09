@@ -159,6 +159,96 @@ class VoyageDetailResponse(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# Cross-archive linking responses
+# ---------------------------------------------------------------------------
+
+
+class VoyageFullResponse(BaseModel):
+    """Unified view of a voyage with all linked records."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    voyage: dict[str, Any]
+    wreck: dict[str, Any] | None = None
+    vessel: dict[str, Any] | None = None
+    hull_profile: dict[str, Any] | None = None
+    cliwoc_track: dict[str, Any] | None = None
+    links_found: list[str]
+    message: str = ""
+
+    def to_text(self) -> str:
+        v = self.voyage
+        lines = [
+            self.message,
+            "",
+            f"Voyage: {v.get('voyage_id', '?')}",
+            f"Ship: {v.get('ship_name', '?')} ({v.get('ship_type', '?')})",
+            f"Captain: {v.get('captain', 'Unknown')}",
+            f"Route: {v.get('departure_port', '?')} -> {v.get('destination_port', '?')}",
+            f"Departure: {v.get('departure_date', '?')}",
+            f"Arrival: {v.get('arrival_date', '?')}",
+            f"Fate: {v.get('fate', '?')}",
+        ]
+
+        if self.wreck:
+            w = self.wreck
+            lines.extend(
+                [
+                    "",
+                    "--- Wreck Record ---",
+                    f"Wreck ID: {w.get('wreck_id', '?')}",
+                    f"Lost: {w.get('loss_date', '?')}",
+                    f"Cause: {w.get('loss_cause', '?')}",
+                    f"Location: {w.get('loss_location', '?')}",
+                    f"Region: {w.get('region', '?')}",
+                    f"Status: {w.get('status', '?')}",
+                ]
+            )
+
+        if self.vessel:
+            vs = self.vessel
+            lines.extend(
+                [
+                    "",
+                    "--- Vessel ---",
+                    f"Vessel ID: {vs.get('vessel_id', '?')}",
+                    f"Name: {vs.get('name', '?')}",
+                    f"Type: {vs.get('type', '?')}",
+                    f"Tonnage: {vs.get('tonnage', '?')} lasten",
+                    f"Built: {vs.get('built_year', '?')}",
+                    f"Voyages: {len(vs.get('voyage_ids', []))}",
+                ]
+            )
+
+        if self.hull_profile:
+            hp = self.hull_profile
+            lines.extend(
+                [
+                    "",
+                    "--- Hull Profile ---",
+                    f"Ship type: {hp.get('ship_type', '?')}",
+                    f"Description: {hp.get('description', '?')}",
+                ]
+            )
+
+        if self.cliwoc_track:
+            ct = self.cliwoc_track
+            lines.extend(
+                [
+                    "",
+                    "--- CLIWOC Track ---",
+                    f"CLIWOC voyage: {ct.get('voyage_id', '?')}",
+                    f"Nationality: {ct.get('nationality', '?')}",
+                    f"Period: {ct.get('start_date', '?')} to {ct.get('end_date', '?')}",
+                    f"Positions: {ct.get('position_count', '?')}",
+                ]
+            )
+
+        lines.extend(["", f"Links found: {', '.join(self.links_found) or 'none'}"])
+        return "\n".join(lines)
+
+
+# ---------------------------------------------------------------------------
 # Wreck responses
 # ---------------------------------------------------------------------------
 
@@ -540,6 +630,52 @@ class RouteDetailResponse(BaseModel):
         return "\n".join(lines)
 
 
+class SegmentSpeedInfo(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    segment_from: str
+    segment_to: str
+    departure_month: int | None = None
+    sample_count: int
+    mean_km_day: float
+    median_km_day: float
+    std_dev_km_day: float
+    min_km_day: float | None = None
+    max_km_day: float | None = None
+    p25_km_day: float | None = None
+    p75_km_day: float | None = None
+
+
+class SpeedProfileResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    route_id: str
+    departure_month: int | None = None
+    segment_count: int
+    segments: list[SegmentSpeedInfo]
+    notes: str | None = None
+    message: str = ""
+
+    def to_text(self) -> str:
+        lines = [
+            self.message,
+            f"Route: {self.route_id}",
+            f"Segments: {self.segment_count}",
+            "",
+        ]
+        if self.departure_month:
+            lines.append(f"Departure month: {self.departure_month}")
+        for s in self.segments:
+            lines.append(
+                f"  {s.segment_from} -> {s.segment_to}: "
+                f"{s.mean_km_day:.0f} km/day (median {s.median_km_day:.0f}, "
+                f"std {s.std_dev_km_day:.0f}, n={s.sample_count})"
+            )
+        if self.notes:
+            lines.append(f"\nNotes: {self.notes}")
+        return "\n".join(lines)
+
+
 class PositionEstimateResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -577,6 +713,10 @@ class TrackInfo(BaseModel):
 
     voyage_id: int
     nationality: str | None = None
+    ship_name: str | None = None
+    company: str | None = None
+    voyage_from: str | None = None
+    voyage_to: str | None = None
     start_date: str | None = None
     end_date: str | None = None
     duration_days: int | None = None
@@ -596,7 +736,8 @@ class TrackSearchResponse(BaseModel):
         lines = [self.message, ""]
         for t in self.tracks:
             nat = f" [{t.nationality}]" if t.nationality else ""
-            lines.append(f"  Voyage {t.voyage_id}{nat}: {t.start_date} to {t.end_date}")
+            ship = f" {t.ship_name}" if t.ship_name else ""
+            lines.append(f"  Voyage {t.voyage_id}{nat}{ship}: {t.start_date} to {t.end_date}")
             lines.append(f"    {t.position_count} positions, ~{t.duration_days or '?'} days")
         return "\n".join(lines)
 
@@ -611,11 +752,21 @@ class TrackDetailResponse(BaseModel):
         t = self.track
         lines = [
             f"CLIWOC Voyage {t.get('voyage_id', '?')}",
-            f"Nationality: {t.get('nationality', '?')}",
-            f"Period: {t.get('start_date', '?')} to {t.get('end_date', '?')}",
-            f"Duration: ~{t.get('duration_days', '?')} days",
-            f"Positions: {t.get('position_count', 0)}",
         ]
+        if t.get("ship_name"):
+            lines.append(f"Ship: {t['ship_name']}")
+        if t.get("company"):
+            lines.append(f"Company: {t['company']}")
+        lines.append(f"Nationality: {t.get('nationality', '?')}")
+        if t.get("voyage_from") or t.get("voyage_to"):
+            lines.append(f"Route: {t.get('voyage_from', '?')} -> {t.get('voyage_to', '?')}")
+        lines.extend(
+            [
+                f"Period: {t.get('start_date', '?')} to {t.get('end_date', '?')}",
+                f"Duration: ~{t.get('duration_days', '?')} days",
+                f"Positions: {t.get('position_count', 0)}",
+            ]
+        )
         positions = t.get("positions", [])
         if positions:
             lines.append("")
@@ -634,6 +785,8 @@ class NearbyTrackInfo(BaseModel):
 
     voyage_id: int
     nationality: str | None = None
+    ship_name: str | None = None
+    company: str | None = None
     start_date: str | None = None
     end_date: str | None = None
     duration_days: int | None = None
@@ -735,6 +888,52 @@ class GeoJSONExportResponse(BaseModel):
         ]
         if self.artifact_ref:
             lines.append(f"Artifact: {self.artifact_ref}")
+        return "\n".join(lines)
+
+
+# ---------------------------------------------------------------------------
+# Timeline responses
+# ---------------------------------------------------------------------------
+
+
+class TimelineEvent(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    date: str
+    type: str
+    title: str
+    details: dict[str, Any] = Field(default_factory=dict)
+    position: dict[str, Any] | None = None
+    source: str
+
+
+class TimelineResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    voyage_id: str
+    ship_name: str | None = None
+    event_count: int
+    events: list[TimelineEvent]
+    geojson: dict[str, Any] | None = None
+    data_sources: list[str] = Field(default_factory=list)
+    message: str = ""
+
+    def to_text(self) -> str:
+        lines = [
+            self.message,
+            f"Voyage: {self.voyage_id}",
+        ]
+        if self.ship_name:
+            lines.append(f"Ship: {self.ship_name}")
+        lines.append(f"Events: {self.event_count}")
+        lines.append("")
+        for e in self.events:
+            pos_str = ""
+            if e.position:
+                pos_str = f" [{e.position.get('lat', '?')}N, {e.position.get('lon', '?')}E]"
+            lines.append(f"  {e.date}  [{e.type}] {e.title}{pos_str}")
+        if self.data_sources:
+            lines.append(f"\nSources: {', '.join(self.data_sources)}")
         return "\n".join(lines)
 
 

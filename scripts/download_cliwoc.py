@@ -2,18 +2,18 @@
 """
 Download CLIWOC (Climatological Database for World's Oceans) ship track data.
 
-Downloads the CLIWOC Slim dataset from Figshare and extracts ship
-positions and voyage tracks for all nationalities.  The CLIWOC dataset
-contains ~261K daily logbook observations from 1662-1855 across eight
-European maritime nations: NL (Dutch), UK, ES (Spanish), FR (French),
-SE (Swedish), US, DE (German), DK (Danish).
+Downloads the CLIWOC 2.1 Full dataset from HistoricalClimatology.com and
+extracts ship positions, voyage metadata, and vessel information for all
+nationalities.  The CLIWOC dataset contains ~282K daily logbook observations
+from 1662-1855 across European maritime nations.
 
 Source:
+    CLIWOC 2.1 -- https://www.historicalclimatology.com/cliwoc.html
+    GeoPackage: 182 columns, 282K records
+
+    Fallback (CLIWOC Slim):
     Arribas-Bel, D. "CLIWOC Slim and Routes" (2020)
     https://figshare.com/articles/dataset/CLIWOC_Slim_and_Routes/11941224
-
-    Original CLIWOC 2.1:
-    https://www.historicalclimatology.com/cliwoc.html
 
 Produces:
     data/cliwoc_tracks.json  -- Ship position records grouped by voyage
@@ -35,13 +35,13 @@ logger = logging.getLogger(__name__)
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = PROJECT_ROOT / "data"
 
-# Figshare direct download URLs
+# CLIWOC 2.1 Full GeoPackage (~181 MB)
+CLIWOC_FULL_URL = "https://historicalclimatology.com/uploads/4/5/1/4/4514421/cliwoc21.gpkg"
+CLIWOC_FULL_SIZE_MB = 181
+
+# Figshare fallback URLs (CLIWOC Slim)
 CLIWOC_SLIM_URL = "https://ndownloader.figshare.com/files/21940248"
 CLIWOC_ROUTES_URL = "https://ndownloader.figshare.com/files/21940242"
-
-# File sizes for progress reporting (approximate)
-CLIWOC_SLIM_SIZE_MB = 37
-CLIWOC_ROUTES_SIZE_MB = 6
 
 
 def download_file(url: str, dest: Path, description: str) -> None:
@@ -57,18 +57,163 @@ def download_file(url: str, dest: Path, description: str) -> None:
             total_mb = total_size / (1024 * 1024)
             print(f"\r  {mb:.1f}/{total_mb:.1f} MB ({pct}%)", end="", flush=True)
 
-    urllib.request.urlretrieve(url, str(dest), reporthook=_progress)
+    urllib.request.urlretrieve(url, str(dest), reporthook=_progress)  # noqa: S310
     print()  # newline after progress
     size_mb = dest.stat().st_size / (1024 * 1024)
     logger.info("  Saved: %s (%.1f MB)", dest.name, size_mb)
 
 
-def extract_positions(db_path: Path) -> list[dict]:
+def _format_das_number(das_raw: float | None) -> str | None:
+    """Convert CLIWOC DASnumber float (e.g. 3984.6) to DAS string (e.g. '3984.6')."""
+    if das_raw is None or das_raw <= 0:
+        return None
+    s = f"{das_raw:.1f}"
+    # Remove trailing zeros but keep at least one decimal
+    if "." in s:
+        s = s.rstrip("0")
+        if s.endswith("."):
+            s += "0"
+    return s
+
+
+# ---------------------------------------------------------------------------
+# CLIWOC 2.1 Full extraction
+# ---------------------------------------------------------------------------
+
+
+def extract_full_positions(db_path: Path) -> list[dict]:
     """
-    Extract all ship positions from CLIWOC Slim GeoPackage.
+    Extract ship positions with metadata from CLIWOC 2.1 Full GeoPackage.
 
     Returns list of position dicts sorted by (ID, date).
     """
+    conn = sqlite3.connect(str(db_path))
+    conn.row_factory = sqlite3.Row
+
+    cursor = conn.execute(
+        """
+        SELECT ID, YR, MO, DY, latitude, longitude, C1,
+               ShipName, Company, DASnumber, ShipType,
+               VoyageFrom, VoyageTo
+        FROM CLIWOC21
+        WHERE latitude IS NOT NULL
+          AND longitude IS NOT NULL
+        ORDER BY ID, YR, MO, DY
+        """
+    )
+
+    positions = []
+    for row in cursor:
+        yr = row["YR"]
+        mo = row["MO"]
+        dy = row["DY"]
+
+        if yr and mo and dy:
+            try:
+                date_str = f"{int(yr):04d}-{int(mo):02d}-{int(dy):02d}"
+            except (ValueError, TypeError):
+                date_str = None
+        else:
+            date_str = None
+
+        positions.append(
+            {
+                "voyage_id": int(row["ID"]),
+                "date": date_str,
+                "lat": round(float(row["latitude"]), 4),
+                "lon": round(float(row["longitude"]), 4),
+                "nationality": row["C1"],
+                "year": int(yr) if yr else None,
+                # Voyage-level metadata (same for all positions in a voyage)
+                "ship_name": row["ShipName"],
+                "company": row["Company"],
+                "das_number": _format_das_number(row["DASnumber"]),
+                "ship_type": row["ShipType"],
+                "voyage_from": row["VoyageFrom"],
+                "voyage_to": row["VoyageTo"],
+            }
+        )
+
+    conn.close()
+    return positions
+
+
+def group_full_positions_into_tracks(positions: list[dict]) -> list[dict]:
+    """
+    Group individual position records from CLIWOC 2.1 into voyage tracks.
+
+    Extracts per-voyage metadata (ship_name, company, das_number) from the
+    first record in each group.
+    """
+    voyages: dict[int, list[dict]] = {}
+    for pos in positions:
+        vid = pos["voyage_id"]
+        if vid not in voyages:
+            voyages[vid] = []
+        voyages[vid].append(pos)
+
+    tracks = []
+    for voyage_id, points in sorted(voyages.items()):
+        dates = [p["date"] for p in points if p["date"]]
+        years = [p["year"] for p in points if p["year"]]
+        nationality = points[0]["nationality"] if points else None
+
+        # Extract voyage-level metadata from first record
+        first = points[0]
+        ship_name = first.get("ship_name")
+        company = first.get("company")
+        das_number = first.get("das_number")
+        ship_type = first.get("ship_type")
+        voyage_from = first.get("voyage_from")
+        voyage_to = first.get("voyage_to")
+
+        track: dict = {
+            "voyage_id": voyage_id,
+            "nationality": nationality,
+            "ship_name": ship_name,
+            "company": company,
+            "das_number": das_number,
+            "ship_type": ship_type,
+            "voyage_from": voyage_from,
+            "voyage_to": voyage_to,
+            "start_date": min(dates) if dates else None,
+            "end_date": max(dates) if dates else None,
+            "duration_days": None,
+            "year_start": min(years) if years else None,
+            "year_end": max(years) if years else None,
+            "position_count": len(points),
+            "positions": [{"date": p["date"], "lat": p["lat"], "lon": p["lon"]} for p in points],
+        }
+        # Compute duration from dates
+        if track["start_date"] and track["end_date"] and len(dates) >= 2:
+            from datetime import date as dt_date
+
+            try:
+                start = dt_date.fromisoformat(track["start_date"])
+                end = dt_date.fromisoformat(track["end_date"])
+                track["duration_days"] = (end - start).days
+            except ValueError:
+                pass
+
+        # Remove None values from metadata to keep JSON clean
+        track = {k: v for k, v in track.items() if v is not None}
+        # Always keep these keys
+        for key in ("voyage_id", "position_count", "positions"):
+            if key not in track:
+                track[key] = points if key == "positions" else 0
+
+        tracks.append(track)
+
+    return tracks
+
+
+# ---------------------------------------------------------------------------
+# CLIWOC Slim fallback extraction
+# ---------------------------------------------------------------------------
+
+
+def extract_slim_positions(db_path: Path) -> list[dict]:
+    """Extract positions from CLIWOC Slim GeoPackage (fallback)."""
     conn = sqlite3.connect(str(db_path))
     conn.row_factory = sqlite3.Row
 
@@ -88,7 +233,6 @@ def extract_positions(db_path: Path) -> list[dict]:
         mo = row["MO"]
         dy = row["DY"]
 
-        # Format date safely
         if yr and mo and dy:
             try:
                 date_str = f"{int(yr):04d}-{int(mo):02d}-{int(dy):02d}"
@@ -113,11 +257,7 @@ def extract_positions(db_path: Path) -> list[dict]:
 
 
 def extract_routes(db_path: Path) -> list[dict]:
-    """
-    Extract all route metadata from CLIWOC Routes GeoPackage.
-
-    Returns route summary dicts (without geometry — just metadata).
-    """
+    """Extract route metadata from CLIWOC Routes GeoPackage."""
     conn = sqlite3.connect(str(db_path))
     conn.row_factory = sqlite3.Row
 
@@ -146,16 +286,10 @@ def extract_routes(db_path: Path) -> list[dict]:
     return routes
 
 
-def group_positions_into_tracks(
+def group_slim_positions_into_tracks(
     positions: list[dict], route_metadata: dict[int, dict]
 ) -> list[dict]:
-    """
-    Group individual position records into voyage tracks.
-
-    Each track has metadata (start/end date, duration, nationality) and
-    a list of dated positions.
-    """
-    # Group by voyage_id
+    """Group Slim position records into voyage tracks (no vessel metadata)."""
     voyages: dict[int, list[dict]] = {}
     for pos in positions:
         vid = pos["voyage_id"]
@@ -165,14 +299,9 @@ def group_positions_into_tracks(
 
     tracks = []
     for voyage_id, points in sorted(voyages.items()):
-        # Get dates for this track
         dates = [p["date"] for p in points if p["date"]]
         years = [p["year"] for p in points if p["year"]]
-
-        # Determine nationality from first point
         nationality = points[0]["nationality"] if points else None
-
-        # Get route metadata if available
         meta = route_metadata.get(voyage_id, {})
 
         track = {
@@ -191,6 +320,11 @@ def group_positions_into_tracks(
     return tracks
 
 
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
+
+
 def main() -> None:
     logger.info("=" * 60)
     logger.info("CLIWOC Ship Track Download — chuk-mcp-maritime-archives")
@@ -199,67 +333,104 @@ def main() -> None:
 
     DATA_DIR.mkdir(parents=True, exist_ok=True)
 
-    # Step 1: Download CLIWOC Slim GeoPackage
-    logger.info("Step 1: Downloading CLIWOC Slim (~%d MB)...", CLIWOC_SLIM_SIZE_MB)
+    tracks: list[dict] = []
+    source_name = ""
+    source_url = ""
+
     with tempfile.TemporaryDirectory() as tmpdir:
-        slim_path = Path(tmpdir) / "cliwoc_slim.geopackage"
-        download_file(CLIWOC_SLIM_URL, slim_path, "CLIWOC Slim GeoPackage")
+        # Try CLIWOC 2.1 Full first
+        logger.info("Step 1: Downloading CLIWOC 2.1 Full (~%d MB)...", CLIWOC_FULL_SIZE_MB)
+        try:
+            full_path = Path(tmpdir) / "cliwoc21.gpkg"
+            download_file(CLIWOC_FULL_URL, full_path, "CLIWOC 2.1 Full GeoPackage")
 
-        # Step 2: Download CLIWOC Routes GeoPackage
-        logger.info("")
-        logger.info("Step 2: Downloading CLIWOC Routes (~%d MB)...", CLIWOC_ROUTES_SIZE_MB)
-        routes_path = Path(tmpdir) / "cliwoc_routes.geopackage"
-        download_file(CLIWOC_ROUTES_URL, routes_path, "CLIWOC Routes GeoPackage")
+            logger.info("")
+            logger.info("Step 2: Extracting positions with vessel metadata...")
+            positions = extract_full_positions(full_path)
+            logger.info("  Found %d position records", len(positions))
 
-        # Step 3: Extract positions
-        logger.info("")
-        logger.info("Step 3: Extracting ship positions...")
-        positions = extract_positions(slim_path)
-        logger.info("  Found %d position records", len(positions))
+            logger.info("")
+            logger.info("Step 3: Grouping into voyage tracks...")
+            tracks = group_full_positions_into_tracks(positions)
+            source_name = "CLIWOC 2.1 Full (HistoricalClimatology.com)"
+            source_url = "https://www.historicalclimatology.com/cliwoc.html"
 
-        # Step 4: Extract route metadata
-        logger.info("")
-        logger.info("Step 4: Extracting route metadata...")
-        routes = extract_routes(routes_path)
-        logger.info("  Found %d voyage routes", len(routes))
+            ships_with_name = sum(1 for t in tracks if t.get("ship_name"))
+            ships_with_das = sum(1 for t in tracks if t.get("das_number"))
+            logger.info("  Created %d voyage tracks", len(tracks))
+            logger.info("    With ship name: %d", ships_with_name)
+            logger.info("    With DAS number: %d (linked to DAS voyages)", ships_with_das)
 
-    # Step 5: Group into tracks
-    logger.info("")
-    logger.info("Step 5: Grouping positions into voyage tracks...")
-    route_meta = {r["voyage_id"]: r for r in routes}
-    tracks = group_positions_into_tracks(positions, route_meta)
-    logger.info("  Created %d voyage tracks", len(tracks))
+        except Exception as e:
+            logger.warning("")
+            logger.warning("CLIWOC 2.1 Full download failed: %s", e)
+            logger.warning("Falling back to CLIWOC Slim...")
+            logger.info("")
+
+            # Fallback: CLIWOC Slim + Routes
+            logger.info("Step 1b: Downloading CLIWOC Slim (~37 MB)...")
+            slim_path = Path(tmpdir) / "cliwoc_slim.geopackage"
+            download_file(CLIWOC_SLIM_URL, slim_path, "CLIWOC Slim GeoPackage")
+
+            logger.info("")
+            logger.info("Step 2b: Downloading CLIWOC Routes (~6 MB)...")
+            routes_path = Path(tmpdir) / "cliwoc_routes.geopackage"
+            download_file(CLIWOC_ROUTES_URL, routes_path, "CLIWOC Routes GeoPackage")
+
+            logger.info("")
+            logger.info("Step 3b: Extracting positions...")
+            positions = extract_slim_positions(slim_path)
+            logger.info("  Found %d position records", len(positions))
+
+            logger.info("")
+            logger.info("Step 4b: Extracting route metadata...")
+            routes = extract_routes(routes_path)
+            route_meta = {r["voyage_id"]: r for r in routes}
+
+            logger.info("")
+            logger.info("Step 5b: Grouping into voyage tracks...")
+            tracks = group_slim_positions_into_tracks(positions, route_meta)
+            source_name = "CLIWOC Slim and Routes (Figshare)"
+            source_url = "https://figshare.com/articles/dataset/CLIWOC_Slim_and_Routes/11941224"
+            logger.info("  Created %d voyage tracks", len(tracks))
 
     # Compute stats
     total_positions = sum(t["position_count"] for t in tracks)
-    years = [t["year_start"] for t in tracks if t["year_start"]]
+    years = [t.get("year_start") for t in tracks if t.get("year_start")]
     min_year = min(years) if years else "?"
     max_year = max(years) if years else "?"
 
-    # Nationality breakdown
     nat_counts: dict[str, int] = {}
     for t in tracks:
-        n = t["nationality"] or "unknown"
+        n = t.get("nationality") or "unknown"
         nat_counts[n] = nat_counts.get(n, 0) + 1
 
-    # Step 6: Save
+    company_counts: dict[str, int] = {}
+    for t in tracks:
+        c = t.get("company")
+        if c:
+            company_counts[c] = company_counts.get(c, 0) + 1
+
+    # Save
     logger.info("")
-    logger.info("Step 6: Saving to data/cliwoc_tracks.json...")
+    logger.info("Step 4: Saving to data/cliwoc_tracks.json...")
     output = {
-        "source": "CLIWOC Slim and Routes (Figshare)",
-        "source_url": "https://figshare.com/articles/dataset/CLIWOC_Slim_and_Routes/11941224",
+        "source": source_name,
+        "source_url": source_url,
         "description": (
             "Ship position records from the CLIWOC database, "
-            "derived from historical ship logbooks (1662-1855). "
-            "Covers Dutch, British, Spanish, French, Swedish, "
-            "American, German, and Danish vessels."
+            "derived from historical ship logbooks. "
+            "Covers Dutch, British, Spanish, French, and other European vessels."
         ),
         "nationalities": dict(sorted(nat_counts.items())),
+        "companies": dict(sorted(company_counts.items())) if company_counts else None,
         "date_range": f"{min_year}-{max_year}",
         "total_voyages": len(tracks),
         "total_positions": total_positions,
         "tracks": tracks,
     }
+    # Remove None from top-level
+    output = {k: v for k, v in output.items() if v is not None}
 
     output_path = DATA_DIR / "cliwoc_tracks.json"
     with open(output_path, "w") as f:
@@ -271,12 +442,17 @@ def main() -> None:
     logger.info("")
     logger.info("=" * 60)
     logger.info("Summary:")
+    logger.info("  Source:        %s", source_name)
     logger.info("  Voyages:       %d", len(tracks))
     logger.info("  Positions:     %d", total_positions)
     logger.info("  Years:         %s to %s", min_year, max_year)
     logger.info("  Nationalities: %s", ", ".join(sorted(nat_counts.keys())))
     for nat, count in sorted(nat_counts.items(), key=lambda x: -x[1]):
         logger.info("    %s: %d voyages", nat, count)
+    if company_counts:
+        logger.info("  Companies:")
+        for co, count in sorted(company_counts.items(), key=lambda x: -x[1])[:10]:
+            logger.info("    %s: %d voyages", co, count)
     logger.info("  Output:        %s", output_path)
     logger.info("=" * 60)
 

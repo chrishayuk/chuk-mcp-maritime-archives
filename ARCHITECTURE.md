@@ -49,6 +49,7 @@ Reference data modules load from JSON files in `data/`:
 - `voc_gazetteer` -- ~160 historical place names from `data/gazetteer.json`
 - `voc_routes` -- 8 standard sailing routes from `data/routes.json`
 - `hull_profiles` -- 6 ship type profiles from `data/hull_profiles.json`
+- `speed_profiles` -- 215 speed profiles across 6 routes from `data/speed_profiles.json`
 
 `ArchiveManager` instantiates all clients at startup and orchestrates lookups
 across them.
@@ -78,7 +79,7 @@ sample data fallbacks.
 
 ### 9. Test Coverage -- 98%+
 
-All modules maintain 97%+ branch coverage (396 tests across 8 test modules). Tests use
+All modules maintain 97%+ branch coverage (483 tests across 11 test modules). Tests use
 `pytest-asyncio` and mock at the client HTTP boundary (`_http_get`), not at the manager
 level, to exercise the full data flow from tool to client.
 
@@ -97,8 +98,10 @@ level, to exercise the full data flow from tool to client.
                         |  crew/ cargo/       |
                         |  wrecks/ vessels/   |
                         |  location/ routes/  |
-                        |  tracks/ position/  |
-                        |  export/ discovery/ |
+                        |  tracks/ linking/   |
+                        |  speed/ timeline/   |
+                        |  position/ export/  |
+                        |  discovery/         |
                         +---------------------+
                                     |
                                     | validate params, format response
@@ -144,8 +147,11 @@ server.py                           # CLI entry point (sync)
   |     +-- tools/location/api.py         # maritime_lookup_location, maritime_list_locations
   |     +-- tools/routes/api.py           # maritime_list_routes, maritime_get_route,
   |     |                                 #   maritime_estimate_position
-  |     +-- tools/tracks/api.py          # maritime_search_tracks, maritime_get_track,
+  |     +-- tools/tracks/api.py           # maritime_search_tracks, maritime_get_track,
   |     |                                 #   maritime_nearby_tracks
+  |     +-- tools/linking/api.py          # maritime_get_voyage_full
+  |     +-- tools/speed/api.py            # maritime_get_speed_profile
+  |     +-- tools/timeline/api.py         # maritime_get_timeline
   |     +-- tools/position/api.py         # maritime_assess_position
   |     +-- tools/export/api.py           # maritime_export_geojson, maritime_get_statistics
   |     +-- tools/discovery/api.py        # maritime_capabilities
@@ -157,6 +163,7 @@ server.py                           # CLI entry point (sync)
   |           +-- core/hull_profiles.py          # Hull profiles (from data/hull_profiles.json)
   |           +-- core/voc_gazetteer.py          # VOC gazetteer (from data/gazetteer.json)
   |           +-- core/voc_routes.py             # VOC routes (from data/routes.json)
+  |           +-- core/speed_profiles.py        # Speed profiles (from data/speed_profiles.json)
   |           +-- core/cliwoc_tracks.py          # CLIWOC tracks (from data/cliwoc_tracks.json)
 
 models/maritime.py              # Domain models (extra="allow")
@@ -180,6 +187,7 @@ src/chuk_mcp_maritime_archives/
 |   +-- hull_profiles.py     # Hull profiles (loaded from data/hull_profiles.json)
 |   +-- voc_gazetteer.py     # VOC gazetteer (loaded from data/gazetteer.json)
 |   +-- voc_routes.py        # VOC routes (loaded from data/routes.json)
+|   +-- speed_profiles.py   # Speed profiles (loaded from data/speed_profiles.json)
 |   +-- cliwoc_tracks.py     # CLIWOC tracks (loaded from data/cliwoc_tracks.json)
 |   +-- clients/
 |       +-- __init__.py
@@ -203,6 +211,9 @@ src/chuk_mcp_maritime_archives/
     +-- location/      # maritime_lookup_location, maritime_list_locations
     +-- routes/        # maritime_list_routes, maritime_get_route, maritime_estimate_position
     +-- tracks/        # maritime_search_tracks, maritime_get_track, maritime_nearby_tracks
+    +-- linking/       # maritime_get_voyage_full
+    +-- speed/         # maritime_get_speed_profile
+    +-- timeline/      # maritime_get_timeline
     +-- position/      # maritime_assess_position
     +-- export/        # maritime_export_geojson, maritime_get_statistics
     +-- discovery/     # maritime_capabilities
@@ -222,7 +233,7 @@ or `os.environ` directly.
 ### `async_server.py`
 
 Creates the `ChukMCPServer` MCP instance, instantiates `ArchiveManager`, and registers
-all twelve tool groups. Each tool module receives the MCP instance and the shared
+all fifteen tool groups. Each tool module receives the MCP instance and the shared
 `ArchiveManager`.
 
 ### `core/archive_manager.py`
@@ -232,6 +243,8 @@ The central orchestrator. Manages:
 - **Data source clients**: DASClient, CrewClient, CargoClient, WreckClient
 - **LRU caches**: OrderedDict caches for voyages, wrecks, and vessels
 - **Hull profile lookups**: static reference data for 6 VOC ship types
+- **Cross-archive linking**: unified voyage view with wreck, vessel, hull profile, CLIWOC track
+- **Timeline assembly**: chronological events from voyages, route estimates, CLIWOC tracks, and wrecks
 - **Position assessment**: navigation era detection, uncertainty estimation
 - **GeoJSON export**: wreck position FeatureCollection generation
 - **Aggregate statistics**: loss statistics computed from wreck data
@@ -284,16 +297,27 @@ Standard VOC sailing routes loaded from `data/routes.json`. Defines 8 routes (ou
 outer/inner, return, Japan, Spice Islands, Ceylon, Coromandel, Malabar) as sequences
 of waypoints with cumulative sailing days, stop durations, hazards, and season notes.
 Key feature: `estimate_position()` interpolates a ship's position on any date via linear
-interpolation between waypoints.
+interpolation between waypoints, optionally enriched with CLIWOC-derived speed profiles.
+
+### `core/speed_profiles.py`
+
+Historical sailing speed statistics loaded from `data/speed_profiles.json` (generated by
+`scripts/generate_speed_profiles.py` from CLIWOC 2.1 daily positions). Contains 215
+profiles across 6 routes with mean, median, standard deviation, and percentile speeds
+(km/day) per route segment. Provides: `get_speed_profile()` for all segments of a route
+with optional departure-month filtering, `get_segment_speed()` for single-segment lookup
+with month-to-all-months fallback, and `list_profiled_routes()` for available route IDs.
 
 ### `core/cliwoc_tracks.py`
 
 CLIWOC ship track data loaded from `data/cliwoc_tracks.json` (produced by
-`scripts/download_cliwoc.py`). Contains ~261K daily logbook positions from 1,973 voyages
-across 8 European maritime nations (1662-1855). Provides: `search_tracks()` with
-nationality/year filters, `get_track()` for full position history, `nearby_tracks()` for
-proximity search using haversine distance. Useful for finding contextual ship traffic
-around wreck sites and incidents.
+`scripts/download_cliwoc.py`). Contains ~261K daily logbook positions from 1,981 voyages
+across 8 European maritime nations (1662-1855). Uses CLIWOC 2.1 Full data (182 columns)
+with ship names, company, DAS numbers, and ship types. Provides: `search_tracks()` with
+nationality/year/ship name filters, `get_track()` for full position history,
+`nearby_tracks()` for proximity search using haversine distance,
+`get_track_by_das_number()` and `find_track_for_voyage()` for cross-archive linking.
+Useful for finding contextual ship traffic around wreck sites and incidents.
 
 ### `models/maritime.py`
 

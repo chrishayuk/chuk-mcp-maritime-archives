@@ -178,6 +178,21 @@ def register_discovery_tools(mcp: object, manager: object) -> None:
                     description="Find ships near a position on a given date",
                 ),
                 ToolInfo(
+                    name="maritime_get_voyage_full",
+                    category="linking",
+                    description="Get unified view of a voyage with all linked records",
+                ),
+                ToolInfo(
+                    name="maritime_get_timeline",
+                    category="linking",
+                    description="Build chronological timeline of events for a voyage",
+                ),
+                ToolInfo(
+                    name="maritime_get_speed_profile",
+                    category="routes",
+                    description="Get historical sailing speed statistics for a route",
+                ),
+                ToolInfo(
                     name="maritime_assess_position",
                     category="position",
                     description="Assess quality and uncertainty of a historical position",

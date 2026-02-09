@@ -64,45 +64,61 @@ Expanded to 26 tools across 13 categories. CLIWOC logbook data searchable via MC
 - 396 tests across 8 test modules, 97%+ branch coverage
 - 14 example scripts (5 offline, 9 network-dependent)
 
+### v0.4.0 -- Cross-Archive Linking & CLIWOC 2.1 Full
+
+Expanded to 27 tools across 14 categories. Unified cross-archive queries and richer CLIWOC data.
+
+**New tools:**
+- `maritime_get_voyage_full` -- single call returning voyage + wreck + vessel + hull profile + CLIWOC track
+
+**CLIWOC 2.1 Full upgrade:**
+- Upgraded from CLIWOC Slim (7 columns) to CLIWOC 2.1 Full (182 columns, 282K records)
+- Ship names, company (VOC, EIC, RN, etc.), DAS number, ship type, voyage from/to
+- `maritime_search_tracks` now supports `ship_name` parameter
+- DASnumber field directly links CLIWOC logbook records to DAS voyages
+- 1,981 voyages with 260,639 positions; 1,981 with ship names, 48 with DAS numbers
+
+**Cross-archive linking:**
+- `WreckClient.get_by_voyage_id()` -- find wreck linked to a voyage
+- `DASClient.get_vessel_for_voyage()` -- find vessel via reverse voyage_ids index
+- `get_track_by_das_number()` -- CLIWOC↔DAS direct linking via DAS number
+- `find_track_for_voyage()` -- fuzzy match CLIWOC tracks by ship name + date overlap
+- `ArchiveManager.get_voyage_full()` -- orchestrates all linking in one call
+
+**Quality:**
+- 430 tests across 9 test modules, 97%+ branch coverage
+- 15 example scripts (6 offline, 9 network-dependent)
+
+### v0.5.0 -- Enhanced Position Estimation & Timeline View
+
+Expanded to 29 tools across 16 categories. CLIWOC-based speed profiles and chronological timeline.
+
+**New tools:**
+- `maritime_get_speed_profile` -- per-segment sailing speed statistics derived from CLIWOC track data
+- `maritime_get_timeline` -- chronological event view combining all data sources for a voyage
+
+**Speed profiles (Enhanced Position Estimation):**
+- Pre-computed speed statistics per route segment from CLIWOC 2.1 daily positions
+- 215 profiles across 6 routes (outward_outer, return, ceylon, coromandel, japan, malabar)
+- Mean, median, std dev, and percentile speeds (km/day) per segment
+- Seasonal variation: month-specific profiles where sample counts permit
+- `maritime_estimate_position` now accepts `use_speed_profiles=True` to enrich estimates with historical speed data
+- Generation script `scripts/generate_speed_profiles.py` for reproducible computation from CLIWOC data
+
+**Timeline view:**
+- `maritime_get_timeline` assembles chronological events for any DAS voyage
+- Combines: departure, route waypoint estimates, CLIWOC track positions, wreck/loss, arrival
+- Optional `include_positions=True` to sample CLIWOC daily positions into the timeline
+- GeoJSON LineString output from positioned events
+- Event types: `departure`, `waypoint_estimate`, `cliwoc_position`, `loss`, `arrival`
+
+**Quality:**
+- 483 tests across 11 test modules, 97%+ branch coverage
+- 16 example scripts (8 offline, 8 network-dependent)
+
 ---
 
 ## Planned
-
-### Cross-Archive Linking
-
-Automatic correlation between voyage, crew, cargo, and wreck records.
-
-- Link DAS voyage IDs to crew muster rolls (same ship + date)
-- Link voyages to cargo manifests
-- Link wreck records to their originating voyage
-- CLIWOC `DASnumber` field links logbook records to DAS voyages
-- `maritime_get_voyage_full` -- single call returning voyage + crew + cargo + wreck data
-
-### Drift Modelling Tools
-
-Combine hull profiles, routes, and position data for wreck search planning.
-
-- `maritime_estimate_drift` -- given wreck date, position, and ship type, estimate where debris/hull drifted
-- Use hull hydrodynamic profiles (drag coefficients, windage, sinking characteristics)
-- Account for seasonal wind/current patterns from CLIWOC data
-- Output: probability map of wreck location as GeoJSON
-
-### Enhanced Position Estimation
-
-Improve position estimation beyond linear interpolation.
-
-- Use CLIWOC actual track data to build statistical speed profiles per route segment
-- Seasonal variation: monsoon-dependent speeds for Asian routes
-- Wind/current adjustment based on month of travel
-- Confidence intervals based on historical variance
-
-### Timeline View
-
-Chronological event tool combining all data sources.
-
-- `maritime_get_timeline` -- all events for a ship/voyage in chronological order
-- Combines: departure, waypoints, crew changes, cargo loading, incidents, arrival
-- Visualisable as GeoJSON LineString with temporal properties
 
 ### Streaming Search
 
@@ -132,6 +148,19 @@ Real-time updates for interactive exploration.
 
 ---
 
+## Separate Projects
+
+### Drift Modelling (chuk-mcp-drift-modelling)
+
+Drift modelling will be implemented as a dedicated MCP server that consumes hull profiles and position data from this server.
+
+- Estimate where debris/hull drifted given wreck date, position, and ship type
+- Use hull hydrodynamic profiles (drag coefficients, windage, sinking characteristics)
+- Account for seasonal wind/current patterns
+- Output: probability map of wreck location as GeoJSON
+
+---
+
 ## Data Sources
 
 Current and potential data sources for the project.
@@ -141,16 +170,16 @@ Current and potential data sources for the project.
 | Source | Records | Script | Status |
 |--------|---------|--------|--------|
 | [DAS](https://resources.huygens.knaw.nl/das) | 8,194 voyages | `download_das.py` | Working |
-| [CLIWOC Slim](https://figshare.com/articles/dataset/11941224) | ~261K positions | `download_cliwoc.py` | Working |
+| [CLIWOC 2.1 Full](https://historicalclimatology.com/cliwoc.html) | 282K records, 182 columns | `download_cliwoc.py` | Working |
 | VOC Gazetteer | ~160 places | `data/gazetteer.json` | Curated |
 | VOC Routes | 8 routes | `data/routes.json` | Curated |
 | Hull Profiles | 6 types | `data/hull_profiles.json` | Curated |
+| Speed Profiles | 215 profiles, 6 routes | `data/speed_profiles.json` | Generated from CLIWOC |
 
 ### Potential
 
 | Source | Description | Format | Notes |
 |--------|-------------|--------|-------|
-| [CLIWOC 2.1 Full](https://historicalclimatology.com/cliwoc.html) | 287K records, 182 columns | GeoPackage (190 MB) | Ship names, company (VOC/WIC), crew, cargo, weather |
 | [Dutch Ships and Sailors](https://datasets.iisg.amsterdam/dataverse/dss) | Linked data on Dutch maritime | RDF/SPARQL | Crew, ships, voyages -- needs SPARQL client |
 | [VOC Opvarenden](https://www.nationaalarchief.nl/) | 774,200 crew records | REST API | Currently stub client |
 | [BGB Cargo](https://bgb.huygens.knaw.nl/) | ~50,000 cargo records | REST API | Currently stub client |

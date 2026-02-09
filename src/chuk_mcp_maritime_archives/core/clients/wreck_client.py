@@ -79,6 +79,13 @@ class WreckClient(BaseArchiveClient):
 
         return results[:max_results]
 
+    async def get_by_voyage_id(self, voyage_id: str) -> dict | None:
+        """Find wreck record linked to a specific voyage."""
+        for w in self._get_wrecks():
+            if w.get("voyage_id") == voyage_id:
+                return w
+        return None
+
     async def get_by_id(self, record_id: str) -> dict | None:
         """Retrieve a single wreck record by ID."""
         index = self._get_wreck_index()

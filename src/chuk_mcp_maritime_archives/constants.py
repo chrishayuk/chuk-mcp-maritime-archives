@@ -13,7 +13,7 @@ from typing import Literal
 
 class ServerConfig(str, Enum):
     NAME = "chuk-mcp-maritime-archives"
-    VERSION = "0.1.0"
+    VERSION = "0.5.0"
     DESCRIPTION = "Historical Maritime Archives"
 
 
@@ -317,7 +317,20 @@ class ErrorMessages:
     REGION_NOT_FOUND = "Unknown region '{}'. Valid regions: {}"
     SHIP_TYPE_NOT_FOUND = "Unknown ship type '{}'. Valid types: {}"
     NO_RESULTS = "No results found matching search criteria"
+    LOCATION_NOT_FOUND = "Location '{}' not found in VOC gazetteer. Try maritime_list_locations to browse available places."
+    ROUTE_NOT_FOUND = "Route '{}' not found. Use maritime_list_routes to see available routes."
+    CLIWOC_VOYAGE_NOT_FOUND = (
+        "CLIWOC voyage {} not found. Use maritime_search_tracks to find valid voyage IDs."
+    )
+    VOYAGE_NOT_FOUND_LINKING = (
+        "Voyage not found: {}. Use maritime_search_voyages to find valid voyage IDs."
+    )
     SERVICE_ERROR = "Archive '{}' temporarily unavailable"
+    SPEED_PROFILE_NOT_FOUND = "No speed profile data for route '{}'. Available: {}"
+    TIMELINE_VOYAGE_NOT_FOUND = (
+        "Voyage '{}' not found. Use maritime_search_voyages to find valid voyage IDs."
+    )
+    TIMELINE_NO_EVENTS = "No dated events found for voyage '{}'"
 
 
 class SuccessMessages:

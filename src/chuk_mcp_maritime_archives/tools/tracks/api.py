@@ -29,6 +29,7 @@ def register_tracks_tools(mcp: object, manager: object) -> None:
         nationality: str | None = None,
         year_start: int | None = None,
         year_end: int | None = None,
+        ship_name: str | None = None,
         max_results: int = 50,
         output_mode: str = "json",
     ) -> str:
@@ -45,6 +46,8 @@ def register_tracks_tools(mcp: object, manager: object) -> None:
                 SE (Swedish), US (American), DE (German), DK (Danish)
             year_start: Earliest year to include (e.g., 1700)
             year_end: Latest year to include (e.g., 1750)
+            ship_name: Ship name or partial name (case-insensitive; requires
+                CLIWOC 2.1 Full data)
             max_results: Maximum results (default: 50)
             output_mode: Response format - "json" (default) or "text"
 
@@ -65,6 +68,7 @@ def register_tracks_tools(mcp: object, manager: object) -> None:
                 nationality=nationality,
                 year_start=year_start,
                 year_end=year_end,
+                ship_name=ship_name,
                 max_results=max_results,
             )
 
@@ -78,6 +82,10 @@ def register_tracks_tools(mcp: object, manager: object) -> None:
                 TrackInfo(
                     voyage_id=r["voyage_id"],
                     nationality=r.get("nationality"),
+                    ship_name=r.get("ship_name"),
+                    company=r.get("company"),
+                    voyage_from=r.get("voyage_from"),
+                    voyage_to=r.get("voyage_to"),
                     start_date=r.get("start_date"),
                     end_date=r.get("end_date"),
                     duration_days=r.get("duration_days"),
@@ -136,8 +144,7 @@ def register_tracks_tools(mcp: object, manager: object) -> None:
             if track is None:
                 return format_response(
                     ErrorResponse(
-                        error=f"CLIWOC voyage {voyage_id} not found. "
-                        "Use maritime_search_tracks to find valid voyage IDs.",
+                        error=ErrorMessages.CLIWOC_VOYAGE_NOT_FOUND.format(voyage_id),
                     ),
                     output_mode,
                 )
@@ -217,6 +224,8 @@ def register_tracks_tools(mcp: object, manager: object) -> None:
                 NearbyTrackInfo(
                     voyage_id=r["voyage_id"],
                     nationality=r.get("nationality"),
+                    ship_name=r.get("ship_name"),
+                    company=r.get("company"),
                     start_date=r.get("start_date"),
                     end_date=r.get("end_date"),
                     duration_days=r.get("duration_days"),

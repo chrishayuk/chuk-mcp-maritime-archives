@@ -27,6 +27,8 @@ _DEFAULT_DATA_DIR = Path(__file__).resolve().parent.parent.parent.parent / "data
 # Loaded from JSON
 _TRACKS: list[dict[str, Any]] = []
 _TRACK_INDEX: dict[int, dict[str, Any]] = {}  # voyage_id -> track
+_DAS_INDEX: dict[str, dict[str, Any]] = {}  # das_number -> track
+_SHIP_NAME_INDEX: dict[str, list[dict[str, Any]]] = {}  # upper(ship_name) -> [tracks]
 _METADATA: dict[str, Any] = {}
 
 
@@ -37,7 +39,7 @@ _METADATA: dict[str, Any] = {}
 
 def _load_tracks(data_dir: Path | None = None) -> None:
     """Load CLIWOC track data from JSON file."""
-    global _TRACKS, _TRACK_INDEX, _METADATA
+    global _TRACKS, _TRACK_INDEX, _DAS_INDEX, _SHIP_NAME_INDEX, _METADATA
     if _TRACKS:
         return
 
@@ -52,6 +54,19 @@ def _load_tracks(data_dir: Path | None = None) -> None:
     _TRACKS = data.get("tracks", [])
     _TRACK_INDEX = {t["voyage_id"]: t for t in _TRACKS}
     _METADATA = {k: v for k, v in data.items() if k != "tracks"}
+
+    # Build optional indexes (only populated when CLIWOC 2.1 Full data is present)
+    for t in _TRACKS:
+        das_num = t.get("das_number")
+        if das_num:
+            _DAS_INDEX[str(das_num)] = t
+        ship = t.get("ship_name")
+        if ship:
+            key = ship.upper()
+            if key not in _SHIP_NAME_INDEX:
+                _SHIP_NAME_INDEX[key] = []
+            _SHIP_NAME_INDEX[key].append(t)
+
     logger.info(
         "Loaded %d CLIWOC tracks (%d positions) from %s",
         len(_TRACKS),
@@ -69,10 +84,11 @@ def search_tracks(
     nationality: str | None = None,
     year_start: int | None = None,
     year_end: int | None = None,
+    ship_name: str | None = None,
     max_results: int = 50,
 ) -> list[dict[str, Any]]:
     """
-    Search CLIWOC ship tracks by nationality and/or date range.
+    Search CLIWOC ship tracks by nationality, date range, and/or ship name.
 
     Returns track summaries (without positions) for matching voyages.
 
@@ -80,6 +96,7 @@ def search_tracks(
         nationality: Two-letter code (NL, UK, ES, FR, SE, US, DE, DK)
         year_start: Earliest year to include
         year_end: Latest year to include
+        ship_name: Ship name or partial name (case-insensitive; requires CLIWOC 2.1 Full data)
         max_results: Maximum results to return (default: 50)
     """
     _load_tracks()
@@ -92,6 +109,10 @@ def search_tracks(
             continue
         if year_end and (track.get("year_end") or 0) > year_end:
             continue
+        if ship_name:
+            track_ship = track.get("ship_name", "")
+            if not track_ship or ship_name.upper() not in track_ship.upper():
+                continue
         # Return summary without positions
         results.append(_track_summary(track))
         if len(results) >= max_results:
@@ -194,6 +215,71 @@ def get_date_range() -> str:
     """Return date range string (e.g. '1662-1854')."""
     _load_tracks()
     return _METADATA.get("date_range", "unknown")
+
+
+# ---------------------------------------------------------------------------
+# Cross-archive linking
+# ---------------------------------------------------------------------------
+
+
+def get_track_by_das_number(das_number: str) -> dict[str, Any] | None:
+    """
+    Find CLIWOC track linked to a DAS voyage by DASnumber.
+
+    Only available when CLIWOC 2.1 Full data has been downloaded (the Slim
+    dataset does not include DASnumber). Returns full track with positions.
+    """
+    _load_tracks()
+    return _DAS_INDEX.get(str(das_number))
+
+
+def find_track_for_voyage(
+    ship_name: str,
+    departure_date: str | None = None,
+    nationality: str = "NL",
+) -> dict[str, Any] | None:
+    """
+    Find a CLIWOC track matching a DAS voyage by ship name and date overlap.
+
+    Tries DAS number index first (exact match), then ship name index with
+    date overlap filtering. Returns track summary (without positions) or None.
+
+    Args:
+        ship_name: Ship name from DAS voyage record
+        departure_date: Departure date (YYYY-MM-DD) for date overlap filtering
+        nationality: Expected nationality (default NL for DAS voyages)
+    """
+    _load_tracks()
+    if not ship_name:
+        return None
+
+    # Try ship name index (available with CLIWOC 2.1 Full)
+    candidates = _SHIP_NAME_INDEX.get(ship_name.upper(), [])
+    if not candidates:
+        return None
+
+    # Filter by nationality
+    candidates = [t for t in candidates if t.get("nationality") == nationality.upper()]
+    if not candidates:
+        return None
+
+    # If we have a departure date, find the track with best date overlap
+    if departure_date and len(departure_date) >= 4:
+        dep_year = int(departure_date[:4])
+        best = None
+        best_diff = 9999
+        for t in candidates:
+            t_start = t.get("year_start")
+            if t_start:
+                diff = abs(t_start - dep_year)
+                if diff < best_diff:
+                    best_diff = diff
+                    best = t
+        if best and best_diff <= 1:
+            return _track_summary(best)
+
+    # Return first match if no date filtering or no close match
+    return _track_summary(candidates[0]) if candidates else None
 
 
 # ---------------------------------------------------------------------------

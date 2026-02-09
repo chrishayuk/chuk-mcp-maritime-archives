@@ -8,7 +8,7 @@
 
 ## Features
 
-This MCP server provides structured access to historical maritime archives and reference data through twenty-six tools.
+This MCP server provides structured access to historical maritime archives and reference data through twenty-nine tools.
 
 **All tools return fully-typed Pydantic v2 models** for type safety, validation, and excellent IDE support. All tools support `output_mode="text"` for human-readable output alongside the default JSON.
 
@@ -75,22 +75,45 @@ Standard VOC sailing routes with position estimation:
 - Waypoints with coordinates, typical sailing days, stop durations
 - Hazards and seasonal navigation notes
 - **Position estimation**: interpolate a ship's likely position on any date
+- **Speed profile enrichment**: `use_speed_profiles=True` adds CLIWOC-derived speed statistics
 
-### 11. Ship Tracks (`maritime_search_tracks`, `maritime_get_track`, `maritime_nearby_tracks`)
-Historical ship track data from CLIWOC logbooks (1662-1855):
+### 11. Speed Profiles (`maritime_get_speed_profile`)
+Historical sailing speed statistics derived from CLIWOC 2.1 daily positions:
+- 215 profiles across 6 routes (outward_outer, return, ceylon, coromandel, japan, malabar)
+- Mean, median, std dev, and percentile speeds (km/day) per route segment
+- Seasonal variation: filter by departure month for month-specific data
+- Generated from ~61K daily observations matched to standard routes
+
+### 12. Ship Tracks (`maritime_search_tracks`, `maritime_get_track`, `maritime_nearby_tracks`)
+Historical ship track data from CLIWOC 2.1 Full logbooks (1662-1855):
 - ~261K daily position observations from 8 European maritime nations
-- Search by nationality (NL, UK, ES, FR, SE, US, DE, DK) and year range
-- Full position histories for individual voyages
+- Search by nationality (NL, UK, ES, FR, SE, US, DE, DK), year range, and ship name
+- Full position histories for individual voyages with ship names, company, and DAS numbers
 - **Nearby ship search**: find what other ships were near a position on a given date
 - Useful for wreck investigation context and route reconstruction
 
-### 12. Export & Statistics (`maritime_export_geojson`, `maritime_get_statistics`)
+### 13. Cross-Archive Linking (`maritime_get_voyage_full`)
+Unified voyage view with all linked records in a single call:
+- Wreck record (linked via voyage_id)
+- Vessel record (linked via voyage_ids array)
+- Hull profile (linked via ship_type)
+- CLIWOC track (linked via DAS number or ship name matching)
+- Replaces the need to call get_voyage, get_wreck, get_vessel, and get_hull_profile separately
+
+### 14. Timeline (`maritime_get_timeline`)
+Chronological event view combining all data sources for a voyage:
+- Assembles events from DAS voyages, route estimates, CLIWOC tracks, and wreck records
+- Event types: departure, waypoint estimates, CLIWOC positions, loss/wreck, arrival
+- Optional `include_positions=True` to sample CLIWOC daily positions into the timeline
+- GeoJSON LineString output from positioned events
+
+### 15. Export & Statistics (`maritime_export_geojson`, `maritime_get_statistics`)
 Export and analyse wreck data:
 - GeoJSON FeatureCollection export with optional uncertainty
 - Aggregate loss statistics by region, cause, decade
 - Artifact store integration for persistent export
 
-### 13. Server Discovery (`maritime_capabilities`)
+### 16. Server Discovery (`maritime_capabilities`)
 List full server capabilities for LLM workflow planning:
 - Available archives with metadata
 - All registered tools with descriptions
@@ -203,13 +226,15 @@ Once configured, you can ask Claude questions like:
 - "Search for Dutch ship tracks from the 1780s"
 - "What other ships were near the Batavia wreck site on 1629-06-04?"
 - "Show me the full track for CLIWOC voyage 118"
+- "What were the typical sailing speeds on the outward route via the Roaring Forties?"
+- "Show me the timeline of the Batavia's final voyage"
 - "Assess the position quality for wreck VOC-0456"
 - "Export all Cape wrecks as GeoJSON"
 - "Show me loss statistics by decade for the entire VOC period"
 
 ### Running the Examples
 
-The `examples/` directory contains runnable demo scripts that call all 26 MCP tools directly:
+The `examples/` directory contains runnable demo scripts that call all 29 MCP tools directly:
 
 ```bash
 cd examples
@@ -219,7 +244,10 @@ python capabilities_demo.py        # server capabilities, ship types, regions
 python hull_profiles_demo.py       # hydrodynamic data for all 6 ship types
 python location_lookup_demo.py     # VOC gazetteer: place names to coordinates
 python route_explorer_demo.py      # sailing routes + position estimation
-python track_explorer_demo.py     # CLIWOC ship tracks + nearby search
+python track_explorer_demo.py      # CLIWOC ship tracks + nearby search
+python cross_archive_demo.py      # unified voyage view with all linked records
+python speed_profile_demo.py       # CLIWOC-derived speed statistics per segment
+python timeline_demo.py            # chronological voyage timeline from all sources
 
 # Core tool demos (network required)
 python voyage_search_demo.py       # search + detail workflow
@@ -241,6 +269,9 @@ python batavia_case_study_demo.py  # 12-tool chain investigating the Batavia wre
 | `location_lookup_demo.py` | No | `maritime_lookup_location`, `maritime_list_locations` |
 | `route_explorer_demo.py` | No | `maritime_list_routes`, `maritime_get_route`, `maritime_estimate_position` |
 | `track_explorer_demo.py` | No | `maritime_search_tracks`, `maritime_get_track`, `maritime_nearby_tracks` |
+| `cross_archive_demo.py` | Yes | `maritime_search_voyages`, `maritime_get_voyage_full` |
+| `speed_profile_demo.py` | No | `maritime_get_speed_profile`, `maritime_estimate_position` |
+| `timeline_demo.py` | No | `maritime_get_timeline`, `maritime_search_voyages` |
 | `voyage_search_demo.py` | Yes | `maritime_search_voyages`, `maritime_get_voyage` |
 | `wreck_investigation_demo.py` | Yes | `maritime_search_wrecks`, `maritime_get_wreck`, `maritime_assess_position`, `maritime_export_geojson` |
 | `vessel_search_demo.py` | Yes | `maritime_search_vessels`, `maritime_get_vessel`, `maritime_get_hull_profile` |
@@ -248,7 +279,7 @@ python batavia_case_study_demo.py  # 12-tool chain investigating the Batavia wre
 | `cargo_trade_demo.py` | Yes | `maritime_search_cargo`, `maritime_get_cargo_manifest` |
 | `geojson_export_demo.py` | Yes | `maritime_export_geojson`, `maritime_search_wrecks` |
 | `statistics_demo.py` | Yes | `maritime_get_statistics`, `maritime_search_wrecks` |
-| `batavia_case_study_demo.py` | Yes | All 12 tool categories chained together |
+| `batavia_case_study_demo.py` | Yes | All tool categories chained together |
 
 ## Tool Reference
 
@@ -278,6 +309,9 @@ All tools accept an optional `output_mode` parameter (`"json"` default, or `"tex
 | `maritime_search_tracks` | Tracks | Search CLIWOC ship tracks by nationality and date |
 | `maritime_get_track` | Tracks | Get full position history for a CLIWOC voyage |
 | `maritime_nearby_tracks` | Tracks | Find ships near a position on a given date |
+| `maritime_get_speed_profile` | Speed | Historical sailing speed statistics per segment |
+| `maritime_get_voyage_full` | Linking | Unified voyage view with all linked records |
+| `maritime_get_timeline` | Timeline | Chronological event view for a voyage |
 | `maritime_assess_position` | Position | Position quality and uncertainty assessment |
 | `maritime_export_geojson` | Export | GeoJSON wreck position export |
 | `maritime_get_statistics` | Export | Aggregate loss statistics |
@@ -394,7 +428,35 @@ All tools accept an optional `output_mode` parameter (`"json"` default, or `"tex
 {
   "route_id": "outward_outer",                   # route identifier
   "departure_date": "1629-10-28",                # YYYY-MM-DD
-  "target_date": "1630-02-15"                    # date to estimate position
+  "target_date": "1630-02-15",                   # date to estimate position
+  "use_speed_profiles": true                     # optional: enrich with CLIWOC speed data
+}
+```
+
+### maritime_get_speed_profile
+
+```python
+{
+  "route_id": "outward_outer",                   # route identifier
+  "departure_month": 10                          # optional: month (1-12) for seasonal data
+}
+```
+
+### maritime_get_timeline
+
+```python
+{
+  "voyage_id": "das:0372.1",                     # DAS voyage identifier
+  "include_positions": true,                     # optional: include CLIWOC daily positions
+  "max_positions": 20                            # optional: max CLIWOC positions to sample
+}
+```
+
+### maritime_get_voyage_full
+
+```python
+{
+  "voyage_id": "das:0372.1"                        # DAS voyage identifier
 }
 ```
 
@@ -405,6 +467,7 @@ All tools accept an optional `output_mode` parameter (`"json"` default, or `"tex
   "nationality": "NL",                            # optional: NL, UK, ES, FR, SE, US, DE, DK
   "year_start": 1780,                             # optional, earliest year
   "year_end": 1800,                               # optional, latest year
+  "ship_name": "BATAVIA",                         # optional, substring match (CLIWOC 2.1 Full)
   "max_results": 50                               # optional, default 50
 }
 ```
@@ -550,9 +613,10 @@ Built on top of chuk-mcp-server, this server uses:
 - **Reproducible Data**: Download scripts fetch real data from DAS and CLIWOC; reference data stored as JSON
 - **Pluggable Storage**: Artifact storage via chuk-artifacts (memory, filesystem, S3)
 - **No External HTTP Deps**: Uses stdlib `urllib.request` -- no requests/httpx dependency
-- **Dual Output**: All 26 tools support `output_mode="text"` for human-readable responses
-- **Domain Reference Data**: ~160 place gazetteer, 8 routes, 6 hull profiles, ~261K ship positions, 15 regions, 4 navigation eras
-- **396+ Tests**: Across 8 test modules with 97%+ branch coverage
+- **Cross-Archive Linking**: Unified voyage view with wreck, vessel, hull profile, and CLIWOC track linking
+- **Dual Output**: All 29 tools support `output_mode="text"` for human-readable responses
+- **Domain Reference Data**: ~160 place gazetteer, 8 routes, 6 hull profiles, 215 speed profiles, ~261K ship positions, 15 regions, 4 navigation eras
+- **480+ Tests**: Across 11 test modules with 97%+ branch coverage
 
 ### Supported Archives
 
@@ -562,7 +626,7 @@ Built on top of chuk-mcp-server, this server uses:
 | VOC Opvarenden | 774,200 crew | 1633-1794 | nationaalarchief.nl |
 | Boekhouder-Generaal Batavia | ~50,000 cargo | 1700-1795 | bgb.huygens.knaw.nl |
 | MAARER Wrecks | 734 wrecks | 1595-1795 | Compiled dataset |
-| CLIWOC Ship Tracks | ~261,000 positions | 1662-1855 | figshare.com (CLIWOC Slim) |
+| CLIWOC Ship Tracks | ~261,000 positions | 1662-1855 | historicalclimatology.com (CLIWOC 2.1 Full) |
 
 ### Reference Data
 
@@ -570,6 +634,7 @@ Built on top of chuk-mcp-server, this server uses:
 |---------|---------|--------|
 | VOC Gazetteer | ~160 place names | Curated from historical sources |
 | VOC Routes | 8 sailing routes | Bruijn, Gaastra & Schoffer (1987) |
+| Speed Profiles | 215 profiles, 6 routes | Generated from CLIWOC 2.1 daily positions |
 | Hull Profiles | 6 ship types | Archaeological measurements |
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for design principles and data flow diagrams.
@@ -578,35 +643,36 @@ See [ROADMAP.md](ROADMAP.md) for the development roadmap and planned features.
 
 ## Roadmap
 
-### Completed (v0.1.0)
+### Completed (v0.1.0 - v0.3.0)
 
-- 18 MCP tools across 10 categories (voyages, wrecks, vessels, crew, cargo, position, export, discovery, archives, hull profiles)
+- 26 MCP tools across 13 categories (voyages, wrecks, vessels, crew, cargo, position, export, discovery, archives, hull profiles, location, routes, tracks)
 - 4 archive clients: DAS, VOC Crew, BGB Cargo, MAARER Wrecks
-- Pydantic v2 response models with dual output (JSON + text)
-- LRU caching for voyages, wrecks, and vessels
-- Position quality assessment with navigation-era detection
-- GeoJSON export with artifact store integration
-- Hull hydrodynamic profiles for drift modelling
+- CLIWOC ship tracks: ~261K logbook positions (1662-1855, 8 nationalities)
+- VOC Gazetteer, sailing routes, position estimation, hull profiles
+- Reproducible data pipeline: download scripts for DAS and CLIWOC
 
-### Completed (v0.2.0)
+### Completed (v0.4.0)
 
-- **26 MCP tools** across 13 categories (added location gazetteer, sailing routes, and CLIWOC ship tracks)
-- **VOC Gazetteer**: ~160 historical place names with coordinates, aliases, and region classification
-- **Sailing routes**: 8 standard VOC routes with waypoints, durations, hazards, and season notes
-- **Position estimation**: interpolate ship position on any date from departure and route
-- **CLIWOC ship tracks**: 3 MCP tools for ~261K logbook positions (1662-1855, 8 nationalities)
-- **Nearby ship search**: find what ships were near a position on a given date
-- **Reproducible data pipeline**: download scripts for DAS and CLIWOC; JSON reference data for gazetteer, routes, and hull profiles
-- 396 tests, 97%+ branch coverage
+- **27 MCP tools** across 14 categories (added cross-archive linking)
+- **Cross-archive linking**: `maritime_get_voyage_full` returns unified voyage view with wreck, vessel, hull profile, and CLIWOC track
+- **CLIWOC 2.1 Full upgrade**: ship names, company, DAS numbers for direct cross-archive linking
+- **Ship name search**: `maritime_search_tracks` now supports ship name filtering
+- 430 tests, 97%+ branch coverage
+
+### Completed (v0.5.0)
+
+- **29 MCP tools** across 16 categories (added speed profiles and timeline)
+- **Speed profiles**: `maritime_get_speed_profile` returns CLIWOC-derived speed statistics per route segment with seasonal variation
+- **Timeline view**: `maritime_get_timeline` assembles chronological events from all data sources for a voyage
+- **Enhanced position estimation**: `maritime_estimate_position` now supports `use_speed_profiles=True` for CLIWOC-enriched estimates
+- 483 tests, 97%+ branch coverage
 
 ### Planned
 
-- **Cross-archive linking**: automatic correlation between voyage, crew, and cargo records for the same ship/date
 - **Streaming search**: paginated search results for large result sets
-- **Timeline view**: chronological event tool combining voyage waypoints, crew changes, and incidents
-- **Wreck probability model**: Bayesian position estimation combining navigation era, drift models, and historical accounts
 - **Additional archives**: English East India Company (EIC), Portuguese Estado da India, Spanish Manila Galleon records
 - **WebSocket transport**: real-time subscription to search refinements
+- **Drift modelling**: planned as a separate MCP server (chuk-mcp-drift-modelling)
 
 ## Contributing
 
