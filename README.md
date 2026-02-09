@@ -8,7 +8,7 @@
 
 ## Features
 
-This MCP server provides structured access to historical maritime archives and reference data through twenty-three tools.
+This MCP server provides structured access to historical maritime archives and reference data through twenty-six tools.
 
 **All tools return fully-typed Pydantic v2 models** for type safety, validation, and excellent IDE support. All tools support `output_mode="text"` for human-readable output alongside the default JSON.
 
@@ -76,13 +76,21 @@ Standard VOC sailing routes with position estimation:
 - Hazards and seasonal navigation notes
 - **Position estimation**: interpolate a ship's likely position on any date
 
-### 11. Export & Statistics (`maritime_export_geojson`, `maritime_get_statistics`)
+### 11. Ship Tracks (`maritime_search_tracks`, `maritime_get_track`, `maritime_nearby_tracks`)
+Historical ship track data from CLIWOC logbooks (1662-1855):
+- ~261K daily position observations from 8 European maritime nations
+- Search by nationality (NL, UK, ES, FR, SE, US, DE, DK) and year range
+- Full position histories for individual voyages
+- **Nearby ship search**: find what other ships were near a position on a given date
+- Useful for wreck investigation context and route reconstruction
+
+### 12. Export & Statistics (`maritime_export_geojson`, `maritime_get_statistics`)
 Export and analyse wreck data:
 - GeoJSON FeatureCollection export with optional uncertainty
 - Aggregate loss statistics by region, cause, decade
 - Artifact store integration for persistent export
 
-### 12. Server Discovery (`maritime_capabilities`)
+### 13. Server Discovery (`maritime_capabilities`)
 List full server capabilities for LLM workflow planning:
 - Available archives with metadata
 - All registered tools with descriptions
@@ -192,13 +200,16 @@ Once configured, you can ask Claude questions like:
 - "Show me all the ports in Indonesia" (location search)
 - "What route would a ship take from Texel to Batavia?"
 - "If a ship left Texel on 1629-10-28, where would it be on 1630-02-15?"
+- "Search for Dutch ship tracks from the 1780s"
+- "What other ships were near the Batavia wreck site on 1629-06-04?"
+- "Show me the full track for CLIWOC voyage 118"
 - "Assess the position quality for wreck VOC-0456"
 - "Export all Cape wrecks as GeoJSON"
 - "Show me loss statistics by decade for the entire VOC period"
 
 ### Running the Examples
 
-The `examples/` directory contains runnable demo scripts that call all 23 MCP tools directly:
+The `examples/` directory contains runnable demo scripts that call all 26 MCP tools directly:
 
 ```bash
 cd examples
@@ -208,6 +219,7 @@ python capabilities_demo.py        # server capabilities, ship types, regions
 python hull_profiles_demo.py       # hydrodynamic data for all 6 ship types
 python location_lookup_demo.py     # VOC gazetteer: place names to coordinates
 python route_explorer_demo.py      # sailing routes + position estimation
+python track_explorer_demo.py     # CLIWOC ship tracks + nearby search
 
 # Core tool demos (network required)
 python voyage_search_demo.py       # search + detail workflow
@@ -228,6 +240,7 @@ python batavia_case_study_demo.py  # 12-tool chain investigating the Batavia wre
 | `hull_profiles_demo.py` | No | `maritime_list_hull_profiles`, `maritime_get_hull_profile` |
 | `location_lookup_demo.py` | No | `maritime_lookup_location`, `maritime_list_locations` |
 | `route_explorer_demo.py` | No | `maritime_list_routes`, `maritime_get_route`, `maritime_estimate_position` |
+| `track_explorer_demo.py` | No | `maritime_search_tracks`, `maritime_get_track`, `maritime_nearby_tracks` |
 | `voyage_search_demo.py` | Yes | `maritime_search_voyages`, `maritime_get_voyage` |
 | `wreck_investigation_demo.py` | Yes | `maritime_search_wrecks`, `maritime_get_wreck`, `maritime_assess_position`, `maritime_export_geojson` |
 | `vessel_search_demo.py` | Yes | `maritime_search_vessels`, `maritime_get_vessel`, `maritime_get_hull_profile` |
@@ -262,6 +275,9 @@ All tools accept an optional `output_mode` parameter (`"json"` default, or `"tex
 | `maritime_list_routes` | Routes | List standard VOC sailing routes |
 | `maritime_get_route` | Routes | Full route with waypoints, hazards, season notes |
 | `maritime_estimate_position` | Routes | Estimate ship position on a date from route |
+| `maritime_search_tracks` | Tracks | Search CLIWOC ship tracks by nationality and date |
+| `maritime_get_track` | Tracks | Get full position history for a CLIWOC voyage |
+| `maritime_nearby_tracks` | Tracks | Find ships near a position on a given date |
 | `maritime_assess_position` | Position | Position quality and uncertainty assessment |
 | `maritime_export_geojson` | Export | GeoJSON wreck position export |
 | `maritime_get_statistics` | Export | Aggregate loss statistics |
@@ -379,6 +395,37 @@ All tools accept an optional `output_mode` parameter (`"json"` default, or `"tex
   "route_id": "outward_outer",                   # route identifier
   "departure_date": "1629-10-28",                # YYYY-MM-DD
   "target_date": "1630-02-15"                    # date to estimate position
+}
+```
+
+### maritime_search_tracks
+
+```python
+{
+  "nationality": "NL",                            # optional: NL, UK, ES, FR, SE, US, DE, DK
+  "year_start": 1780,                             # optional, earliest year
+  "year_end": 1800,                               # optional, latest year
+  "max_results": 50                               # optional, default 50
+}
+```
+
+### maritime_get_track
+
+```python
+{
+  "voyage_id": 118                                # CLIWOC voyage ID (integer)
+}
+```
+
+### maritime_nearby_tracks
+
+```python
+{
+  "lat": -28.49,                                  # latitude of search point
+  "lon": 113.79,                                  # longitude of search point
+  "date": "1629-06-04",                           # date to search (YYYY-MM-DD)
+  "radius_km": 200,                               # optional, default 200km
+  "max_results": 20                               # optional, default 20
 }
 ```
 
@@ -503,9 +550,9 @@ Built on top of chuk-mcp-server, this server uses:
 - **Reproducible Data**: Download scripts fetch real data from DAS and CLIWOC; reference data stored as JSON
 - **Pluggable Storage**: Artifact storage via chuk-artifacts (memory, filesystem, S3)
 - **No External HTTP Deps**: Uses stdlib `urllib.request` -- no requests/httpx dependency
-- **Dual Output**: All 23 tools support `output_mode="text"` for human-readable responses
-- **Domain Reference Data**: ~160 place gazetteer, 8 routes, 6 hull profiles, 15 regions, 4 navigation eras
-- **349+ Tests**: Across 7 test modules with 97%+ branch coverage
+- **Dual Output**: All 26 tools support `output_mode="text"` for human-readable responses
+- **Domain Reference Data**: ~160 place gazetteer, 8 routes, 6 hull profiles, ~261K ship positions, 15 regions, 4 navigation eras
+- **396+ Tests**: Across 8 test modules with 97%+ branch coverage
 
 ### Supported Archives
 
@@ -527,6 +574,7 @@ Built on top of chuk-mcp-server, this server uses:
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for design principles and data flow diagrams.
 See [SPEC.md](SPEC.md) for the full tool specification with parameter tables.
+See [ROADMAP.md](ROADMAP.md) for the development roadmap and planned features.
 
 ## Roadmap
 
@@ -542,17 +590,17 @@ See [SPEC.md](SPEC.md) for the full tool specification with parameter tables.
 
 ### Completed (v0.2.0)
 
-- **23 MCP tools** across 12 categories (added location gazetteer and sailing routes)
+- **26 MCP tools** across 13 categories (added location gazetteer, sailing routes, and CLIWOC ship tracks)
 - **VOC Gazetteer**: ~160 historical place names with coordinates, aliases, and region classification
 - **Sailing routes**: 8 standard VOC routes with waypoints, durations, hazards, and season notes
 - **Position estimation**: interpolate ship position on any date from departure and route
-- **CLIWOC ship tracks**: download script for ~261K logbook positions (1662-1855, all nationalities)
+- **CLIWOC ship tracks**: 3 MCP tools for ~261K logbook positions (1662-1855, 8 nationalities)
+- **Nearby ship search**: find what ships were near a position on a given date
 - **Reproducible data pipeline**: download scripts for DAS and CLIWOC; JSON reference data for gazetteer, routes, and hull profiles
-- 349 tests, 97%+ branch coverage
+- 396 tests, 97%+ branch coverage
 
 ### Planned
 
-- **CLIWOC MCP tools**: search and browse actual historical ship tracks from the CLIWOC database
 - **Cross-archive linking**: automatic correlation between voyage, crew, and cargo records for the same ship/date
 - **Streaming search**: paginated search results for large result sets
 - **Timeline view**: chronological event tool combining voyage waypoints, crew changes, and incidents

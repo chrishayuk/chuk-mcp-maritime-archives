@@ -9,7 +9,7 @@ structured access to historical maritime shipping records, vessel specifications
 crew muster rolls, cargo manifests, and shipwreck databases from the Dutch East India
 Company (VOC) era, 1595-1795.
 
-- **23 tools** for searching, retrieving, analysing, and exporting maritime archival data
+- **26 tools** for searching, retrieving, analysing, and exporting maritime archival data
 - **Dual output mode** -- all tools return JSON (default) or human-readable text via `output_mode` parameter
 - **Async-first** -- tool entry points are async; sync HTTP I/O runs in thread pools
 - **Pluggable storage** -- exported data stored via chuk-artifacts (memory, filesystem, S3)
@@ -508,6 +508,112 @@ interpolation between standard waypoints assuming typical sailing times.
 | `segment.progress` | `float` | 0.0-1.0 progress through current segment |
 | `confidence` | `str` | `high` (at port), `moderate` (between waypoints), `low` (past arrival) |
 | `caveats` | `str[]` | Important caveats about estimate accuracy |
+
+---
+
+### CLIWOC Ship Track Tools
+
+#### `maritime_search_tracks`
+
+Search historical ship tracks from the CLIWOC database (~261K daily logbook
+positions from 1662-1855, 8 European maritime nations).
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `nationality` | `str?` | `None` | Two-letter nationality code: NL, UK, ES, FR, SE, US, DE, DK |
+| `year_start` | `int?` | `None` | Earliest year to include |
+| `year_end` | `int?` | `None` | Latest year to include |
+| `max_results` | `int` | `50` | Maximum results to return |
+| `output_mode` | `str` | `"json"` | `"json"` or `"text"` |
+
+**Response: `TrackSearchResponse`**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `track_count` | `int` | Number of matching tracks |
+| `tracks` | `TrackInfo[]` | Track summaries (no positions) |
+| `message` | `str` | Human-readable summary |
+
+**TrackInfo fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `voyage_id` | `int` | CLIWOC voyage identifier |
+| `nationality` | `str?` | Two-letter nationality code |
+| `start_date` | `str?` | First recorded position date |
+| `end_date` | `str?` | Last recorded position date |
+| `duration_days` | `int?` | Voyage duration in days |
+| `year_start` | `int?` | Earliest year of positions |
+| `year_end` | `int?` | Latest year of positions |
+| `position_count` | `int` | Number of daily position records |
+
+---
+
+#### `maritime_get_track`
+
+Get full position history for a CLIWOC voyage, including all dated lat/lon
+positions from the ship's logbook.
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `voyage_id` | `int` | required | CLIWOC voyage ID (from search results) |
+| `output_mode` | `str` | `"json"` | `"json"` or `"text"` |
+
+**Response: `TrackDetailResponse`**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `track` | `dict` | Full track with metadata and positions |
+| `message` | `str` | Human-readable summary |
+
+Track includes all TrackInfo fields plus `positions` — a list of
+`{date, lat, lon}` objects representing daily logbook readings.
+
+---
+
+#### `maritime_nearby_tracks`
+
+Find ships near a given position on a given date. Searches all CLIWOC logbook
+positions and returns tracks with positions within the search radius.
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `lat` | `float` | required | Latitude of search point (decimal degrees) |
+| `lon` | `float` | required | Longitude of search point (decimal degrees) |
+| `date` | `str` | required | Date to search (YYYY-MM-DD) |
+| `radius_km` | `float` | `200.0` | Search radius in kilometres |
+| `max_results` | `int` | `20` | Maximum results |
+| `output_mode` | `str` | `"json"` | `"json"` or `"text"` |
+
+**Response: `NearbyTracksResponse`**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `search_point` | `dict` | `{lat, lon}` of search centre |
+| `search_date` | `str` | Date searched |
+| `radius_km` | `float` | Search radius used |
+| `track_count` | `int` | Number of matches |
+| `tracks` | `NearbyTrackInfo[]` | Matching tracks sorted by distance |
+| `message` | `str` | Human-readable summary |
+
+**NearbyTrackInfo fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `voyage_id` | `int` | CLIWOC voyage identifier |
+| `nationality` | `str?` | Two-letter nationality code |
+| `distance_km` | `float` | Distance from search point (km) |
+| `matching_position` | `dict` | `{date, lat, lon}` of nearest position |
+| `start_date` | `str?` | Voyage start date |
+| `end_date` | `str?` | Voyage end date |
+| `duration_days` | `int?` | Voyage duration |
+| `position_count` | `int` | Total positions in track |
 
 ---
 

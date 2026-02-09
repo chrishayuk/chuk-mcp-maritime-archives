@@ -568,6 +568,109 @@ class PositionEstimateResponse(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# Track responses (CLIWOC ship tracks)
+# ---------------------------------------------------------------------------
+
+
+class TrackInfo(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    voyage_id: int
+    nationality: str | None = None
+    start_date: str | None = None
+    end_date: str | None = None
+    duration_days: int | None = None
+    year_start: int | None = None
+    year_end: int | None = None
+    position_count: int = 0
+
+
+class TrackSearchResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    track_count: int
+    tracks: list[TrackInfo]
+    message: str = ""
+
+    def to_text(self) -> str:
+        lines = [self.message, ""]
+        for t in self.tracks:
+            nat = f" [{t.nationality}]" if t.nationality else ""
+            lines.append(f"  Voyage {t.voyage_id}{nat}: {t.start_date} to {t.end_date}")
+            lines.append(f"    {t.position_count} positions, ~{t.duration_days or '?'} days")
+        return "\n".join(lines)
+
+
+class TrackDetailResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    track: dict[str, Any]
+    message: str = ""
+
+    def to_text(self) -> str:
+        t = self.track
+        lines = [
+            f"CLIWOC Voyage {t.get('voyage_id', '?')}",
+            f"Nationality: {t.get('nationality', '?')}",
+            f"Period: {t.get('start_date', '?')} to {t.get('end_date', '?')}",
+            f"Duration: ~{t.get('duration_days', '?')} days",
+            f"Positions: {t.get('position_count', 0)}",
+        ]
+        positions = t.get("positions", [])
+        if positions:
+            lines.append("")
+            lines.append("Track:")
+            for p in positions[:20]:
+                lines.append(
+                    f"  {p.get('date', '?'):12s}  {p.get('lat', '?'):7}N  {p.get('lon', '?'):7}E"
+                )
+            if len(positions) > 20:
+                lines.append(f"  ... and {len(positions) - 20} more positions")
+        return "\n".join(lines)
+
+
+class NearbyTrackInfo(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    voyage_id: int
+    nationality: str | None = None
+    start_date: str | None = None
+    end_date: str | None = None
+    duration_days: int | None = None
+    position_count: int = 0
+    distance_km: float
+    matching_position: dict[str, Any]
+
+
+class NearbyTracksResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    search_point: dict[str, Any]
+    search_date: str
+    radius_km: float
+    track_count: int
+    tracks: list[NearbyTrackInfo]
+    message: str = ""
+
+    def to_text(self) -> str:
+        lines = [
+            self.message,
+            f"Search: {self.search_point.get('lat')}N, {self.search_point.get('lon')}E",
+            f"Date: {self.search_date}  Radius: {self.radius_km}km",
+            "",
+        ]
+        for t in self.tracks:
+            nat = f" [{t.nationality}]" if t.nationality else ""
+            pos = t.matching_position
+            lines.append(
+                f"  Voyage {t.voyage_id}{nat}: "
+                f"{pos.get('lat')}N, {pos.get('lon')}E "
+                f"({t.distance_km}km away)"
+            )
+        return "\n".join(lines)
+
+
+# ---------------------------------------------------------------------------
 # Position assessment
 # ---------------------------------------------------------------------------
 

@@ -8,6 +8,7 @@ from .export.api import register_export_tools
 from .location.api import register_location_tools
 from .position.api import register_position_tools
 from .routes.api import register_route_tools
+from .tracks.api import register_tracks_tools
 from .vessels.api import register_vessel_tools
 from .voyages.api import register_voyage_tools
 from .wrecks.api import register_wreck_tools
@@ -21,6 +22,7 @@ __all__ = [
     "register_location_tools",
     "register_position_tools",
     "register_route_tools",
+    "register_tracks_tools",
     "register_vessel_tools",
     "register_voyage_tools",
     "register_wreck_tools",

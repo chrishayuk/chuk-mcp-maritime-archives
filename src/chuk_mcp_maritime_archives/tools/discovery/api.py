@@ -163,6 +163,21 @@ def register_discovery_tools(mcp: object, manager: object) -> None:
                     description="Estimate ship position on a date from route and departure",
                 ),
                 ToolInfo(
+                    name="maritime_search_tracks",
+                    category="tracks",
+                    description="Search CLIWOC historical ship tracks by nationality and date",
+                ),
+                ToolInfo(
+                    name="maritime_get_track",
+                    category="tracks",
+                    description="Get full position history for a CLIWOC voyage",
+                ),
+                ToolInfo(
+                    name="maritime_nearby_tracks",
+                    category="tracks",
+                    description="Find ships near a position on a given date",
+                ),
+                ToolInfo(
                     name="maritime_assess_position",
                     category="position",
                     description="Assess quality and uncertainty of a historical position",
