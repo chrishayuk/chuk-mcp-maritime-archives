@@ -1,7 +1,7 @@
 """Tests for speed profiles module and MCP tool."""
 
 import json
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 from pydantic import ValidationError
@@ -160,6 +160,19 @@ class TestSpeedProfileTool:
         result = await fn(route_id="outward_outer", output_mode="text")
         assert "outward_outer" in result
         assert "km/day" in result
+
+    @pytest.mark.asyncio
+    async def test_error_handling(self):
+        """Exception in speed profile lookup should return error response."""
+        fn = self.mcp.get_tool("maritime_get_speed_profile")
+        with patch(
+            "chuk_mcp_maritime_archives.tools.speed.api.get_speed_profile",
+            side_effect=RuntimeError("database error"),
+        ):
+            result = await fn(route_id="outward_outer")
+            parsed = json.loads(result)
+            assert "error" in parsed
+            assert "database error" in parsed["error"]
 
 
 # ---------------------------------------------------------------------------

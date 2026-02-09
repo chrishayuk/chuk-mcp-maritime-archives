@@ -89,13 +89,18 @@ def _init_artifact_store() -> bool:
         return False
 
 
-# Import mcp instance from async server
-from .async_server import mcp  # noqa: E402
-
-
 def main() -> None:
     """CLI entry point."""
+    # 1. Initialize artifact store (before data loading)
     _init_artifact_store()
+
+    # 2. Preload reference data from artifacts if configured
+    from .core.reference_preload import preload_reference_data
+
+    preload_reference_data()
+
+    # 3. Import async_server (triggers module-level data loaders)
+    from .async_server import mcp
 
     parser = argparse.ArgumentParser(
         prog=ServerConfig.NAME,

@@ -13,7 +13,7 @@ from typing import Literal
 
 class ServerConfig(str, Enum):
     NAME = "chuk-mcp-maritime-archives"
-    VERSION = "0.5.0"
+    VERSION = "0.6.0"
     DESCRIPTION = "Historical Maritime Archives"
 
 
@@ -45,6 +45,13 @@ class EnvVar:
     AWS_SECRET_ACCESS_KEY = "AWS_SECRET_ACCESS_KEY"
     AWS_ENDPOINT_URL_S3 = "AWS_ENDPOINT_URL_S3"
     MCP_STDIO = "MCP_STDIO"
+    REFERENCE_MANIFEST = "MARITIME_REFERENCE_MANIFEST"
+
+
+class ArtifactScope:
+    """Artifact storage scopes."""
+
+    SANDBOX = "sandbox"
 
 
 # --- Archive Definitions ---------------------------------------------------

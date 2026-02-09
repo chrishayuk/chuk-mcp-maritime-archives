@@ -132,13 +132,26 @@ class TestMainFunction:
 
             return main
 
+    def _make_mock_async_server(self):
+        """Create a mock async_server module with a mock mcp object."""
+        mock_mcp = MagicMock()
+        mock_module = MagicMock()
+        mock_module.mcp = mock_mcp
+        return mock_mcp, mock_module
+
     def test_main_stdio_mode(self):
         """Test main() in explicit stdio mode."""
-        mock_mcp = MagicMock()
+        mock_mcp, mock_async_server = self._make_mock_async_server()
         with (
-            patch.dict("sys.modules", {"chuk_mcp_server": MagicMock()}),
+            patch.dict(
+                "sys.modules",
+                {
+                    "chuk_mcp_server": MagicMock(),
+                    "chuk_mcp_maritime_archives.async_server": mock_async_server,
+                },
+            ),
             patch("chuk_mcp_maritime_archives.server._init_artifact_store"),
-            patch("chuk_mcp_maritime_archives.server.mcp", mock_mcp),
+            patch("chuk_mcp_maritime_archives.server.preload_reference_data", create=True),
             patch("sys.argv", ["server", "stdio"]),
         ):
             main_fn = self._import_main()
@@ -147,11 +160,17 @@ class TestMainFunction:
 
     def test_main_http_mode(self):
         """Test main() in explicit http mode."""
-        mock_mcp = MagicMock()
+        mock_mcp, mock_async_server = self._make_mock_async_server()
         with (
-            patch.dict("sys.modules", {"chuk_mcp_server": MagicMock()}),
+            patch.dict(
+                "sys.modules",
+                {
+                    "chuk_mcp_server": MagicMock(),
+                    "chuk_mcp_maritime_archives.async_server": mock_async_server,
+                },
+            ),
             patch("chuk_mcp_maritime_archives.server._init_artifact_store"),
-            patch("chuk_mcp_maritime_archives.server.mcp", mock_mcp),
+            patch("chuk_mcp_maritime_archives.server.preload_reference_data", create=True),
             patch("sys.argv", ["server", "http", "--host", "0.0.0.0", "--port", "9000"]),
         ):
             main_fn = self._import_main()
@@ -160,11 +179,17 @@ class TestMainFunction:
 
     def test_main_auto_detect_stdio(self):
         """Test main() auto-detects stdio when MCP_STDIO env is set."""
-        mock_mcp = MagicMock()
+        mock_mcp, mock_async_server = self._make_mock_async_server()
         with (
-            patch.dict("sys.modules", {"chuk_mcp_server": MagicMock()}),
+            patch.dict(
+                "sys.modules",
+                {
+                    "chuk_mcp_server": MagicMock(),
+                    "chuk_mcp_maritime_archives.async_server": mock_async_server,
+                },
+            ),
             patch("chuk_mcp_maritime_archives.server._init_artifact_store"),
-            patch("chuk_mcp_maritime_archives.server.mcp", mock_mcp),
+            patch("chuk_mcp_maritime_archives.server.preload_reference_data", create=True),
             patch("sys.argv", ["server"]),
             patch.dict(os.environ, {"MCP_STDIO": "1"}),
         ):
@@ -174,13 +199,19 @@ class TestMainFunction:
 
     def test_main_auto_detect_http(self):
         """Test main() defaults to HTTP when stdin is a tty."""
-        mock_mcp = MagicMock()
+        mock_mcp, mock_async_server = self._make_mock_async_server()
         mock_stdin = MagicMock()
         mock_stdin.isatty.return_value = True
         with (
-            patch.dict("sys.modules", {"chuk_mcp_server": MagicMock()}),
+            patch.dict(
+                "sys.modules",
+                {
+                    "chuk_mcp_server": MagicMock(),
+                    "chuk_mcp_maritime_archives.async_server": mock_async_server,
+                },
+            ),
             patch("chuk_mcp_maritime_archives.server._init_artifact_store"),
-            patch("chuk_mcp_maritime_archives.server.mcp", mock_mcp),
+            patch("chuk_mcp_maritime_archives.server.preload_reference_data", create=True),
             patch("sys.argv", ["server"]),
             patch.dict(os.environ, {}, clear=True),
             patch.object(sys, "stdin", mock_stdin),
@@ -191,13 +222,19 @@ class TestMainFunction:
 
     def test_main_auto_detect_pipe(self):
         """Test main() auto-detects stdio when stdin is not a tty (piped)."""
-        mock_mcp = MagicMock()
+        mock_mcp, mock_async_server = self._make_mock_async_server()
         mock_stdin = MagicMock()
         mock_stdin.isatty.return_value = False
         with (
-            patch.dict("sys.modules", {"chuk_mcp_server": MagicMock()}),
+            patch.dict(
+                "sys.modules",
+                {
+                    "chuk_mcp_server": MagicMock(),
+                    "chuk_mcp_maritime_archives.async_server": mock_async_server,
+                },
+            ),
             patch("chuk_mcp_maritime_archives.server._init_artifact_store"),
-            patch("chuk_mcp_maritime_archives.server.mcp", mock_mcp),
+            patch("chuk_mcp_maritime_archives.server.preload_reference_data", create=True),
             patch("sys.argv", ["server"]),
             patch.dict(os.environ, {}, clear=True),
             patch.object(sys, "stdin", mock_stdin),

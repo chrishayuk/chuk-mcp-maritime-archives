@@ -247,6 +247,7 @@ python route_explorer_demo.py      # sailing routes + position estimation
 python track_explorer_demo.py      # CLIWOC ship tracks + nearby search
 python cross_archive_demo.py      # unified voyage view with all linked records
 python speed_profile_demo.py       # CLIWOC-derived speed statistics per segment
+python climate_proxy_demo.py       # ship speeds as climate proxies (wind & monsoon)
 python timeline_demo.py            # chronological voyage timeline from all sources
 
 # Core tool demos (network required)
@@ -271,6 +272,7 @@ python batavia_case_study_demo.py  # 12-tool chain investigating the Batavia wre
 | `track_explorer_demo.py` | No | `maritime_search_tracks`, `maritime_get_track`, `maritime_nearby_tracks` |
 | `cross_archive_demo.py` | Yes | `maritime_search_voyages`, `maritime_get_voyage_full` |
 | `speed_profile_demo.py` | No | `maritime_get_speed_profile`, `maritime_estimate_position` |
+| `climate_proxy_demo.py` | No | `maritime_get_speed_profile`, `maritime_get_route`, `maritime_search_tracks`, `maritime_get_track` |
 | `timeline_demo.py` | No | `maritime_get_timeline`, `maritime_search_voyages` |
 | `voyage_search_demo.py` | Yes | `maritime_search_voyages`, `maritime_get_voyage` |
 | `wreck_investigation_demo.py` | Yes | `maritime_search_wrecks`, `maritime_get_wreck`, `maritime_assess_position`, `maritime_export_geojson` |
@@ -570,15 +572,53 @@ uv build
 | `AWS_ENDPOINT_URL_S3` | - | Custom S3 endpoint (MinIO, etc.) |
 | `MCP_STDIO` | - | Set to any value to force stdio mode |
 | `REDIS_URL` | - | Redis URL for session management |
+| `MARITIME_REFERENCE_MANIFEST` | - | Artifact ID of reference data manifest (see below) |
 
 ### `.env` File
 
-The server loads environment variables from a `.env` file via `python-dotenv`:
+The server loads environment variables from a `.env` file via `python-dotenv`.
+Copy `.env.example` for a documented template:
 
+```bash
+cp .env.example .env
+```
+
+Minimal local development (no S3):
+```bash
+CHUK_ARTIFACTS_PROVIDER=memory
+```
+
+With filesystem storage:
 ```bash
 CHUK_ARTIFACTS_PROVIDER=filesystem
 CHUK_ARTIFACTS_PATH=/tmp/maritime-artifacts
 ```
+
+### S3-Backed Reference Data
+
+For multi-server deployments, reference data (~34 MB across 8 JSON files) can be
+stored in S3 and preloaded at startup, eliminating the need to run download scripts
+on each server.
+
+1. Configure S3 credentials in `.env`:
+   ```bash
+   CHUK_ARTIFACTS_PROVIDER=s3
+   BUCKET_NAME=your-maritime-bucket
+   AWS_ACCESS_KEY_ID=...
+   AWS_SECRET_ACCESS_KEY=...
+   ```
+
+2. Upload reference data to the artifact store:
+   ```bash
+   python scripts/upload_reference_data.py
+   ```
+
+3. Set the manifest ID printed by the script:
+   ```bash
+   MARITIME_REFERENCE_MANIFEST=<manifest-artifact-id>
+   ```
+
+4. New servers will automatically download missing data files from S3 at startup.
 
 ## Docker
 
@@ -616,7 +656,7 @@ Built on top of chuk-mcp-server, this server uses:
 - **Cross-Archive Linking**: Unified voyage view with wreck, vessel, hull profile, and CLIWOC track linking
 - **Dual Output**: All 29 tools support `output_mode="text"` for human-readable responses
 - **Domain Reference Data**: ~160 place gazetteer, 8 routes, 6 hull profiles, 215 speed profiles, ~261K ship positions, 15 regions, 4 navigation eras
-- **480+ Tests**: Across 11 test modules with 97%+ branch coverage
+- **499 Tests**: Across 12 test modules with 97%+ branch coverage
 
 ### Supported Archives
 
@@ -666,6 +706,13 @@ See [ROADMAP.md](ROADMAP.md) for the development roadmap and planned features.
 - **Timeline view**: `maritime_get_timeline` assembles chronological events from all data sources for a voyage
 - **Enhanced position estimation**: `maritime_estimate_position` now supports `use_speed_profiles=True` for CLIWOC-enriched estimates
 - 483 tests, 97%+ branch coverage
+
+### Completed (v0.6.0)
+
+- **Artifact store integration**: GeoJSON exports and timeline tracks stored to chuk-artifacts with `scope="sandbox"`
+- **S3-backed reference data**: `scripts/upload_reference_data.py` + `MARITIME_REFERENCE_MANIFEST` for automatic preloading
+- **`.env.example`** configuration template documenting all environment variables
+- 499 tests, 97%+ branch coverage
 
 ### Planned
 

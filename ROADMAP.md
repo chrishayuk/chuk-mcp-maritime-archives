@@ -116,6 +116,29 @@ Expanded to 29 tools across 16 categories. CLIWOC-based speed profiles and chron
 - 483 tests across 11 test modules, 97%+ branch coverage
 - 16 example scripts (8 offline, 8 network-dependent)
 
+### v0.6.0 -- Artifact Store Integration
+
+Wired up chuk-artifacts for GeoJSON storage and S3-backed reference data preloading.
+
+**Artifact-stored exports:**
+- `maritime_export_geojson` stores GeoJSON to artifact store with `scope="sandbox"`
+- `maritime_get_timeline` stores timeline GeoJSON to artifact store
+- `artifact_ref` field populated in `GeoJSONExportResponse` and `TimelineResponse`
+- Graceful degradation: if store is unavailable, `artifact_ref` is `None` but all data is still returned
+
+**S3-backed reference data preloading:**
+- `scripts/upload_reference_data.py` uploads all 8 data files to artifact store, produces manifest
+- Set `MARITIME_REFERENCE_MANIFEST=<id>` in `.env` for automatic preloading at startup
+- Server downloads missing files from artifacts before importing data loaders
+- Eliminates need to run download scripts on each new server deployment
+
+**Configuration:**
+- `.env.example` template documenting all environment variables
+- Restructured `server.py` startup: init store -> preload reference data -> import async_server
+
+**Quality:**
+- 499 tests across 12 test modules, 97%+ branch coverage
+
 ---
 
 ## Planned

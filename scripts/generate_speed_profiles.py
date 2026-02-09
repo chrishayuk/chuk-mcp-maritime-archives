@@ -16,7 +16,7 @@ import json
 import math
 import statistics
 from collections import defaultdict
-from datetime import date, datetime
+from datetime import date
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
@@ -31,6 +31,7 @@ OUTPUT_PATH = DATA_DIR / "speed_profiles.json"
 # Haversine (copied from cliwoc_tracks.py)
 # ---------------------------------------------------------------------------
 
+
 def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     """Great-circle distance in kilometres between two lat/lon points."""
     R = 6371.0
@@ -38,9 +39,7 @@ def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     dlon = math.radians(lon2 - lon1)
     a = (
         math.sin(dlat / 2) ** 2
-        + math.cos(math.radians(lat1))
-        * math.cos(math.radians(lat2))
-        * math.sin(dlon / 2) ** 2
+        + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon / 2) ** 2
     )
     return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
@@ -51,32 +50,82 @@ def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
 
 # Netherlands port names found in CLIWOC data
 _NL_PORTS = {
-    "TEXEL", "ROTTERDAM", "AMSTERDAM", "NIEUWEDIEP", "HELLEVOETSLUIS",
-    "NEDERLAND", "HOLLAND", "VLISSINGEN", "MIDDELBURG", "BROUWERSHAVEN",
-    "RAMMEKENS", "SCHIEDAM", "DORDRECHT", "DEN HELDER", "WILLEMSOORD",
-    "ZIERIKZEE", "NIEUWE DIEP", "NIEUWENDIEP", "ANTWERPEN", "TERNEUZEN",
-    "ROTERDAM", "'T NIEUWE DIEP",
+    "TEXEL",
+    "ROTTERDAM",
+    "AMSTERDAM",
+    "NIEUWEDIEP",
+    "HELLEVOETSLUIS",
+    "NEDERLAND",
+    "HOLLAND",
+    "VLISSINGEN",
+    "MIDDELBURG",
+    "BROUWERSHAVEN",
+    "RAMMEKENS",
+    "SCHIEDAM",
+    "DORDRECHT",
+    "DEN HELDER",
+    "WILLEMSOORD",
+    "ZIERIKZEE",
+    "NIEUWE DIEP",
+    "NIEUWENDIEP",
+    "ANTWERPEN",
+    "TERNEUZEN",
+    "ROTERDAM",
+    "'T NIEUWE DIEP",
 }
 
 # UK departure ports that indicate an East-India-bound voyage
 _UK_EAST_PORTS = {
-    "DOWNS", "SPITHEAD", "PORTSMOUTH", "PLYMOUTH", "GRAVESEND", "LONDON",
-    "TORBAY", "MOTHERBANK", "CORK", "FALMOUTH", "DOWNS UK", "PORTHMOUTH",
-    "HARTLEPOOL", "LIZARD",
+    "DOWNS",
+    "SPITHEAD",
+    "PORTSMOUTH",
+    "PLYMOUTH",
+    "GRAVESEND",
+    "LONDON",
+    "TORBAY",
+    "MOTHERBANK",
+    "CORK",
+    "FALMOUTH",
+    "DOWNS UK",
+    "PORTHMOUTH",
+    "HARTLEPOOL",
+    "LIZARD",
 }
 
 # Netherlands destination names (return voyages)
 _NL_DEST = {
-    "NEDERLAND", "AMSTERDAM", "ROTTERDAM", "TEXEL", "NIEUWEDIEP",
-    "HELLEVOETSLUIS", "VLISSINGEN", "MIDDELBURG", "BROUWERSHAVEN",
-    "RAMMEKENS", "HOLLAND", "DEN HELDER", "WILLEMSOORD", "SCHIEDAM",
-    "DORDRECHT", "ANTWERPEN", "NIEUW DIEP", "EUROPA", "NIEUWE DIEP",
+    "NEDERLAND",
+    "AMSTERDAM",
+    "ROTTERDAM",
+    "TEXEL",
+    "NIEUWEDIEP",
+    "HELLEVOETSLUIS",
+    "VLISSINGEN",
+    "MIDDELBURG",
+    "BROUWERSHAVEN",
+    "RAMMEKENS",
+    "HOLLAND",
+    "DEN HELDER",
+    "WILLEMSOORD",
+    "SCHIEDAM",
+    "DORDRECHT",
+    "ANTWERPEN",
+    "NIEUW DIEP",
+    "EUROPA",
+    "NIEUWE DIEP",
 }
 
 # UK destinations (return voyages)
 _UK_HOME = {
-    "DOWNS", "SPITHEAD", "UK", "PORTSMOUTH", "PLYMOUTH", "LONDON",
-    "FALMOUTH", "TORBAY", "GRAVESEND",
+    "DOWNS",
+    "SPITHEAD",
+    "UK",
+    "PORTSMOUTH",
+    "PLYMOUTH",
+    "LONDON",
+    "FALMOUTH",
+    "TORBAY",
+    "GRAVESEND",
 }
 
 
@@ -101,8 +150,16 @@ def classify_track(voyage_from: str, voyage_to: str) -> str | None:
     if _contains_any(vf, _UK_EAST_PORTS) and any(
         x in vt
         for x in [
-            "MADRAS", "BOMBAY", "BENGAL", "CEYLON", "CALCUTTA",
-            "BATAVIA", "JAVA", "CHINA", "CANTON", "ST HELENA",
+            "MADRAS",
+            "BOMBAY",
+            "BENGAL",
+            "CEYLON",
+            "CALCUTTA",
+            "BATAVIA",
+            "JAVA",
+            "CHINA",
+            "CANTON",
+            "ST HELENA",
         ]
     ):
         return "outward_outer"  # UK EIC ships follow similar Atlantic route
@@ -125,40 +182,29 @@ def classify_track(voyage_from: str, voyage_to: str) -> str | None:
         return "return"
 
     # --- Return: Batavia → Cape (partial return) ---
-    if "BATAVIA" in vf and any(
-        x in vt for x in ["KAAP", "CAPE", "SIMONS", "TABLE BAY"]
-    ):
+    if "BATAVIA" in vf and any(x in vt for x in ["KAAP", "CAPE", "SIMONS", "TABLE BAY"]):
         return "return"
 
     # --- Coromandel: Batavia → Indian east coast ---
     if "BATAVIA" in vf and any(
-        x in vt
-        for x in ["MADRAS", "PULICAT", "NEGAPAT", "NAGEPATN", "BENGAL", "COROMANDEL"]
+        x in vt for x in ["MADRAS", "PULICAT", "NEGAPAT", "NAGEPATN", "BENGAL", "COROMANDEL"]
     ):
         return "coromandel"
 
     # --- Ceylon: Batavia → Ceylon ---
-    if "BATAVIA" in vf and any(
-        x in vt for x in ["GALLE", "COLOMBO", "CEYLON", "TRINCOMALEE"]
-    ):
+    if "BATAVIA" in vf and any(x in vt for x in ["GALLE", "COLOMBO", "CEYLON", "TRINCOMALEE"]):
         return "ceylon"
 
     # --- Malabar: Batavia → Indian west coast ---
-    if "BATAVIA" in vf and any(
-        x in vt for x in ["COCHIN", "CALICUT", "MALABAR"]
-    ):
+    if "BATAVIA" in vf and any(x in vt for x in ["COCHIN", "CALICUT", "MALABAR"]):
         return "malabar"
 
     # --- Japan: Batavia → Deshima/Nagasaki ---
-    if "BATAVIA" in vf and any(
-        x in vt for x in ["DESHIMA", "NAGASAKI", "JAPAN", "DECIMA"]
-    ):
+    if "BATAVIA" in vf and any(x in vt for x in ["DESHIMA", "NAGASAKI", "JAPAN", "DECIMA"]):
         return "japan"
 
     # --- Spice Islands: Batavia → Moluccas ---
-    if "BATAVIA" in vf and any(
-        x in vt for x in ["AMBON", "BANDA", "TERNATE", "MOLUC"]
-    ):
+    if "BATAVIA" in vf and any(x in vt for x in ["AMBON", "BANDA", "TERNATE", "MOLUC"]):
         return "spice_islands"
 
     # --- Madras → UK/NL (can match return route Cape–Channel segments) ---
@@ -171,9 +217,7 @@ def classify_track(voyage_from: str, voyage_to: str) -> str | None:
             return "return"
 
     # --- Anjengo/Cochin → Cape (malabar partial) ---
-    if any(x in vf for x in ["ANJENGO", "COCHIN"]) and any(
-        x in vt for x in ["CAPE", "KAAP"]
-    ):
+    if any(x in vf for x in ["ANJENGO", "COCHIN"]) and any(x in vt for x in ["CAPE", "KAAP"]):
         return "malabar"
 
     return None
@@ -182,6 +226,7 @@ def classify_track(voyage_from: str, voyage_to: str) -> str | None:
 # ---------------------------------------------------------------------------
 # Segment assignment — find which route segment a position belongs to
 # ---------------------------------------------------------------------------
+
 
 def _segment_midpoint(wp_a: dict, wp_b: dict) -> tuple[float, float]:
     """Return the geographic midpoint of two waypoints."""
@@ -216,6 +261,7 @@ def assign_segment(
 # Statistics helpers
 # ---------------------------------------------------------------------------
 
+
 def compute_stats(values: list[float]) -> dict:
     """Return statistical summary for a list of daily-km values."""
     n = len(values)
@@ -248,6 +294,7 @@ def compute_stats(values: list[float]) -> dict:
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
+
 
 def main() -> None:
     print("Loading CLIWOC tracks …")
@@ -360,26 +407,30 @@ def main() -> None:
         all_values = month_data.get(None, [])
         if all_values:
             stats = compute_stats(all_values)
-            profiles.append({
-                "route_id": route_id,
-                "segment_from": seg_from,
-                "segment_to": seg_to,
-                "departure_month": None,
-                **stats,
-            })
+            profiles.append(
+                {
+                    "route_id": route_id,
+                    "segment_from": seg_from,
+                    "segment_to": seg_to,
+                    "departure_month": None,
+                    **stats,
+                }
+            )
 
         # Per-month aggregates (only if >= 5 samples)
         for month in range(1, 13):
             month_values = month_data.get(month, [])
             if len(month_values) >= 5:
                 stats = compute_stats(month_values)
-                profiles.append({
-                    "route_id": route_id,
-                    "segment_from": seg_from,
-                    "segment_to": seg_to,
-                    "departure_month": month,
-                    **stats,
-                })
+                profiles.append(
+                    {
+                        "route_id": route_id,
+                        "segment_from": seg_from,
+                        "segment_to": seg_to,
+                        "departure_month": month,
+                        **stats,
+                    }
+                )
 
     # Write output
     output = {

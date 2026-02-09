@@ -915,6 +915,7 @@ class TimelineResponse(BaseModel):
     event_count: int
     events: list[TimelineEvent]
     geojson: dict[str, Any] | None = None
+    artifact_ref: str | None = None
     data_sources: list[str] = Field(default_factory=list)
     message: str = ""
 
@@ -926,6 +927,8 @@ class TimelineResponse(BaseModel):
         if self.ship_name:
             lines.append(f"Ship: {self.ship_name}")
         lines.append(f"Events: {self.event_count}")
+        if self.artifact_ref:
+            lines.append(f"Artifact: {self.artifact_ref}")
         lines.append("")
         for e in self.events:
             pos_str = ""

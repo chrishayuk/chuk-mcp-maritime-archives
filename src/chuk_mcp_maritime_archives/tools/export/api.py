@@ -1,8 +1,9 @@
 """MCP tools for exporting wreck data as GeoJSON and computing statistics."""
 
+import json
 import logging
 
-from ...constants import SuccessMessages
+from ...constants import ArtifactScope, MimeType, SuccessMessages
 from ...models import (
     ErrorResponse,
     GeoJSONExportResponse,
@@ -74,10 +75,30 @@ def register_export_tools(mcp: object, manager: object) -> None:
 
             features = result.get("features", [])
 
+            # Store to artifact store if available
+            artifact_ref = None
+            try:
+                from chuk_mcp_server import get_artifact_store
+
+                store = get_artifact_store()
+                if store is not None:
+                    geojson_bytes = json.dumps(result).encode("utf-8")
+                    artifact_ref = await store.store(
+                        data=geojson_bytes,
+                        mime=MimeType.GEOJSON,
+                        summary=f"GeoJSON export: {len(features)} wreck positions",
+                        meta={"feature_count": len(features)},
+                        filename="wreck_export.geojson",
+                        scope=ArtifactScope.SANDBOX,
+                    )
+            except Exception:
+                logger.debug("Artifact store unavailable for GeoJSON export")
+
             return format_response(
                 GeoJSONExportResponse(
                     geojson=result,
                     feature_count=len(features),
+                    artifact_ref=artifact_ref,
                     message=SuccessMessages.EXPORT_COMPLETE.format(len(features)),
                 ),
                 output_mode,

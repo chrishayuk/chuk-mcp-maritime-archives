@@ -64,10 +64,21 @@ follow-up detail requests are instant.
 
 ### 7. Pluggable Storage via chuk-artifacts
 
-Exported data (GeoJSON wreck positions) is stored through the `chuk-artifacts`
-abstraction layer. Supported backends (memory, filesystem, S3) are selected via the
-`CHUK_ARTIFACTS_PROVIDER` environment variable. The artifact store is initialised at
-server startup in `server.py`, not at module import time.
+Exported data (GeoJSON wreck positions, timeline tracks) is stored through the
+`chuk-artifacts` abstraction layer. Supported backends (memory, filesystem, S3) are
+selected via the `CHUK_ARTIFACTS_PROVIDER` environment variable. The artifact store is
+initialised at server startup in `server.py`, not at module import time.
+
+GeoJSON exports and timeline GeoJSON are stored with `scope="sandbox"` so they are
+accessible across sessions. If the artifact store is unavailable (e.g., memory provider
+with no S3 configured), tools degrade gracefully -- `artifact_ref` is `None` but all
+data is still returned in the response.
+
+Reference data (~34 MB across 8 JSON files) can optionally be preloaded from the artifact
+store at server startup. Set `MARITIME_REFERENCE_MANIFEST` to a manifest artifact ID
+(produced by `scripts/upload_reference_data.py`) and the server will download any missing
+data files before importing the data loaders. This eliminates the need to run download
+scripts on each new server deployment.
 
 ### 8. API-Only Clients
 
@@ -79,7 +90,7 @@ sample data fallbacks.
 
 ### 9. Test Coverage -- 98%+
 
-All modules maintain 97%+ branch coverage (483 tests across 11 test modules). Tests use
+All modules maintain 97%+ branch coverage (499 tests across 12 test modules). Tests use
 `pytest-asyncio` and mock at the client HTTP boundary (`_http_get`), not at the manager
 level, to exercise the full data flow from tool to client.
 
@@ -136,6 +147,7 @@ level, to exercise the full data flow from tool to client.
 
 ```
 server.py                           # CLI entry point (sync)
+  +-- core/reference_preload.py     # Preload reference data from artifact store
   +-- async_server.py               # Async server setup, tool registration
   |     +-- tools/archives/api.py         # maritime_list_archives, maritime_get_archive
   |     +-- tools/voyages/api.py          # maritime_search_voyages, maritime_get_voyage
@@ -183,12 +195,13 @@ src/chuk_mcp_maritime_archives/
 +-- constants.py       # Enums, constants, messages
 +-- core/
 |   +-- __init__.py
-|   +-- archive_manager.py   # Central orchestrator with LRU caches
-|   +-- hull_profiles.py     # Hull profiles (loaded from data/hull_profiles.json)
-|   +-- voc_gazetteer.py     # VOC gazetteer (loaded from data/gazetteer.json)
-|   +-- voc_routes.py        # VOC routes (loaded from data/routes.json)
-|   +-- speed_profiles.py   # Speed profiles (loaded from data/speed_profiles.json)
-|   +-- cliwoc_tracks.py     # CLIWOC tracks (loaded from data/cliwoc_tracks.json)
+|   +-- archive_manager.py     # Central orchestrator with LRU caches
+|   +-- reference_preload.py   # Preload reference data from artifact store
+|   +-- hull_profiles.py       # Hull profiles (loaded from data/hull_profiles.json)
+|   +-- voc_gazetteer.py       # VOC gazetteer (loaded from data/gazetteer.json)
+|   +-- voc_routes.py          # VOC routes (loaded from data/routes.json)
+|   +-- speed_profiles.py      # Speed profiles (loaded from data/speed_profiles.json)
+|   +-- cliwoc_tracks.py       # CLIWOC tracks (loaded from data/cliwoc_tracks.json)
 |   +-- clients/
 |       +-- __init__.py
 |       +-- base.py           # BaseArchiveClient ABC
@@ -229,6 +242,22 @@ Synchronous entry point. Parses command-line arguments (`--mode`, `--port`), loa
 `.env` via `python-dotenv`, configures the artifact store provider from environment
 variables, and starts the MCP server. This is the only file that touches `sys.argv`
 or `os.environ` directly.
+
+The `main()` function follows a strict initialization order:
+1. Initialize artifact store (`_init_artifact_store()`)
+2. Preload reference data from artifacts (if `MARITIME_REFERENCE_MANIFEST` is set)
+3. Import `async_server` (triggers module-level data loaders)
+
+Step 3 is a lazy import inside `main()` rather than a module-level import. This is
+critical because the data loaders (`_load_tracks()`, `_load_routes()`, etc.) run at
+import time, and the preload step must complete before they execute.
+
+### `core/reference_preload.py`
+
+Optional reference data preloader. When `MARITIME_REFERENCE_MANIFEST` is set, downloads
+data files from the artifact store to the local `data/` directory. The manifest is a
+JSON artifact mapping filenames to artifact IDs. Skips files that already exist locally.
+Falls back silently if the store is unavailable or any download fails.
 
 ### `async_server.py`
 

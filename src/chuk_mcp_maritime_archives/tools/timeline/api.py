@@ -1,8 +1,9 @@
 """MCP tools for building chronological voyage timelines."""
 
+import json
 import logging
 
-from ...constants import ErrorMessages
+from ...constants import ArtifactScope, ErrorMessages, MimeType
 from ...models import (
     ErrorResponse,
     TimelineEvent,
@@ -84,13 +85,35 @@ def register_timeline_tools(mcp: object, manager: object) -> None:
                 for e in events_data
             ]
 
+            # Store timeline GeoJSON to artifact store if available
+            artifact_ref = None
+            geojson_data = result.get("geojson")
+            if geojson_data:
+                try:
+                    from chuk_mcp_server import get_artifact_store
+
+                    store = get_artifact_store()
+                    if store is not None:
+                        geojson_bytes = json.dumps(geojson_data).encode("utf-8")
+                        artifact_ref = await store.store(
+                            data=geojson_bytes,
+                            mime=MimeType.GEOJSON,
+                            summary=f"Timeline GeoJSON for voyage {voyage_id}",
+                            meta={"voyage_id": voyage_id},
+                            filename=f"timeline_{voyage_id}.geojson",
+                            scope=ArtifactScope.SANDBOX,
+                        )
+                except Exception:
+                    logger.debug("Artifact store unavailable for timeline GeoJSON")
+
             return format_response(
                 TimelineResponse(
                     voyage_id=voyage_id,
                     ship_name=result.get("ship_name"),
                     event_count=len(events),
                     events=events,
-                    geojson=result.get("geojson"),
+                    geojson=geojson_data,
+                    artifact_ref=artifact_ref,
                     data_sources=result.get("data_sources", []),
                     message=(
                         f"Timeline for voyage {voyage_id}: "

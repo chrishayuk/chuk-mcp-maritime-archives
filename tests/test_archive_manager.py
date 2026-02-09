@@ -1,5 +1,7 @@
 """Tests for ArchiveManager backed by local JSON fixture data."""
 
+from unittest.mock import patch
+
 import pytest
 
 from chuk_mcp_maritime_archives.core.archive_manager import ArchiveManager
@@ -395,6 +397,185 @@ class TestGeoJSONExport:
 # ---------------------------------------------------------------------------
 # Manager date filter
 # ---------------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------------
+# Timeline (async — builds from voyage, route, and wreck fixture data)
+# ---------------------------------------------------------------------------
+
+
+class TestBuildTimeline:
+    @pytest.mark.asyncio
+    async def test_build_timeline_batavia(self, manager: ArchiveManager):
+        """Build timeline for the Batavia voyage — should have departure, estimates, and loss."""
+        result = await manager.build_timeline(voyage_id="das:3456")
+        assert result is not None
+        assert result["voyage_id"] == "das:3456"
+        assert result["ship_name"] == "Batavia"
+        assert len(result["events"]) >= 2  # at least departure + loss
+        assert "das" in result["data_sources"]
+        assert "maarer" in result["data_sources"]
+
+        # Check event types
+        event_types = [e["type"] for e in result["events"]]
+        assert "departure" in event_types
+        assert "loss" in event_types
+
+    @pytest.mark.asyncio
+    async def test_build_timeline_includes_route_estimates(self, manager: ArchiveManager):
+        """Timeline should include waypoint estimates from the outward route."""
+        result = await manager.build_timeline(voyage_id="das:3456")
+        assert result is not None
+        event_types = [e["type"] for e in result["events"]]
+        assert "waypoint_estimate" in event_types
+        assert "route_estimate" in result["data_sources"]
+
+    @pytest.mark.asyncio
+    async def test_build_timeline_not_found(self, manager: ArchiveManager):
+        """Non-existent voyage should return None."""
+        result = await manager.build_timeline(voyage_id="das:99999")
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_build_timeline_events_sorted_chronologically(self, manager: ArchiveManager):
+        """Events should be in chronological order."""
+        result = await manager.build_timeline(voyage_id="das:3456")
+        assert result is not None
+        dates = [e["date"] for e in result["events"]]
+        assert dates == sorted(dates)
+
+    @pytest.mark.asyncio
+    async def test_build_timeline_loss_event_has_position(self, manager: ArchiveManager):
+        """The loss event should have wreck position from fixture data."""
+        result = await manager.build_timeline(voyage_id="das:3456")
+        assert result is not None
+        loss_events = [e for e in result["events"] if e["type"] == "loss"]
+        assert len(loss_events) == 1
+        assert loss_events[0]["position"]["lat"] == -28.49
+        assert loss_events[0]["position"]["lon"] == 113.79
+
+    @pytest.mark.asyncio
+    async def test_build_timeline_geojson_produced(self, manager: ArchiveManager):
+        """Timeline should produce a GeoJSON LineString when multiple positions exist."""
+        result = await manager.build_timeline(voyage_id="das:3456")
+        assert result is not None
+        # The loss event has a position; route estimates also have positions
+        # so geojson should be produced if >= 2 positioned events
+        if result["geojson"] is not None:
+            assert result["geojson"]["type"] == "Feature"
+            assert result["geojson"]["geometry"]["type"] == "LineString"
+
+    @pytest.mark.asyncio
+    async def test_build_timeline_completed_voyage(self, manager: ArchiveManager):
+        """A completed voyage should not have a loss event."""
+        result = await manager.build_timeline(voyage_id="das:5678")
+        assert result is not None
+        event_types = [e["type"] for e in result["events"]]
+        assert "loss" not in event_types
+        assert "departure" in event_types
+
+    @pytest.mark.asyncio
+    async def test_build_timeline_with_cliwoc_track(self, manager: ArchiveManager):
+        """Timeline should include CLIWOC data when track is found."""
+        mock_track = {
+            "voyage_id": 42,
+            "ship_name": "Batavia",
+            "nationality": "NL",
+        }
+        full_track = {
+            "voyage_id": 42,
+            "nationality": "NL",
+            "positions": [
+                {"date": "1629-01-10", "lat": -10.0, "lon": 20.0},
+                {"date": "1629-02-15", "lat": -20.0, "lon": 40.0},
+                {"date": "1629-03-20", "lat": -30.0, "lon": 60.0},
+            ],
+        }
+        with (
+            patch(
+                "chuk_mcp_maritime_archives.core.archive_manager.get_track_by_das_number",
+                return_value=mock_track,
+            ),
+            patch(
+                "chuk_mcp_maritime_archives.core.archive_manager.get_track",
+                return_value=full_track,
+            ),
+        ):
+            result = await manager.build_timeline(
+                voyage_id="das:3456", include_positions=True, max_positions=10
+            )
+            assert result is not None
+            assert "cliwoc" in result["data_sources"]
+            cliwoc_events = [e for e in result["events"] if e["type"] == "cliwoc_position"]
+            assert len(cliwoc_events) == 3
+
+    @pytest.mark.asyncio
+    async def test_build_timeline_cliwoc_without_positions(self, manager: ArchiveManager):
+        """When CLIWOC track found but include_positions=False, only adds data source."""
+        mock_track = {
+            "voyage_id": 42,
+            "ship_name": "Batavia",
+            "nationality": "NL",
+        }
+        with patch(
+            "chuk_mcp_maritime_archives.core.archive_manager.get_track_by_das_number",
+            return_value=mock_track,
+        ):
+            result = await manager.build_timeline(voyage_id="das:3456", include_positions=False)
+            assert result is not None
+            assert "cliwoc" in result["data_sources"]
+            cliwoc_events = [e for e in result["events"] if e["type"] == "cliwoc_position"]
+            assert len(cliwoc_events) == 0
+
+    @pytest.mark.asyncio
+    async def test_find_cliwoc_track_by_das_number(self, manager: ArchiveManager):
+        """_find_cliwoc_track_for_voyage should try DAS number first."""
+        mock_track = {"voyage_id": 42, "ship_name": "Test", "positions": []}
+        voyage = {"voyage_number": "3456", "ship_name": "Batavia"}
+        with patch(
+            "chuk_mcp_maritime_archives.core.archive_manager.get_track_by_das_number",
+            return_value=mock_track,
+        ):
+            result = manager._find_cliwoc_track_for_voyage(voyage)
+            assert result is not None
+            assert result["voyage_id"] == 42
+            assert "positions" not in result  # positions stripped from summary
+
+    @pytest.mark.asyncio
+    async def test_find_cliwoc_track_falls_back_to_ship_name(self, manager: ArchiveManager):
+        """When DAS number lookup returns None, should fall back to ship name."""
+        mock_track = {"voyage_id": 99, "ship_name": "Batavia"}
+        voyage = {"ship_name": "Batavia", "departure_date": "1628-10-28"}
+        with (
+            patch(
+                "chuk_mcp_maritime_archives.core.archive_manager.get_track_by_das_number",
+                return_value=None,
+            ),
+            patch(
+                "chuk_mcp_maritime_archives.core.archive_manager.find_track_for_voyage",
+                return_value=mock_track,
+            ),
+        ):
+            result = manager._find_cliwoc_track_for_voyage(voyage)
+            assert result is not None
+            assert result["voyage_id"] == 99
+
+    @pytest.mark.asyncio
+    async def test_find_cliwoc_track_returns_none(self, manager: ArchiveManager):
+        """When no CLIWOC track matches, should return None."""
+        voyage = {"ship_name": "Unknown Ship"}
+        with (
+            patch(
+                "chuk_mcp_maritime_archives.core.archive_manager.get_track_by_das_number",
+                return_value=None,
+            ),
+            patch(
+                "chuk_mcp_maritime_archives.core.archive_manager.find_track_for_voyage",
+                return_value=None,
+            ),
+        ):
+            result = manager._find_cliwoc_track_for_voyage(voyage)
+            assert result is None
 
 
 class TestManagerDateFilter:
