@@ -9,7 +9,6 @@ between JSON and human-readable output.
 
 from __future__ import annotations
 
-import json
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -132,7 +131,9 @@ class VoyageSearchResponse(BaseModel):
             fate_str = f" [{v.fate}]" if v.fate else ""
             lines.append(f"  {v.voyage_id}: {v.ship_name}{fate_str}")
             if v.departure_port and v.departure_date:
-                lines.append(f"    {v.departure_port} ({v.departure_date}) -> {v.destination_port or '?'}")
+                lines.append(
+                    f"    {v.departure_port} ({v.departure_date}) -> {v.destination_port or '?'}"
+                )
         return "\n".join(lines)
 
 
@@ -209,7 +210,9 @@ class WreckDetailResponse(BaseModel):
         ]
         pos = w.get("position")
         if pos:
-            lines.append(f"Position: {pos.get('lat', '?')}°N, {pos.get('lon', '?')}°E (±{pos.get('uncertainty_km', '?')}km)")
+            lines.append(
+                f"Position: {pos.get('lat', '?')}°N, {pos.get('lon', '?')}°E (±{pos.get('uncertainty_km', '?')}km)"
+            )
         return "\n".join(lines)
 
 
@@ -353,7 +356,64 @@ class CargoDetailResponse(BaseModel):
     def to_text(self) -> str:
         lines = [self.message, f"Manifest for voyage {self.voyage_id}:", ""]
         for c in self.cargo_entries:
-            lines.append(f"  {c.get('commodity', '?')}: {c.get('quantity', '?')} {c.get('unit', '')}")
+            lines.append(
+                f"  {c.get('commodity', '?')}: {c.get('quantity', '?')} {c.get('unit', '')}"
+            )
+        return "\n".join(lines)
+
+
+# ---------------------------------------------------------------------------
+# Location responses
+# ---------------------------------------------------------------------------
+
+
+class LocationInfo(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    name: str
+    lat: float
+    lon: float
+    region: str
+    type: str
+    aliases: list[str] = Field(default_factory=list)
+    notes: str | None = None
+
+
+class LocationSearchResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    location_count: int
+    locations: list[LocationInfo]
+    message: str = ""
+
+    def to_text(self) -> str:
+        lines = [self.message, ""]
+        for loc in self.locations:
+            alias_str = f" (aka {', '.join(loc.aliases)})" if loc.aliases else ""
+            lines.append(f"  {loc.name}{alias_str}")
+            lines.append(f"    {loc.lat:.2f}N, {loc.lon:.2f}E — {loc.region} [{loc.type}]")
+            if loc.notes:
+                lines.append(f"    {loc.notes}")
+        return "\n".join(lines)
+
+
+class LocationDetailResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    location: LocationInfo
+    message: str = ""
+
+    def to_text(self) -> str:
+        loc = self.location
+        alias_str = f" (aka {', '.join(loc.aliases)})" if loc.aliases else ""
+        lines = [
+            f"Location: {loc.name}{alias_str}",
+            f"Coordinates: {loc.lat:.4f}N, {loc.lon:.4f}E",
+            f"Region: {loc.region}",
+            f"Type: {loc.type}",
+        ]
+        if loc.notes:
+            lines.append(f"Notes: {loc.notes}")
         return "\n".join(lines)
 
 
@@ -396,6 +456,114 @@ class HullProfileResponse(BaseModel):
         guidance = p.get("llm_guidance")
         if guidance:
             lines.append(f"Guidance: {guidance}")
+        return "\n".join(lines)
+
+
+# ---------------------------------------------------------------------------
+# Route responses
+# ---------------------------------------------------------------------------
+
+
+class RouteWaypointInfo(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    name: str
+    lat: float
+    lon: float
+    region: str
+    cumulative_days: int
+    stop_days: int = 0
+    notes: str | None = None
+
+
+class RouteInfo(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    route_id: str
+    name: str
+    direction: str
+    typical_duration_days: int
+    waypoint_count: int
+
+
+class RouteListResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    route_count: int
+    routes: list[RouteInfo]
+    message: str = ""
+
+    def to_text(self) -> str:
+        lines = [self.message, ""]
+        for r in self.routes:
+            lines.append(f"  {r.route_id}: {r.name}")
+            lines.append(
+                f"    Direction: {r.direction} | ~{r.typical_duration_days} days | {r.waypoint_count} waypoints"
+            )
+        return "\n".join(lines)
+
+
+class RouteDetailResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    route: dict[str, Any]
+    message: str = ""
+
+    def to_text(self) -> str:
+        r = self.route
+        lines = [
+            f"Route: {r.get('name', '?')} ({r.get('route_id', '?')})",
+            f"Direction: {r.get('direction', '?')}",
+            f"Typical duration: ~{r.get('typical_duration_days', '?')} days",
+            "",
+        ]
+        desc = r.get("description", "")
+        if desc:
+            lines.append(f"{desc}")
+            lines.append("")
+        lines.append("Waypoints:")
+        for wp in r.get("waypoints", []):
+            stop = f" (stop ~{wp['stop_days']}d)" if wp.get("stop_days") else ""
+            lines.append(f"  Day {wp['cumulative_days']:>3}: {wp['name']}{stop}")
+            if wp.get("notes"):
+                lines.append(f"           {wp['notes']}")
+        hazards = r.get("hazards", [])
+        if hazards:
+            lines.append("")
+            lines.append("Hazards:")
+            for h in hazards:
+                lines.append(f"  - {h}")
+        season = r.get("season_notes")
+        if season:
+            lines.append("")
+            lines.append(f"Season: {season}")
+        return "\n".join(lines)
+
+
+class PositionEstimateResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    estimate: dict[str, Any]
+    message: str = ""
+
+    def to_text(self) -> str:
+        e = self.estimate
+        pos = e.get("estimated_position", {})
+        seg = e.get("segment", {})
+        lines = [
+            f"Route: {e.get('route_name', '?')}",
+            f"Departed: {e.get('departure_date', '?')} | Target: {e.get('target_date', '?')}",
+            f"Elapsed: {e.get('elapsed_days', '?')} days (of ~{e.get('total_route_days', '?')})",
+            f"Progress: {e.get('voyage_progress', 0) * 100:.0f}%",
+            "",
+            f"Estimated position: {pos.get('lat', '?')}N, {pos.get('lon', '?')}E",
+            f"Region: {pos.get('region', '?')}",
+            f"Segment: {seg.get('from', '?')} -> {seg.get('to', '?')} ({seg.get('progress', 0) * 100:.0f}%)",
+            f"Confidence: {e.get('confidence', '?')}",
+        ]
+        notes = e.get("notes")
+        if notes:
+            lines.append(f"Notes: {notes}")
         return "\n".join(lines)
 
 

@@ -2,7 +2,7 @@
 
 import logging
 
-from ...constants import ErrorMessages, SuccessMessages
+from ...constants import SuccessMessages
 from ...models import (
     ErrorResponse,
     GeoJSONExportResponse,
@@ -136,9 +136,7 @@ def register_export_tools(mcp: object, manager: object) -> None:
             return format_response(
                 StatisticsResponse(
                     statistics=result,
-                    message=SuccessMessages.STATISTICS_COMPLETE.format(
-                        total_losses, date_str
-                    ),
+                    message=SuccessMessages.STATISTICS_COMPLETE.format(total_losses, date_str),
                 ),
                 output_mode,
             )

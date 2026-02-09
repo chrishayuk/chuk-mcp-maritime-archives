@@ -1,0 +1,20 @@
+[
+  {
+    "cargo_id": "voc_cargo:23456",
+    "voyage_id": "das:8123",
+    "commodity": "pepper",
+    "origin": "Batavia",
+    "destination": "Amsterdam",
+    "date": "1720-03-15",
+    "value_guilders": 187500
+  },
+  {
+    "cargo_id": "voc_cargo:23457",
+    "voyage_id": "das:8123",
+    "commodity": "nutmeg",
+    "origin": "Banda",
+    "destination": "Amsterdam",
+    "date": "1720-03-15",
+    "value_guilders": 125000
+  }
+]

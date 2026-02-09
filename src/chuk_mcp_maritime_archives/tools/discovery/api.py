@@ -138,6 +138,31 @@ def register_discovery_tools(mcp: object, manager: object) -> None:
                     description="Get full cargo manifest for a voyage",
                 ),
                 ToolInfo(
+                    name="maritime_lookup_location",
+                    category="location",
+                    description="Look up a historical place name in the VOC gazetteer",
+                ),
+                ToolInfo(
+                    name="maritime_list_locations",
+                    category="location",
+                    description="Search or browse VOC places by region, type, or text",
+                ),
+                ToolInfo(
+                    name="maritime_list_routes",
+                    category="routes",
+                    description="List standard VOC sailing routes",
+                ),
+                ToolInfo(
+                    name="maritime_get_route",
+                    category="routes",
+                    description="Get full route with waypoints, hazards, and season notes",
+                ),
+                ToolInfo(
+                    name="maritime_estimate_position",
+                    category="routes",
+                    description="Estimate ship position on a date from route and departure",
+                ),
+                ToolInfo(
                     name="maritime_assess_position",
                     category="position",
                     description="Assess quality and uncertainty of a historical position",

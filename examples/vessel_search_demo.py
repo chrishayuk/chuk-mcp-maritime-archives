@@ -8,7 +8,7 @@ useful in drift modelling and wreck search planning.
 
 Demonstrates:
     maritime_search_vessels (by name, by type)
-    maritime_get_vessel (full vessel record)
+    maritime_get_vessel (full vessel record from search results)
     maritime_get_hull_profile (ship type characteristics)
 
 Usage:
@@ -28,12 +28,20 @@ async def main() -> None:
     print("=" * 60)
 
     # ----- Search all vessels ---------------------------------------
-    print("\n1. All vessels in the registry")
+    print("\n1. Search all vessels")
     print("-" * 40)
 
-    result = await runner.run("maritime_search_vessels")
-    print(f"   Found {result['vessel_count']} vessel(s)")
+    result = await runner.run("maritime_search_vessels", max_results=10)
 
+    if "error" in result:
+        print(f"   API unavailable: {result['error']}")
+        print("   (This demo requires network access to the DAS archive)")
+        print("\n   Continuing with hull profiles (no network needed)...")
+        result = {"vessel_count": 0, "vessels": []}
+    else:
+        print(f"   Found {result['vessel_count']} vessel(s)")
+
+    first_vessel_id = None
     for v in result["vessels"]:
         vtype = v.get("type", "?")
         tonnage = f"{v['tonnage']} lasten" if v.get("tonnage") else "? lasten"
@@ -42,13 +50,17 @@ async def main() -> None:
         print(f"\n   {v['vessel_id']}: {v['name']}")
         print(f"     Type: {vtype}  Tonnage: {tonnage}")
         print(f"     Built: {year}  Chamber: {chamber}")
+        if first_vessel_id is None:
+            first_vessel_id = v["vessel_id"]
 
     # ----- Search by name -------------------------------------------
     print("\n2. Search for the Batavia")
     print("-" * 40)
 
     batavia = await runner.run("maritime_search_vessels", name="Batavia")
-    if batavia["vessel_count"] > 0:
+    if "error" in batavia:
+        print(f"   {batavia['error']}")
+    elif batavia["vessel_count"] > 0:
         v = batavia["vessels"][0]
         print(f"   Found: {v['name']} ({v.get('type', '?')})")
 
@@ -56,7 +68,7 @@ async def main() -> None:
         vessel = await runner.run("maritime_get_vessel", vessel_id=v["vessel_id"])
         if "vessel" in vessel:
             vd = vessel["vessel"]
-            print(f"\n   Full vessel record:")
+            print("\n   Full vessel record:")
             print(f"     Name: {vd.get('name', '?')}")
             print(f"     Type: {vd.get('type', '?')}")
             print(f"     Tonnage: {vd.get('tonnage', '?')} lasten")
@@ -68,6 +80,8 @@ async def main() -> None:
                 dims = vd["dimensions"]
                 print(f"     Dimensions: {dims.get('length_m', '?')}m x {dims.get('beam_m', '?')}m")
                 print(f"     Draught: {dims.get('draught_m', '?')}m")
+    else:
+        print("   No vessels found matching 'Batavia'")
 
     # ----- Compare ship types ---------------------------------------
     print("\n3. VOC ship type comparison")
@@ -75,7 +89,7 @@ async def main() -> None:
 
     profiles = await runner.run("maritime_list_hull_profiles")
     print(f"\n   {'Type':15s}  {'Tonnage':15s}  {'Length':10s}  {'Beam':10s}")
-    print(f"   {'-'*15}  {'-'*15}  {'-'*10}  {'-'*10}")
+    print(f"   {'-' * 15}  {'-' * 15}  {'-' * 10}  {'-' * 10}")
 
     for st in profiles["ship_types"]:
         profile = await runner.run("maritime_get_hull_profile", ship_type=st)
@@ -93,7 +107,7 @@ async def main() -> None:
     # ----- Text output mode -----------------------------------------
     print("\n4. Text output mode")
     print("-" * 40)
-    text = await runner.run_text("maritime_search_vessels")
+    text = await runner.run_text("maritime_search_vessels", max_results=5)
     print(text)
 
     print("\n" + "=" * 60)

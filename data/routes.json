@@ -1,0 +1,615 @@
+[
+  {
+    "route_id": "outward_outer",
+    "name": "Outward Voyage — Outer Route",
+    "description": "Standard VOC route from the Netherlands to Batavia via the outer (southern) route around Madagascar. Preferred from the 1660s onward for speed, avoiding the Mozambique Channel. Ships caught the SE trade winds across the Indian Ocean, sometimes sighting the Australian coast.",
+    "direction": "outward",
+    "typical_duration_days": 200,
+    "season_notes": "Departures concentrated in autumn (Sep-Nov) and spring (Apr-May) to catch favourable winds. Winter departures (Dec-Feb) were common from the 1680s.",
+    "hazards": [
+      "Bay of Biscay storms (year-round)",
+      "Doldrums near equator (becalming 1-3 weeks)",
+      "Cape of Good Hope winter storms (May-Aug)",
+      "Roaring Forties south of Madagascar",
+      "Western Australian reefs if too far east on Indian Ocean crossing"
+    ],
+    "waypoints": [
+      {
+        "name": "Texel",
+        "lat": 53.05,
+        "lon": 4.8,
+        "region": "north_sea",
+        "cumulative_days": 0,
+        "stop_days": 0,
+        "notes": "Primary departure anchorage."
+      },
+      {
+        "name": "English Channel",
+        "lat": 50.5,
+        "lon": -1.0,
+        "region": "north_sea",
+        "cumulative_days": 5,
+        "stop_days": 0,
+        "notes": "Transit. Ships sometimes sheltered at The Downs."
+      },
+      {
+        "name": "Ushant",
+        "lat": 48.46,
+        "lon": -5.09,
+        "region": "atlantic_europe",
+        "cumulative_days": 8,
+        "stop_days": 0,
+        "notes": "Navigation waypoint off Brittany."
+      },
+      {
+        "name": "Cape Verde",
+        "lat": 15.06,
+        "lon": -23.63,
+        "region": "atlantic_europe",
+        "cumulative_days": 35,
+        "stop_days": 3,
+        "notes": "Watering stop. Not all ships called here."
+      },
+      {
+        "name": "Equator crossing",
+        "lat": 0.0,
+        "lon": -20.0,
+        "region": "atlantic_crossing",
+        "cumulative_days": 50,
+        "stop_days": 0,
+        "notes": "Crossing the doldrums. Could take 1-3 weeks of calm."
+      },
+      {
+        "name": "St Helena latitude",
+        "lat": -15.97,
+        "lon": -10.0,
+        "region": "atlantic_crossing",
+        "cumulative_days": 65,
+        "stop_days": 0,
+        "notes": "Passing south through the Atlantic."
+      },
+      {
+        "name": "Cape of Good Hope",
+        "lat": -33.93,
+        "lon": 18.42,
+        "region": "cape",
+        "cumulative_days": 110,
+        "stop_days": 21,
+        "notes": "Mandatory refreshment stop at Table Bay. Typical stay 2-4 weeks for water, provisions, and repairs."
+      },
+      {
+        "name": "South of Madagascar",
+        "lat": -38.0,
+        "lon": 55.0,
+        "region": "indian_ocean",
+        "cumulative_days": 150,
+        "stop_days": 0,
+        "notes": "Outer route: sailed south of Madagascar in the Roaring Forties, then turned NE toward Sunda Strait."
+      },
+      {
+        "name": "Sunda Strait",
+        "lat": -6.1,
+        "lon": 105.75,
+        "region": "indonesia",
+        "cumulative_days": 185,
+        "stop_days": 0,
+        "notes": "Strait between Java and Sumatra. Final approach."
+      },
+      {
+        "name": "Batavia",
+        "lat": -6.13,
+        "lon": 106.85,
+        "region": "indonesia",
+        "cumulative_days": 190,
+        "stop_days": 0,
+        "notes": "VOC Asian headquarters. End of outward voyage."
+      }
+    ]
+  },
+  {
+    "route_id": "outward_inner",
+    "name": "Outward Voyage — Inner Route (Mozambique Channel)",
+    "description": "VOC route from the Netherlands to Batavia via the Mozambique Channel between Madagascar and the East African coast. Used primarily before the 1660s and during the SW monsoon season (Apr-Sep) when the Channel offered favourable currents.",
+    "direction": "outward",
+    "typical_duration_days": 210,
+    "season_notes": "Best used during SW monsoon (Apr-Sep) when the Mozambique Current runs northward. Avoided during NE monsoon.",
+    "hazards": [
+      "Bay of Biscay storms",
+      "Doldrums near equator",
+      "Cape of Good Hope winter storms",
+      "Shoals and reefs in Mozambique Channel",
+      "Piracy along East African coast",
+      "Malaria at Mozambique and Madagascar ports"
+    ],
+    "waypoints": [
+      {
+        "name": "Texel",
+        "lat": 53.05,
+        "lon": 4.8,
+        "region": "north_sea",
+        "cumulative_days": 0,
+        "stop_days": 0,
+        "notes": "Primary departure anchorage."
+      },
+      {
+        "name": "English Channel",
+        "lat": 50.5,
+        "lon": -1.0,
+        "region": "north_sea",
+        "cumulative_days": 5,
+        "stop_days": 0,
+        "notes": "Transit."
+      },
+      {
+        "name": "Ushant",
+        "lat": 48.46,
+        "lon": -5.09,
+        "region": "atlantic_europe",
+        "cumulative_days": 8,
+        "stop_days": 0,
+        "notes": "Navigation waypoint."
+      },
+      {
+        "name": "Cape Verde",
+        "lat": 15.06,
+        "lon": -23.63,
+        "region": "atlantic_europe",
+        "cumulative_days": 35,
+        "stop_days": 3,
+        "notes": "Watering stop."
+      },
+      {
+        "name": "Equator crossing",
+        "lat": 0.0,
+        "lon": -20.0,
+        "region": "atlantic_crossing",
+        "cumulative_days": 50,
+        "stop_days": 0,
+        "notes": "Crossing the doldrums."
+      },
+      {
+        "name": "Cape of Good Hope",
+        "lat": -33.93,
+        "lon": 18.42,
+        "region": "cape",
+        "cumulative_days": 110,
+        "stop_days": 21,
+        "notes": "Refreshment stop at Table Bay."
+      },
+      {
+        "name": "Mozambique Channel",
+        "lat": -18.0,
+        "lon": 42.0,
+        "region": "mozambique_channel",
+        "cumulative_days": 145,
+        "stop_days": 0,
+        "notes": "Transit through the channel between Madagascar and East Africa. Shallow waters, coral reefs."
+      },
+      {
+        "name": "Comoro Islands",
+        "lat": -12.17,
+        "lon": 44.25,
+        "region": "mozambique_channel",
+        "cumulative_days": 155,
+        "stop_days": 2,
+        "notes": "Occasional watering stop."
+      },
+      {
+        "name": "Indian Ocean crossing",
+        "lat": -8.0,
+        "lon": 75.0,
+        "region": "indian_ocean",
+        "cumulative_days": 180,
+        "stop_days": 0,
+        "notes": "Open ocean crossing to the East Indies."
+      },
+      {
+        "name": "Sunda Strait",
+        "lat": -6.1,
+        "lon": 105.75,
+        "region": "indonesia",
+        "cumulative_days": 200,
+        "stop_days": 0,
+        "notes": "Strait between Java and Sumatra."
+      },
+      {
+        "name": "Batavia",
+        "lat": -6.13,
+        "lon": 106.85,
+        "region": "indonesia",
+        "cumulative_days": 205,
+        "stop_days": 0,
+        "notes": "End of outward voyage."
+      }
+    ]
+  },
+  {
+    "route_id": "return",
+    "name": "Return Voyage — Batavia to Netherlands",
+    "description": "Standard VOC return voyage carrying spices, textiles, and other Asian goods back to the Netherlands. Ships sailed south of Madagascar through the Roaring Forties, stopped at the Cape, and sometimes called at St Helena.",
+    "direction": "return",
+    "typical_duration_days": 180,
+    "season_notes": "Return fleets typically departed Batavia in Oct-Dec to arrive at the Cape in Jan-Mar, catching the summer NW monsoon out of the East Indies.",
+    "hazards": [
+      "Storms in the Roaring Forties",
+      "Cape of Good Hope winter storms if delayed",
+      "Bay of Biscay storms on approach to Channel",
+      "English and French privateers in the Channel (wartime)"
+    ],
+    "waypoints": [
+      {
+        "name": "Batavia",
+        "lat": -6.13,
+        "lon": 106.85,
+        "region": "indonesia",
+        "cumulative_days": 0,
+        "stop_days": 0,
+        "notes": "Departure from VOC headquarters."
+      },
+      {
+        "name": "Sunda Strait",
+        "lat": -6.1,
+        "lon": 105.75,
+        "region": "indonesia",
+        "cumulative_days": 3,
+        "stop_days": 0,
+        "notes": "Strait between Java and Sumatra."
+      },
+      {
+        "name": "South Indian Ocean",
+        "lat": -35.0,
+        "lon": 65.0,
+        "region": "indian_ocean",
+        "cumulative_days": 40,
+        "stop_days": 0,
+        "notes": "Sailing the Roaring Forties westward."
+      },
+      {
+        "name": "Cape of Good Hope",
+        "lat": -33.93,
+        "lon": 18.42,
+        "region": "cape",
+        "cumulative_days": 70,
+        "stop_days": 14,
+        "notes": "Refreshment stop. Typical stay 1-3 weeks."
+      },
+      {
+        "name": "St Helena",
+        "lat": -15.97,
+        "lon": -5.71,
+        "region": "atlantic_crossing",
+        "cumulative_days": 105,
+        "stop_days": 3,
+        "notes": "Optional watering stop. British-controlled island."
+      },
+      {
+        "name": "Equator crossing",
+        "lat": 0.0,
+        "lon": -20.0,
+        "region": "atlantic_crossing",
+        "cumulative_days": 125,
+        "stop_days": 0,
+        "notes": "Northward crossing of the doldrums."
+      },
+      {
+        "name": "English Channel",
+        "lat": 50.5,
+        "lon": -1.0,
+        "region": "north_sea",
+        "cumulative_days": 165,
+        "stop_days": 0,
+        "notes": "Final approach. Risk of privateers in wartime."
+      },
+      {
+        "name": "Texel",
+        "lat": 53.05,
+        "lon": 4.8,
+        "region": "north_sea",
+        "cumulative_days": 170,
+        "stop_days": 0,
+        "notes": "Arrival anchorage off North Holland."
+      }
+    ]
+  },
+  {
+    "route_id": "japan",
+    "name": "Japan Route — Batavia to Deshima",
+    "description": "Annual VOC voyage to the trading post at Deshima in Nagasaki harbour. The VOC was the only European nation permitted to trade with Japan (1641-1854). Usually one or two ships per year.",
+    "direction": "intra_asian",
+    "typical_duration_days": 45,
+    "season_notes": "Ships departed Batavia in June-July with the SW monsoon and returned in Oct-Nov with the NE monsoon.",
+    "hazards": [
+      "Typhoons in the South China Sea (Jul-Nov)",
+      "Paracel Islands reefs",
+      "Pirates in the South China Sea",
+      "Restricted approach to Nagasaki harbour"
+    ],
+    "waypoints": [
+      {
+        "name": "Batavia",
+        "lat": -6.13,
+        "lon": 106.85,
+        "region": "indonesia",
+        "cumulative_days": 0,
+        "stop_days": 0,
+        "notes": "Departure."
+      },
+      {
+        "name": "South China Sea",
+        "lat": 7.0,
+        "lon": 110.0,
+        "region": "south_china_sea",
+        "cumulative_days": 10,
+        "stop_days": 0,
+        "notes": "Northward through the South China Sea."
+      },
+      {
+        "name": "Taiwan Strait",
+        "lat": 23.5,
+        "lon": 119.5,
+        "region": "south_china_sea",
+        "cumulative_days": 25,
+        "stop_days": 0,
+        "notes": "Passage east of Taiwan or through the strait."
+      },
+      {
+        "name": "East China Sea",
+        "lat": 28.0,
+        "lon": 126.0,
+        "region": "japan",
+        "cumulative_days": 35,
+        "stop_days": 0,
+        "notes": "Approach to Japanese waters."
+      },
+      {
+        "name": "Deshima",
+        "lat": 32.74,
+        "lon": 129.87,
+        "region": "japan",
+        "cumulative_days": 42,
+        "stop_days": 0,
+        "notes": "VOC factory on artificial island in Nagasaki harbour."
+      }
+    ]
+  },
+  {
+    "route_id": "spice_islands",
+    "name": "Spice Islands Route — Batavia to Ambon and Banda",
+    "description": "VOC route to the Moluccas (Maluku), the original source of cloves (Ternate, Tidore) and nutmeg/mace (Banda Islands). These voyages were central to the VOC's spice monopoly.",
+    "direction": "intra_asian",
+    "typical_duration_days": 30,
+    "season_notes": "Departures followed the east monsoon (Apr-Sep) for the outward leg. Return with west monsoon (Oct-Mar).",
+    "hazards": [
+      "Shallow waters and reefs in the Java Sea",
+      "Coral reefs around Banda Islands",
+      "Unpredictable currents in the Banda Sea"
+    ],
+    "waypoints": [
+      {
+        "name": "Batavia",
+        "lat": -6.13,
+        "lon": 106.85,
+        "region": "indonesia",
+        "cumulative_days": 0,
+        "stop_days": 0,
+        "notes": "Departure."
+      },
+      {
+        "name": "Java Sea",
+        "lat": -5.0,
+        "lon": 112.0,
+        "region": "indonesia",
+        "cumulative_days": 5,
+        "stop_days": 0,
+        "notes": "Eastward through the Java Sea."
+      },
+      {
+        "name": "Makassar",
+        "lat": -5.14,
+        "lon": 119.43,
+        "region": "indonesia",
+        "cumulative_days": 12,
+        "stop_days": 2,
+        "notes": "Major port in Sulawesi. Provisioning stop."
+      },
+      {
+        "name": "Ambon",
+        "lat": -3.7,
+        "lon": 128.17,
+        "region": "indonesia",
+        "cumulative_days": 22,
+        "stop_days": 0,
+        "notes": "VOC spice trade centre. Clove warehouses."
+      },
+      {
+        "name": "Banda Islands",
+        "lat": -4.52,
+        "lon": 129.9,
+        "region": "indonesia",
+        "cumulative_days": 28,
+        "stop_days": 0,
+        "notes": "Nutmeg and mace centre. Fort Nassau."
+      }
+    ]
+  },
+  {
+    "route_id": "ceylon",
+    "name": "Ceylon Route — Batavia to Galle and Colombo",
+    "description": "VOC route to Ceylon (Sri Lanka) for cinnamon, elephants, and gemstones. Ceylon was a VOC colony from 1640 to 1796. Ships typically sailed via the Straits of Malacca.",
+    "direction": "intra_asian",
+    "typical_duration_days": 35,
+    "season_notes": "Departed with NE monsoon (Oct-Mar) for westward passage. Return with SW monsoon (Apr-Sep).",
+    "hazards": [
+      "Straits of Malacca pirates",
+      "SW monsoon storms in the Bay of Bengal",
+      "Sandbanks off the southern coast of Ceylon"
+    ],
+    "waypoints": [
+      {
+        "name": "Batavia",
+        "lat": -6.13,
+        "lon": 106.85,
+        "region": "indonesia",
+        "cumulative_days": 0,
+        "stop_days": 0,
+        "notes": "Departure."
+      },
+      {
+        "name": "Straits of Malacca",
+        "lat": 3.0,
+        "lon": 101.0,
+        "region": "malacca",
+        "cumulative_days": 10,
+        "stop_days": 0,
+        "notes": "Northward through the Straits."
+      },
+      {
+        "name": "Malacca",
+        "lat": 2.19,
+        "lon": 102.25,
+        "region": "malacca",
+        "cumulative_days": 12,
+        "stop_days": 2,
+        "notes": "VOC fortress, provisioning stop."
+      },
+      {
+        "name": "Galle",
+        "lat": 6.03,
+        "lon": 80.22,
+        "region": "ceylon",
+        "cumulative_days": 28,
+        "stop_days": 0,
+        "notes": "Major VOC port on southern Ceylon."
+      },
+      {
+        "name": "Colombo",
+        "lat": 6.93,
+        "lon": 79.84,
+        "region": "ceylon",
+        "cumulative_days": 30,
+        "stop_days": 0,
+        "notes": "VOC headquarters in Ceylon."
+      }
+    ]
+  },
+  {
+    "route_id": "coromandel",
+    "name": "Coromandel Route — Batavia to Indian East Coast",
+    "description": "VOC route to the Coromandel coast for textiles (chintz, calicoes). The VOC maintained factories at Pulicat, Nagapattinam, and Masulipatnam.",
+    "direction": "intra_asian",
+    "typical_duration_days": 40,
+    "season_notes": "Best with NE monsoon (Oct-Mar). Avoided during cyclone season (Oct-Dec) on the Coromandel coast.",
+    "hazards": [
+      "Bay of Bengal cyclones (Oct-Dec)",
+      "Surf landings at Coromandel ports (no natural harbours)",
+      "Shallow coastal waters"
+    ],
+    "waypoints": [
+      {
+        "name": "Batavia",
+        "lat": -6.13,
+        "lon": 106.85,
+        "region": "indonesia",
+        "cumulative_days": 0,
+        "stop_days": 0,
+        "notes": "Departure."
+      },
+      {
+        "name": "Straits of Malacca",
+        "lat": 3.0,
+        "lon": 101.0,
+        "region": "malacca",
+        "cumulative_days": 10,
+        "stop_days": 0,
+        "notes": "Northward through the Straits."
+      },
+      {
+        "name": "Malacca",
+        "lat": 2.19,
+        "lon": 102.25,
+        "region": "malacca",
+        "cumulative_days": 12,
+        "stop_days": 1,
+        "notes": "Provisioning stop."
+      },
+      {
+        "name": "Nagapattinam",
+        "lat": 10.77,
+        "lon": 79.84,
+        "region": "coromandel",
+        "cumulative_days": 30,
+        "stop_days": 0,
+        "notes": "VOC headquarters on the Coromandel coast."
+      },
+      {
+        "name": "Pulicat",
+        "lat": 13.42,
+        "lon": 80.32,
+        "region": "coromandel",
+        "cumulative_days": 35,
+        "stop_days": 0,
+        "notes": "VOC factory, textile trading centre."
+      }
+    ]
+  },
+  {
+    "route_id": "malabar",
+    "name": "Malabar Route — Batavia to Indian West Coast",
+    "description": "VOC route to the Malabar coast for pepper. The VOC held Cochin from 1663 and maintained factories at Cannanore and Vengurla.",
+    "direction": "intra_asian",
+    "typical_duration_days": 40,
+    "season_notes": "Departed with NE monsoon (Oct-Mar). Coast inaccessible during SW monsoon (Jun-Sep) due to heavy surf.",
+    "hazards": [
+      "SW monsoon makes Malabar ports inaccessible Jun-Sep",
+      "Pirates along the Malabar coast",
+      "Hostile Maratha and Mughal forces"
+    ],
+    "waypoints": [
+      {
+        "name": "Batavia",
+        "lat": -6.13,
+        "lon": 106.85,
+        "region": "indonesia",
+        "cumulative_days": 0,
+        "stop_days": 0,
+        "notes": "Departure."
+      },
+      {
+        "name": "Straits of Malacca",
+        "lat": 3.0,
+        "lon": 101.0,
+        "region": "malacca",
+        "cumulative_days": 10,
+        "stop_days": 0,
+        "notes": "Northward through the Straits."
+      },
+      {
+        "name": "Galle",
+        "lat": 6.03,
+        "lon": 80.22,
+        "region": "ceylon",
+        "cumulative_days": 25,
+        "stop_days": 2,
+        "notes": "Provisioning at VOC port on southern Ceylon."
+      },
+      {
+        "name": "Cochin",
+        "lat": 9.97,
+        "lon": 76.27,
+        "region": "malabar",
+        "cumulative_days": 32,
+        "stop_days": 0,
+        "notes": "VOC headquarters in Malabar. Pepper warehouses."
+      },
+      {
+        "name": "Cannanore",
+        "lat": 11.87,
+        "lon": 75.37,
+        "region": "malabar",
+        "cumulative_days": 35,
+        "stop_days": 0,
+        "notes": "VOC factory north of Cochin."
+      }
+    ]
+  }
+]

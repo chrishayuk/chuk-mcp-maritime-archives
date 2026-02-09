@@ -41,7 +41,9 @@ async def main() -> None:
     for arch in caps["archives"]:
         records = arch.get("total_records") or "N/A"
         print(f"  {arch['archive_id']:12s}  {arch['name']}")
-        print(f"               Period: {arch.get('coverage_start', '?')}-{arch.get('coverage_end', '?')}  Records: {records}")
+        print(
+            f"               Period: {arch.get('coverage_start', '?')}-{arch.get('coverage_end', '?')}  Records: {records}"
+        )
 
     # Tools
     print(f"\nTools ({len(caps['tools'])}):")

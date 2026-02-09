@@ -7,6 +7,8 @@ on the Houtman Abrolhos reef off Western Australia in June 1629.
 This demo shows how an LLM would chain multiple tools together to
 build a comprehensive picture of a maritime incident.
 
+All record IDs are discovered dynamically from search results.
+
 Demonstrates the full tool chain:
     maritime_search_voyages   -> Find the Batavia voyage
     maritime_get_voyage       -> Get full voyage details
@@ -43,9 +45,17 @@ async def main() -> None:
     print("-" * 70)
 
     voyages = await runner.run("maritime_search_voyages", ship_name="Batavia")
+
+    if "error" in voyages:
+        print(f"\n  API unavailable: {voyages['error']}")
+        print("  (This demo requires network access to the archives)")
+        print("  Skipping to local-only tools...")
+        voyages = {"voyage_count": 0, "voyages": []}
+
     print(f"\n  Found {voyages['voyage_count']} matching voyage(s)")
 
     voyage_id = None
+    voyage = {}
     for v in voyages["voyages"]:
         print(f"\n  Voyage: {v['voyage_id']}")
         print(f"    Ship: {v['ship_name']}")
@@ -54,7 +64,8 @@ async def main() -> None:
         print(f"    To: {v.get('destination_port', '?')}")
         print(f"    Departed: {v.get('departure_date', '?')}")
         print(f"    Fate: {v.get('fate', '?')}")
-        voyage_id = v["voyage_id"]
+        if voyage_id is None:
+            voyage_id = v["voyage_id"]
 
     # Full voyage details
     if voyage_id:
@@ -63,7 +74,7 @@ async def main() -> None:
         voyage = detail["voyage"]
 
         if voyage.get("summary"):
-            print(f"\n  Summary:")
+            print("\n  Summary:")
             # Word-wrap the summary
             words = voyage["summary"].split()
             line = "    "
@@ -78,7 +89,7 @@ async def main() -> None:
 
         if voyage.get("incident"):
             inc = voyage["incident"]
-            print(f"\n  Incident Details:")
+            print("\n  Incident Details:")
             print(f"    Date: {inc.get('date', '?')}")
             print(f"    Cause: {inc.get('cause', '?')}")
             print(f"    Lives lost: {inc.get('lives_lost', '?')}")
@@ -93,6 +104,10 @@ async def main() -> None:
     print("-" * 70)
 
     wrecks = await runner.run("maritime_search_wrecks", ship_name="Batavia")
+
+    if "error" in wrecks:
+        wrecks = {"wreck_count": 0, "wrecks": []}
+
     print(f"\n  Found {wrecks['wreck_count']} wreck record(s)")
 
     wreck_id = None
@@ -103,7 +118,8 @@ async def main() -> None:
         print(f"    Cause: {w.get('loss_cause', '?')}")
         print(f"    Region: {w.get('region', '?')}")
         print(f"    Status: {w.get('status', '?')}")
-        wreck_id = w["wreck_id"]
+        if wreck_id is None:
+            wreck_id = w["wreck_id"]
 
     if wreck_id:
         wreck_detail = await runner.run("maritime_get_wreck", wreck_id=wreck_id)
@@ -120,11 +136,11 @@ async def main() -> None:
     print("  PHASE 3: Crew Complement")
     print("-" * 70)
 
-    crew = await runner.run("maritime_search_crew", ship_name="Batavia")
+    crew = await runner.run("maritime_search_crew", ship_name="Batavia", max_results=10)
 
-    if "error" not in crew:
+    if "error" not in crew and crew.get("crew_count", 0) > 0:
         print(f"\n  Found {crew['crew_count']} crew record(s)")
-        for c in crew["crew"]:
+        for c in crew["crew"][:5]:
             rank = c.get("rank_english") or c.get("rank", "?")
             print(f"    {c['crew_id']}: {c['name']} ({rank})")
 
@@ -137,8 +153,7 @@ async def main() -> None:
                 if m.get("monthly_pay_guilders"):
                     print(f"      Pay: {m['monthly_pay_guilders']} guilders/month")
     else:
-        print(f"\n  No crew records found for Batavia in the sample data.")
-        print(f"  (The Batavia crew would be found in the full VOC Opvarenden database.)")
+        print("\n  No crew records found for Batavia.")
 
     # ----- Phase 4: Cargo -------------------------------------------
     print("\n" + "-" * 70)
@@ -148,7 +163,7 @@ async def main() -> None:
     if voyage_id:
         cargo = await runner.run("maritime_search_cargo", voyage_id=voyage_id)
 
-        if "error" not in cargo:
+        if "error" not in cargo and cargo["cargo_count"] > 0:
             print(f"\n  Found {cargo['cargo_count']} cargo entries")
             total_value = 0
             for c in cargo["cargo"]:
@@ -159,7 +174,7 @@ async def main() -> None:
             if total_value:
                 print(f"\n  Total manifest value: {total_value:,.0f} guilders")
         else:
-            print(f"\n  No cargo records linked to this voyage in the sample data.")
+            print("\n  No cargo records linked to this voyage.")
 
     # ----- Phase 5: Ship characteristics ----------------------------
     print("\n" + "-" * 70)
@@ -167,7 +182,7 @@ async def main() -> None:
     print("-" * 70)
 
     # Get the ship type from the voyage data
-    ship_type = voyage.get("ship_type", "retourschip") if voyage_id else "retourschip"
+    ship_type = voyage.get("ship_type", "retourschip")
     profile = await runner.run("maritime_get_hull_profile", ship_type=ship_type)
     p = profile["profile"]
 
@@ -201,14 +216,16 @@ async def main() -> None:
         quality = a.get("assessment", {})
         print(f"\n  Quality score: {quality.get('quality_score', '?')}/1.0")
         print(f"  Quality label: {quality.get('quality_label', '?')}")
-        print(f"  Uncertainty: {quality.get('uncertainty_type', '?')} (+/-{quality.get('uncertainty_radius_km', '?')}km)")
+        print(
+            f"  Uncertainty: {quality.get('uncertainty_type', '?')} (+/-{quality.get('uncertainty_radius_km', '?')}km)"
+        )
 
         recs = a.get("recommendations", {})
         if recs.get("for_drift_modelling"):
-            print(f"\n  Drift modelling advice:")
+            print("\n  Drift modelling advice:")
             print(f"    {recs['for_drift_modelling'][:100]}...")
         if recs.get("for_search"):
-            print(f"  Search advice:")
+            print("  Search advice:")
             print(f"    {recs['for_search'][:100]}...")
 
     # ----- Phase 7: GeoJSON export ----------------------------------
@@ -222,17 +239,18 @@ async def main() -> None:
             wreck_ids=[wreck_id],
         )
         print(f"\n  Exported {geojson['feature_count']} feature(s)")
-        print(f"\n  GeoJSON:")
+        print("\n  GeoJSON:")
         print(json.dumps(geojson["geojson"], indent=4))
 
     # ----- Summary --------------------------------------------------
     print("\n" + "=" * 70)
     print("  INVESTIGATION SUMMARY")
     print("=" * 70)
+    captain = voyage.get("captain", "Unknown") if voyage else "Unknown"
     print(f"""
   Ship:       Batavia (retourschip, ~600 lasten)
-  Voyage:     {voyage_id or 'Unknown'}
-  Commander:  {voyage.get('captain', 'Unknown') if voyage_id else 'Unknown'}
+  Voyage:     {voyage_id or "Unknown"}
+  Commander:  {captain}
   Route:      Netherlands -> Batavia (Jakarta)
   Lost:       4 June 1629, Houtman Abrolhos reef, Western Australia
   Cause:      Struck Morning Reef at night

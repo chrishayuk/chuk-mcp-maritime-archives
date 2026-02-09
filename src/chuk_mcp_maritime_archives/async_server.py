@@ -15,7 +15,9 @@ from .tools import (
     register_crew_tools,
     register_discovery_tools,
     register_export_tools,
+    register_location_tools,
     register_position_tools,
+    register_route_tools,
     register_vessel_tools,
     register_voyage_tools,
     register_wreck_tools,
@@ -33,4 +35,6 @@ register_wreck_tools(mcp, manager)
 register_vessel_tools(mcp, manager)
 register_position_tools(mcp, manager)
 register_export_tools(mcp, manager)
+register_location_tools(mcp, manager)
+register_route_tools(mcp, manager)
 register_discovery_tools(mcp, manager)

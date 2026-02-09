@@ -3,8 +3,7 @@ Archive Manager — central orchestrator for maritime archive data.
 
 Manages:
 - Archive registry and metadata
-- Data source clients for each archive (DAS, VOC Crew, Cargo, MAARER)
-- LRU caching of fetched records
+- Data source clients for each archive (DAS, VOC Crew, Cargo, Wrecks)
 - Hull profile lookups
 - Position uncertainty assessment
 - GeoJSON export
@@ -12,45 +11,41 @@ Manages:
 """
 
 import logging
-from collections import OrderedDict
+from pathlib import Path
 from typing import Any
 
 from ..constants import (
     ARCHIVE_METADATA,
     NAVIGATION_ERAS,
-    REGIONS,
-    SHIP_TYPES,
-    VOYAGE_CACHE_MAX_ENTRIES,
-    WRECK_CACHE_MAX_ENTRIES,
 )
 from .clients import CargoClient, CrewClient, DASClient, WreckClient
 from .hull_profiles import HULL_PROFILES
 
 logger = logging.getLogger(__name__)
 
+# Default data directory relative to the project root
+_DEFAULT_DATA_DIR = Path(__file__).resolve().parent.parent.parent.parent / "data"
+
 
 class ArchiveManager:
     """
     Central orchestrator for maritime archive data access.
 
-    Delegates data fetching to archive-specific HTTP clients
-    and manages LRU caches for retrieved records.
+    Delegates data access to archive-specific clients that read from
+    local JSON data files produced by the download scripts.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, data_dir: Path | None = None) -> None:
         self._archives = dict(ARCHIVE_METADATA)
         self._hull_profiles = dict(HULL_PROFILES)
 
-        # Data source clients
-        self._das_client = DASClient()
-        self._crew_client = CrewClient()
-        self._cargo_client = CargoClient()
-        self._wreck_client = WreckClient()
+        data_path = data_dir or _DEFAULT_DATA_DIR
 
-        # LRU caches
-        self._voyage_cache: OrderedDict[str, dict] = OrderedDict()
-        self._wreck_cache: OrderedDict[str, dict] = OrderedDict()
-        self._vessel_cache: OrderedDict[str, dict] = OrderedDict()
+        # Data source clients
+        self._das_client = DASClient(data_dir=data_path)
+        self._crew_client = CrewClient(data_dir=data_path)
+        self._cargo_client = CargoClient(data_dir=data_path)
+        self._wreck_client = WreckClient(data_dir=data_path)
 
     # --- Archive Registry ---------------------------------------------------
 
@@ -72,25 +67,6 @@ class ArchiveManager:
         """Return list of available archive identifiers."""
         return list(self._archives.keys())
 
-    # --- Cache Helpers ------------------------------------------------------
-
-    def _cache_put(
-        self, cache: OrderedDict, key: str, data: dict, max_size: int
-    ) -> None:
-        """Insert or update a record in an LRU cache."""
-        if key in cache:
-            cache.move_to_end(key)
-        cache[key] = data
-        while len(cache) > max_size:
-            cache.popitem(last=False)
-
-    def _cache_get(self, cache: OrderedDict, key: str) -> dict | None:
-        """Retrieve a record from an LRU cache with LRU touch."""
-        if key in cache:
-            cache.move_to_end(key)
-            return cache[key]
-        return None
-
     # --- Voyage Operations --------------------------------------------------
 
     async def search_voyages(
@@ -105,56 +81,26 @@ class ArchiveManager:
         archive: str | None = None,
         max_results: int = 50,
     ) -> list[dict]:
-        """
-        Search for voyages by calling the DAS data source.
-
-        Results are cached for subsequent detail lookups.
-        """
+        """Search for voyages from local DAS data."""
         results = await self._das_client.search(
             ship_name=ship_name,
             captain=captain,
             date_range=date_range,
             departure_port=departure_port,
             destination_port=destination_port,
+            route=route,
             fate=fate,
             max_results=max_results,
         )
 
-        # Additional client-side filtering
         if archive:
             results = [v for v in results if v.get("archive") == archive]
-        if route:
-            route_lower = route.lower()
-            results = [
-                v
-                for v in results
-                if route_lower in v.get("summary", "").lower()
-                or route_lower in v.get("departure_port", "").lower()
-                or route_lower in v.get("destination_port", "").lower()
-            ]
-
-        # Cache results
-        for v in results[:max_results]:
-            vid = v.get("voyage_id")
-            if vid:
-                self._cache_put(
-                    self._voyage_cache, vid, v, VOYAGE_CACHE_MAX_ENTRIES
-                )
 
         return results[:max_results]
 
     async def get_voyage(self, voyage_id: str) -> dict | None:
-        """Get full voyage details, checking cache first."""
-        cached = self._cache_get(self._voyage_cache, voyage_id)
-        if cached:
-            return cached
-
-        record = await self._das_client.get_by_id(voyage_id)
-        if record:
-            self._cache_put(
-                self._voyage_cache, voyage_id, record, VOYAGE_CACHE_MAX_ENTRIES
-            )
-        return record
+        """Get full voyage details."""
+        return await self._das_client.get_by_id(voyage_id)
 
     # --- Wreck Operations ---------------------------------------------------
 
@@ -171,7 +117,7 @@ class ArchiveManager:
         archive: str | None = None,
         max_results: int = 100,
     ) -> list[dict]:
-        """Search wreck records via the MAARER client."""
+        """Search wreck records from local data."""
         results = await self._wreck_client.search(
             ship_name=ship_name,
             date_range=date_range,
@@ -187,27 +133,11 @@ class ArchiveManager:
         if archive:
             results = [w for w in results if w.get("archive", "maarer") == archive]
 
-        for w in results[:max_results]:
-            wid = w.get("wreck_id")
-            if wid:
-                self._cache_put(
-                    self._wreck_cache, wid, w, WRECK_CACHE_MAX_ENTRIES
-                )
-
         return results[:max_results]
 
     async def get_wreck(self, wreck_id: str) -> dict | None:
-        """Get full wreck record, checking cache first."""
-        cached = self._cache_get(self._wreck_cache, wreck_id)
-        if cached:
-            return cached
-
-        record = await self._wreck_client.get_by_id(wreck_id)
-        if record:
-            self._cache_put(
-                self._wreck_cache, wreck_id, record, WRECK_CACHE_MAX_ENTRIES
-            )
-        return record
+        """Get full wreck record."""
+        return await self._wreck_client.get_by_id(wreck_id)
 
     # --- Vessel Operations --------------------------------------------------
 
@@ -223,8 +153,8 @@ class ArchiveManager:
         archive: str | None = None,
         max_results: int = 50,
     ) -> list[dict]:
-        """Search vessel records via the DAS client."""
-        results = await self._das_client.search_vessels(
+        """Search vessel records from local DAS data."""
+        return await self._das_client.search_vessels(
             name=name,
             ship_type=ship_type,
             chamber=chamber,
@@ -233,23 +163,9 @@ class ArchiveManager:
             max_results=max_results,
         )
 
-        for v in results[:max_results]:
-            vid = v.get("vessel_id")
-            if vid:
-                self._vessel_cache[vid] = v
-
-        return results[:max_results]
-
     async def get_vessel(self, vessel_id: str) -> dict | None:
-        """Get full vessel specification, checking cache first."""
-        cached = self._vessel_cache.get(vessel_id)
-        if cached:
-            return cached
-
-        record = await self._das_client.get_vessel_by_id(vessel_id)
-        if record:
-            self._vessel_cache[vessel_id] = record
-        return record
+        """Get full vessel specification."""
+        return await self._das_client.get_vessel_by_id(vessel_id)
 
     # --- Crew Operations ----------------------------------------------------
 
@@ -265,7 +181,7 @@ class ArchiveManager:
         archive: str = "voc_crew",
         max_results: int = 100,
     ) -> list[dict]:
-        """Search crew muster records via the VOC Crew client."""
+        """Search crew muster records."""
         return await self._crew_client.search(
             name=name,
             rank=rank,
@@ -293,7 +209,7 @@ class ArchiveManager:
         archive: str = "voc_cargo",
         max_results: int = 100,
     ) -> list[dict]:
-        """Search cargo manifests via the BGB Cargo client."""
+        """Search cargo manifests."""
         return await self._cargo_client.search(
             voyage_id=voyage_id,
             commodity=commodity,
@@ -305,10 +221,7 @@ class ArchiveManager:
 
     async def get_cargo_manifest(self, voyage_id: str) -> list[dict]:
         """Get full cargo manifest for a voyage."""
-        results = await self._cargo_client.search(
-            voyage_id=voyage_id, max_results=1000
-        )
-        return results
+        return await self._cargo_client.search(voyage_id=voyage_id, max_results=1000)
 
     # --- Hull Profiles ------------------------------------------------------
 
@@ -337,11 +250,12 @@ class ArchiveManager:
         if voyage_id:
             voyage = await self.get_voyage(voyage_id)
             if voyage:
-                loss_date = voyage.get("loss_date") or voyage.get(
-                    "departure_date", ""
-                )
+                loss_date = voyage.get("loss_date") or voyage.get("departure_date", "")
                 if loss_date and len(loss_date) >= 4:
-                    year = int(loss_date[:4])
+                    try:
+                        year = int(loss_date[:4])
+                    except ValueError:
+                        pass
                 if voyage.get("incident") and voyage["incident"].get("position"):
                     pos = voyage["incident"]["position"]
         elif wreck_id:
@@ -384,9 +298,7 @@ class ArchiveManager:
                 uncertainty_type = "regional"
 
         quality_label = (
-            "good"
-            if quality_score > 0.7
-            else ("moderate" if quality_score > 0.4 else "poor")
+            "good" if quality_score > 0.7 else ("moderate" if quality_score > 0.4 else "poor")
         )
 
         return {
@@ -406,9 +318,7 @@ class ArchiveManager:
                     **(nav_era or {}),
                 },
                 "position_source": {
-                    "type": "reconstructed"
-                    if not source_description
-                    else "described",
+                    "type": "reconstructed" if not source_description else "described",
                     "description": source_description,
                 },
             },
@@ -434,18 +344,12 @@ class ArchiveManager:
         date_range: str | None = None,
         group_by: str | None = None,
     ) -> dict:
-        """
-        Get aggregate statistics across archives.
-
-        Fetches wreck data from the data source and computes statistics
-        dynamically from cached/fetched records.
-        """
+        """Get aggregate statistics across archives."""
         wrecks = await self.search_wrecks(max_results=1000)
 
         if date_range:
             wrecks = self._filter_by_date_range(wrecks, date_range, "loss_date")
 
-        # Compute stats from actual data
         losses_by_region: dict[str, int] = {}
         losses_by_cause: dict[str, int] = {}
         losses_by_status: dict[str, int] = {}
@@ -575,7 +479,10 @@ class ArchiveManager:
         for r in records:
             date_val = r.get(date_field, "")
             if date_val and len(date_val) >= 4:
-                record_year = int(date_val[:4])
+                try:
+                    record_year = int(date_val[:4])
+                except ValueError:
+                    continue
                 if start_year <= record_year <= end_year:
                     filtered.append(r)
         return filtered

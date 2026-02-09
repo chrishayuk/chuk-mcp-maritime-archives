@@ -8,56 +8,116 @@ either stdio or HTTP mode.
 from __future__ import annotations
 
 import argparse
-import asyncio
 import logging
 import os
 import sys
+from pathlib import Path
+from typing import Any
 
 from dotenv import load_dotenv
 
-from .constants import EnvVar, ServerConfig, StorageProvider
+from .constants import EnvVar, ServerConfig, SessionProvider, StorageProvider
 
-load_dotenv()
+# Load environment variables from .env file
+env_path = Path(__file__).parent.parent.parent / ".env"
+if env_path.exists():
+    load_dotenv(env_path)
 
 logger = logging.getLogger(__name__)
 
 
-def _init_artifact_store() -> None:
-    """Configure chuk-artifacts from environment variables."""
+def _init_artifact_store() -> bool:
+    """
+    Initialize the artifact store from environment variables.
+
+    Returns:
+        True if artifact store was initialized, False otherwise
+    """
+    provider = os.environ.get(EnvVar.ARTIFACTS_PROVIDER, StorageProvider.MEMORY)
+    bucket = os.environ.get(EnvVar.BUCKET_NAME)
+    redis_url = os.environ.get(EnvVar.REDIS_URL)
+    artifacts_path = os.environ.get(EnvVar.ARTIFACTS_PATH)
+
+    if provider == StorageProvider.S3:
+        aws_key = os.environ.get(EnvVar.AWS_ACCESS_KEY_ID)
+        aws_secret = os.environ.get(EnvVar.AWS_SECRET_ACCESS_KEY)
+
+        if not all([bucket, aws_key, aws_secret]):
+            logger.warning(
+                "S3 provider configured but missing credentials. "
+                f"Set {EnvVar.AWS_ACCESS_KEY_ID}, {EnvVar.AWS_SECRET_ACCESS_KEY}, "
+                f"and {EnvVar.BUCKET_NAME}."
+            )
+            return False
+
+    elif provider == StorageProvider.FILESYSTEM:
+        if artifacts_path:
+            path_obj = Path(artifacts_path)
+            path_obj.mkdir(parents=True, exist_ok=True)
+        else:
+            logger.warning(
+                f"Filesystem provider configured but {EnvVar.ARTIFACTS_PATH} not set. "
+                "Defaulting to memory provider."
+            )
+            provider = StorageProvider.MEMORY
+
     try:
         from chuk_artifacts import ArtifactStore
-        from chuk_mcp_server import set_artifact_store
+        from chuk_mcp_server import set_global_artifact_store
 
-        provider = os.getenv(EnvVar.ARTIFACTS_PROVIDER, StorageProvider.MEMORY)
-        store = ArtifactStore(provider=provider)
-        set_artifact_store(store)
-        logger.info("Artifact store initialised: provider=%s", provider)
-    except ImportError:
-        logger.info(
-            "chuk-artifacts not available — artifact storage disabled. "
-            "Install with: pip install chuk-artifacts"
-        )
+        provider_str = provider.value if isinstance(provider, StorageProvider) else provider
+        session_str = SessionProvider.REDIS.value if redis_url else SessionProvider.MEMORY.value
+
+        store_kwargs: dict[str, Any] = {
+            "storage_provider": provider_str,
+            "session_provider": session_str,
+        }
+
+        if provider_str == StorageProvider.S3.value and bucket:
+            store_kwargs["bucket"] = bucket
+        elif provider_str == StorageProvider.FILESYSTEM.value and artifacts_path:
+            store_kwargs["bucket"] = artifacts_path
+
+        store = ArtifactStore(**store_kwargs)
+        set_global_artifact_store(store)
+
+        logger.info("Artifact store initialized (provider: %s)", provider)
+        return True
+
     except Exception as e:
-        logger.warning("Failed to initialise artifact store: %s", e)
+        logger.error("Failed to initialize artifact store: %s", e)
+        return False
+
+
+# Import mcp instance from async server
+from .async_server import mcp  # noqa: E402
 
 
 def main() -> None:
     """CLI entry point."""
+    _init_artifact_store()
+
     parser = argparse.ArgumentParser(
         prog=ServerConfig.NAME,
         description=ServerConfig.DESCRIPTION,
     )
     parser.add_argument(
-        "--mode",
+        "mode",
+        nargs="?",
         choices=["stdio", "http"],
-        default="stdio",
-        help="Transport mode (default: stdio)",
+        default=None,
+        help="Transport mode (stdio for Claude Desktop, http for API)",
+    )
+    parser.add_argument(
+        "--host",
+        default="localhost",
+        help="Host for HTTP mode (default: localhost)",
     )
     parser.add_argument(
         "--port",
         type=int,
         default=8005,
-        help="HTTP port (only used with --mode http)",
+        help="Port for HTTP mode (default: 8005)",
     )
     args = parser.parse_args()
 
@@ -66,18 +126,24 @@ def main() -> None:
         format="%(asctime)s %(name)s %(levelname)s %(message)s",
     )
 
-    _init_artifact_store()
-
-    from .async_server import mcp
-
-    if args.mode == "http":
-        logger.info("Starting %s in HTTP mode on port %d", ServerConfig.NAME, args.port)
-        mcp.run(transport="streamable-http", port=args.port)
-    else:
-        if os.getenv(EnvVar.MCP_STDIO):
-            logger.info("MCP_STDIO detected — running in stdio mode")
+    if args.mode == "stdio":
         logger.info("Starting %s in stdio mode", ServerConfig.NAME)
-        mcp.run(transport="stdio")
+        mcp.run(stdio=True)
+    elif args.mode == "http":
+        logger.info("Starting %s in HTTP mode on %s:%d", ServerConfig.NAME, args.host, args.port)
+        mcp.run(host=args.host, port=args.port, stdio=False)
+    else:
+        if os.environ.get(EnvVar.MCP_STDIO) or (not sys.stdin.isatty()):
+            logger.info("Starting %s in stdio mode (auto-detected)", ServerConfig.NAME)
+            mcp.run(stdio=True)
+        else:
+            logger.info(
+                "Starting %s in HTTP mode on %s:%d",
+                ServerConfig.NAME,
+                args.host,
+                args.port,
+            )
+            mcp.run(host=args.host, port=args.port, stdio=False)
 
 
 if __name__ == "__main__":

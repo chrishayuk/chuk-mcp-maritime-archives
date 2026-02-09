@@ -40,6 +40,9 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["src/chuk_mcp_maritime_archives"]
 
+[tool.hatch.build.targets.wheel.force-include]
+"data" = "chuk_mcp_maritime_archives/data"
+
 [tool.hatch.metadata]
 allow-direct-references = true
 

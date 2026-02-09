@@ -2,7 +2,6 @@
 
 import logging
 
-from ...constants import ErrorMessages
 from ...models import (
     ErrorResponse,
     PositionAssessmentResponse,
@@ -88,8 +87,7 @@ def register_position_tools(mcp: object, manager: object) -> None:
                 PositionAssessmentResponse(
                     assessment=result,
                     message=(
-                        f"Position quality: {quality_label} "
-                        f"(+/-{uncertainty_km}km uncertainty)"
+                        f"Position quality: {quality_label} (+/-{uncertainty_km}km uncertainty)"
                     ),
                 ),
                 output_mode,

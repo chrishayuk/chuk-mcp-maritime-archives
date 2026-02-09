@@ -1,17 +1,12 @@
-"""Tests for ArchiveManager."""
+"""Tests for ArchiveManager backed by local JSON fixture data."""
 
 import pytest
 
 from chuk_mcp_maritime_archives.core.archive_manager import ArchiveManager
 
 
-@pytest.fixture
-def manager() -> ArchiveManager:
-    return ArchiveManager()
-
-
 # ---------------------------------------------------------------------------
-# Archive registry (sync)
+# Archive registry (sync — reads constant data, no file I/O)
 # ---------------------------------------------------------------------------
 
 
@@ -42,7 +37,7 @@ class TestArchiveRegistry:
 
 
 # ---------------------------------------------------------------------------
-# Hull profiles (sync)
+# Hull profiles (sync — reads constant data, no file I/O)
 # ---------------------------------------------------------------------------
 
 
@@ -66,7 +61,7 @@ class TestHullProfiles:
 
 
 # ---------------------------------------------------------------------------
-# Voyage operations (async)
+# Voyage operations (async — reads from fixture data)
 # ---------------------------------------------------------------------------
 
 
@@ -74,7 +69,7 @@ class TestVoyageOperations:
     @pytest.mark.asyncio
     async def test_search_voyages_no_filters(self, manager: ArchiveManager):
         results = await manager.search_voyages()
-        assert len(results) >= 1
+        assert len(results) == 3
 
     @pytest.mark.asyncio
     async def test_search_voyages_by_name(self, manager: ArchiveManager):
@@ -86,6 +81,23 @@ class TestVoyageOperations:
     async def test_search_voyages_by_fate(self, manager: ArchiveManager):
         results = await manager.search_voyages(fate="wrecked")
         assert all(v["fate"] == "wrecked" for v in results)
+        assert len(results) == 2
+
+    @pytest.mark.asyncio
+    async def test_search_voyages_by_archive(self, manager: ArchiveManager):
+        results = await manager.search_voyages(archive="das")
+        assert len(results) == 3
+
+    @pytest.mark.asyncio
+    async def test_search_voyages_by_archive_no_match(self, manager: ArchiveManager):
+        results = await manager.search_voyages(archive="nonexistent")
+        assert len(results) == 0
+
+    @pytest.mark.asyncio
+    async def test_search_voyages_route_filter(self, manager: ArchiveManager):
+        results = await manager.search_voyages(route="abrolhos")
+        assert len(results) == 1
+        assert results[0]["ship_name"] == "Batavia"
 
     @pytest.mark.asyncio
     async def test_get_voyage_exists(self, manager: ArchiveManager):
@@ -98,19 +110,9 @@ class TestVoyageOperations:
         voyage = await manager.get_voyage("das:99999")
         assert voyage is None
 
-    @pytest.mark.asyncio
-    async def test_voyage_caching(self, manager: ArchiveManager):
-        """Second call should use cache."""
-        voyage1 = await manager.get_voyage("das:3456")
-        assert voyage1 is not None
-        # Now it's in cache
-        voyage2 = await manager.get_voyage("das:3456")
-        assert voyage2 is not None
-        assert voyage1["ship_name"] == voyage2["ship_name"]
-
 
 # ---------------------------------------------------------------------------
-# Wreck operations (async)
+# Wreck operations (async — reads from fixture data)
 # ---------------------------------------------------------------------------
 
 
@@ -118,18 +120,24 @@ class TestWreckOperations:
     @pytest.mark.asyncio
     async def test_search_wrecks_no_filters(self, manager: ArchiveManager):
         results = await manager.search_wrecks()
-        assert len(results) >= 1
+        assert len(results) == 3
 
     @pytest.mark.asyncio
     async def test_search_wrecks_by_status(self, manager: ArchiveManager):
         results = await manager.search_wrecks(status="found")
         assert all(w["status"] == "found" for w in results)
-        assert len(results) >= 1
+        assert len(results) == 3
 
     @pytest.mark.asyncio
     async def test_search_wrecks_by_region(self, manager: ArchiveManager):
         results = await manager.search_wrecks(region="cape")
         assert all(w["region"] == "cape" for w in results)
+        assert len(results) == 1
+
+    @pytest.mark.asyncio
+    async def test_search_wrecks_by_archive(self, manager: ArchiveManager):
+        results = await manager.search_wrecks(archive="maarer")
+        assert len(results) == 3
 
     @pytest.mark.asyncio
     async def test_get_wreck_exists(self, manager: ArchiveManager):
@@ -144,7 +152,7 @@ class TestWreckOperations:
 
 
 # ---------------------------------------------------------------------------
-# Vessel operations (async)
+# Vessel operations (async — reads from fixture data)
 # ---------------------------------------------------------------------------
 
 
@@ -152,7 +160,7 @@ class TestVesselOperations:
     @pytest.mark.asyncio
     async def test_search_vessels(self, manager: ArchiveManager):
         results = await manager.search_vessels()
-        assert len(results) >= 1
+        assert len(results) == 2
 
     @pytest.mark.asyncio
     async def test_search_vessels_by_name(self, manager: ArchiveManager):
@@ -160,9 +168,20 @@ class TestVesselOperations:
         assert len(results) == 1
         assert results[0]["name"] == "Batavia"
 
+    @pytest.mark.asyncio
+    async def test_get_vessel(self, manager: ArchiveManager):
+        result = await manager.get_vessel("das_vessel:001")
+        assert result is not None
+        assert result["name"] == "Batavia"
+
+    @pytest.mark.asyncio
+    async def test_get_vessel_not_found(self, manager: ArchiveManager):
+        result = await manager.get_vessel("das_vessel:999")
+        assert result is None
+
 
 # ---------------------------------------------------------------------------
-# Crew operations (async)
+# Crew operations (async — reads from fixture data)
 # ---------------------------------------------------------------------------
 
 
@@ -170,12 +189,12 @@ class TestCrewOperations:
     @pytest.mark.asyncio
     async def test_search_crew(self, manager: ArchiveManager):
         results = await manager.search_crew()
-        assert len(results) >= 1
+        assert len(results) == 2
 
     @pytest.mark.asyncio
     async def test_search_crew_by_ship(self, manager: ArchiveManager):
         results = await manager.search_crew(ship_name="Ridderschap")
-        assert len(results) >= 1
+        assert len(results) == 2
         assert all("Ridderschap" in c["ship_name"] for c in results)
 
     @pytest.mark.asyncio
@@ -186,7 +205,7 @@ class TestCrewOperations:
 
 
 # ---------------------------------------------------------------------------
-# Cargo operations (async)
+# Cargo operations (async — reads from fixture data)
 # ---------------------------------------------------------------------------
 
 
@@ -194,22 +213,22 @@ class TestCargoOperations:
     @pytest.mark.asyncio
     async def test_search_cargo(self, manager: ArchiveManager):
         results = await manager.search_cargo()
-        assert len(results) >= 1
+        assert len(results) == 2
 
     @pytest.mark.asyncio
     async def test_search_cargo_by_voyage(self, manager: ArchiveManager):
         results = await manager.search_cargo(voyage_id="das:8123")
-        assert len(results) >= 1
+        assert len(results) == 2
         assert all(c["voyage_id"] == "das:8123" for c in results)
 
     @pytest.mark.asyncio
     async def test_get_cargo_manifest(self, manager: ArchiveManager):
         manifest = await manager.get_cargo_manifest("das:8123")
-        assert len(manifest) >= 1
+        assert len(manifest) == 2
 
 
 # ---------------------------------------------------------------------------
-# Position assessment (async)
+# Position assessment (async — may read voyage/wreck fixture data)
 # ---------------------------------------------------------------------------
 
 
@@ -238,9 +257,71 @@ class TestPositionAssessment:
         assert result["assessment"]["uncertainty_type"] == "dead_reckoning"
         assert result["assessment"]["quality_score"] < 0.5
 
+    @pytest.mark.asyncio
+    async def test_assess_position_with_voyage(self, manager: ArchiveManager):
+        result = await manager.assess_position(voyage_id="das:3456")
+        assert "assessment" in result
+        assert result["voyage_id"] == "das:3456"
+
+    @pytest.mark.asyncio
+    async def test_assess_position_with_wreck(self, manager: ArchiveManager):
+        result = await manager.assess_position(wreck_id="maarer:VOC-0789")
+        assert result["wreck_id"] == "maarer:VOC-0789"
+        assert result["position"]["lat"] == -28.49
+
+    @pytest.mark.asyncio
+    async def test_assess_position_multiple_sources(self, manager: ArchiveManager):
+        result = await manager.assess_position(
+            source_description="Multiple sources triangulated",
+            date="1700-01-01",
+        )
+        assert result["assessment"]["uncertainty_type"] == "triangulated"
+        assert result["assessment"]["quality_score"] == 0.7
+
+    @pytest.mark.asyncio
+    async def test_assess_position_approximate(self, manager: ArchiveManager):
+        result = await manager.assess_position(
+            source_description="Approximate location from accounts",
+            date="1700-01-01",
+        )
+        assert result["assessment"]["uncertainty_type"] == "approximate"
+        assert result["assessment"]["quality_score"] == 0.3
+
+    @pytest.mark.asyncio
+    async def test_assess_position_regional(self, manager: ArchiveManager):
+        result = await manager.assess_position(
+            source_description="Regional Straits area only",
+            date="1700-01-01",
+        )
+        assert result["assessment"]["uncertainty_type"] == "regional"
+        assert result["assessment"]["quality_score"] == 0.15
+
+    @pytest.mark.asyncio
+    async def test_assess_position_no_year(self, manager: ArchiveManager):
+        result = await manager.assess_position(
+            position={"lat": 0, "lon": 0},
+        )
+        assert result["assessment"]["quality_score"] == 0.5
+
+    @pytest.mark.asyncio
+    async def test_navigation_era_lookup(self, manager: ArchiveManager):
+        era = manager._get_navigation_era(1620)
+        assert era is not None
+        assert era["technology"] == "dead_reckoning_with_cross_staff"
+
+        era = manager._get_navigation_era(1780)
+        assert era is not None
+        assert era["technology"] == "chronometer_era"
+
+        era = manager._get_navigation_era(None)
+        assert era is None
+
+        era = manager._get_navigation_era(1400)
+        assert era is None
+
 
 # ---------------------------------------------------------------------------
-# Statistics (async)
+# Statistics (async — reads wreck fixture data)
 # ---------------------------------------------------------------------------
 
 
@@ -251,10 +332,27 @@ class TestStatistics:
         assert "summary" in stats
         assert "losses_by_region" in stats
         assert "losses_by_cause" in stats
+        assert stats["summary"]["total_losses"] == 3
+
+    @pytest.mark.asyncio
+    async def test_get_statistics_with_date_range(self, manager: ArchiveManager):
+        stats = await manager.get_statistics(date_range="1600/1700")
+        assert stats["summary"]["total_losses"] == 2  # Batavia 1629, Vergulde Draeck 1656
+
+    @pytest.mark.asyncio
+    async def test_get_statistics_computes_breakdowns(self, manager: ArchiveManager):
+        stats = await manager.get_statistics()
+        assert "western_australia" in stats["losses_by_region"]
+        assert "cape" in stats["losses_by_region"]
+        assert "reef" in stats["losses_by_cause"]
+        assert "losses_by_status" in stats
+        assert "losses_by_decade" in stats
+        assert stats["summary"]["lives_lost_total"] == 193
+        assert stats["summary"]["cargo_value_guilders_total"] == 340600
 
 
 # ---------------------------------------------------------------------------
-# GeoJSON export (async)
+# GeoJSON export (async — reads wreck fixture data)
 # ---------------------------------------------------------------------------
 
 
@@ -263,7 +361,7 @@ class TestGeoJSONExport:
     async def test_export_geojson(self, manager: ArchiveManager):
         geojson = await manager.export_geojson()
         assert geojson["type"] == "FeatureCollection"
-        assert len(geojson["features"]) >= 1
+        assert len(geojson["features"]) == 3
 
     @pytest.mark.asyncio
     async def test_export_geojson_by_status(self, manager: ArchiveManager):
@@ -280,3 +378,36 @@ class TestGeoJSONExport:
         assert feature["geometry"]["type"] == "Point"
         assert len(feature["geometry"]["coordinates"]) == 2
         assert "properties" in feature
+
+    @pytest.mark.asyncio
+    async def test_export_geojson_by_wreck_ids(self, manager: ArchiveManager):
+        geojson = await manager.export_geojson(wreck_ids=["maarer:VOC-0789"])
+        assert len(geojson["features"]) == 1
+
+    @pytest.mark.asyncio
+    async def test_export_geojson_no_uncertainty(self, manager: ArchiveManager):
+        geojson = await manager.export_geojson(include_uncertainty=False, include_voyage_data=False)
+        props = geojson["features"][0]["properties"]
+        assert "uncertainty_km" not in props
+        assert "ship_type" not in props
+
+
+# ---------------------------------------------------------------------------
+# Manager date filter
+# ---------------------------------------------------------------------------
+
+
+class TestManagerDateFilter:
+    def test_filter_by_date_range(self, manager: ArchiveManager):
+        records = [
+            {"name": "A", "loss_date": "1629-06-04"},
+            {"name": "B", "loss_date": "1780-01-01"},
+        ]
+        result = manager._filter_by_date_range(records, "1600/1700", "loss_date")
+        assert len(result) == 1
+        assert result[0]["name"] == "A"
+
+    def test_filter_by_date_range_invalid(self, manager: ArchiveManager):
+        records = [{"name": "A", "loss_date": "1629"}]
+        result = manager._filter_by_date_range(records, "invalid", "loss_date")
+        assert len(result) == 1  # returns all

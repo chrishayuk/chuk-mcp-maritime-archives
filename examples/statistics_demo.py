@@ -31,12 +31,18 @@ async def main() -> None:
     print("-" * 40)
 
     result = await runner.run("maritime_get_statistics")
+
+    if "error" in result:
+        print(f"   API unavailable: {result['error']}")
+        print("   (This demo requires network access to the archives)")
+        return
+
     stats = result["statistics"]
 
     summary = stats.get("summary", {})
     print(f"\n   Period: {stats.get('date_range', '?')}")
     print(f"   Archives: {', '.join(stats.get('archives_included', []))}")
-    print(f"\n   Summary:")
+    print("\n   Summary:")
     print(f"     Total losses: {summary.get('total_losses', 0)}")
     print(f"     Lives lost: {summary.get('lives_lost_total', 0):,}")
     print(f"     Cargo value lost: {summary.get('cargo_value_guilders_total', 0):,.0f} guilders")
@@ -44,7 +50,7 @@ async def main() -> None:
     # Losses by region
     by_region = stats.get("losses_by_region", {})
     if by_region:
-        print(f"\n   Losses by region:")
+        print("\n   Losses by region:")
         for region, count in sorted(by_region.items(), key=lambda x: -x[1]):
             bar = "#" * (count * 3)
             print(f"     {region:25s}  {count:3d}  {bar}")
@@ -52,7 +58,7 @@ async def main() -> None:
     # Losses by cause
     by_cause = stats.get("losses_by_cause", {})
     if by_cause:
-        print(f"\n   Losses by cause:")
+        print("\n   Losses by cause:")
         for cause, count in sorted(by_cause.items(), key=lambda x: -x[1]):
             bar = "#" * (count * 3)
             print(f"     {cause:25s}  {count:3d}  {bar}")
@@ -60,7 +66,7 @@ async def main() -> None:
     # Losses by status
     by_status = stats.get("losses_by_status", {})
     if by_status:
-        print(f"\n   Wreck discovery status:")
+        print("\n   Wreck discovery status:")
         total = sum(by_status.values())
         for status, count in sorted(by_status.items(), key=lambda x: -x[1]):
             pct = (count / total * 100) if total else 0
@@ -69,7 +75,7 @@ async def main() -> None:
     # Losses by decade
     by_decade = stats.get("losses_by_decade", {})
     if by_decade:
-        print(f"\n   Losses by decade:")
+        print("\n   Losses by decade:")
         for decade, count in sorted(by_decade.items()):
             bar = "#" * (count * 3)
             print(f"     {decade}  {count:3d}  {bar}")
@@ -78,15 +84,20 @@ async def main() -> None:
     print("\n2. Underlying wreck data")
     print("-" * 40)
 
-    wrecks = await runner.run("maritime_search_wrecks")
-    print(f"\n   Total wreck records: {wrecks['wreck_count']}")
-    print(f"\n   Individual wrecks:")
+    wrecks = await runner.run("maritime_search_wrecks", max_results=10)
+    if "error" not in wrecks:
+        print(f"\n   Total wreck records: {wrecks['wreck_count']}")
+        print("\n   Individual wrecks:")
 
-    for w in wrecks["wrecks"]:
-        status = w.get("status", "?")
-        cause = w.get("loss_cause", "?")
-        region = w.get("region", "?")
-        print(f"     {w['ship_name']:25s}  {w.get('loss_date', '?'):12s}  {region:15s}  {cause:10s}  [{status}]")
+        for w in wrecks["wrecks"]:
+            status = w.get("status", "?")
+            cause = w.get("loss_cause", "?")
+            region = w.get("region", "?")
+            print(
+                f"     {w['ship_name']:25s}  {w.get('loss_date', '?'):12s}  {region:15s}  {cause:10s}  [{status}]"
+            )
+    else:
+        print(f"   {wrecks['error']}")
 
     # ----- Text output mode -----------------------------------------
     print("\n3. Text output mode")

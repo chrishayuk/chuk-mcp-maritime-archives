@@ -1,0 +1,44 @@
+[
+  {
+    "wreck_id": "maarer:VOC-0789",
+    "ship_name": "Batavia",
+    "loss_date": "1629-06-04",
+    "loss_cause": "reef",
+    "region": "western_australia",
+    "status": "found",
+    "depth_estimate_m": 5,
+    "lives_lost": 125,
+    "cargo_value_guilders": 250000,
+    "ship_type": "retourschip",
+    "tonnage": 600,
+    "position": {"lat": -28.49, "lon": 113.79, "uncertainty_km": 0.1}
+  },
+  {
+    "wreck_id": "maarer:VOC-0456",
+    "ship_name": "Vergulde Draeck",
+    "loss_date": "1656-04-28",
+    "loss_cause": "reef",
+    "region": "western_australia",
+    "status": "found",
+    "depth_estimate_m": 8,
+    "lives_lost": 68,
+    "cargo_value_guilders": 78600,
+    "ship_type": "retourschip",
+    "tonnage": 500,
+    "position": {"lat": -31.01, "lon": 115.22, "uncertainty_km": 0.5}
+  },
+  {
+    "wreck_id": "maarer:VOC-0123",
+    "ship_name": "Meermin",
+    "loss_date": "1766-02-20",
+    "loss_cause": "mutiny",
+    "region": "cape",
+    "status": "found",
+    "depth_estimate_m": 3,
+    "lives_lost": 0,
+    "cargo_value_guilders": 12000,
+    "ship_type": "hoeker",
+    "tonnage": 200,
+    "position": {"lat": -34.62, "lon": 20.01, "uncertainty_km": 5}
+  }
+]

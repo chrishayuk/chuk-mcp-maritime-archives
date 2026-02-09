@@ -374,15 +374,13 @@ class SinkingCharacteristics(BaseModel):
     likely_orientation: list[str] = Field(
         default_factory=list,
         description=(
-            "Likely orientations during sinking, "
-            "e.g. ['keel_down', 'beam_ends', 'inverted']."
+            "Likely orientations during sinking, e.g. ['keel_down', 'beam_ends', 'inverted']."
         ),
     )
     orientation_weights: dict[str, float] = Field(
         default_factory=dict,
         description=(
-            "Probability weight for each orientation "
-            "(keys match likely_orientation entries)."
+            "Probability weight for each orientation (keys match likely_orientation entries)."
         ),
     )
     terminal_velocity_ms: dict[str, float] = Field(

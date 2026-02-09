@@ -49,11 +49,13 @@ async def main() -> None:
         # Dimensions
         dims = profile.get("dimensions_typical", {})
         if dims:
-            print(f"\n  Dimensions (typical):")
+            print("\n  Dimensions (typical):")
             for key in ["length_m", "beam_m", "draught_m"]:
                 d = dims.get(key, {})
                 if d:
-                    print(f"    {key:12s}  min={d.get('min', '?'):6}  typical={d.get('typical', '?'):6}  max={d.get('max', '?'):6}")
+                    print(
+                        f"    {key:12s}  min={d.get('min', '?'):6}  typical={d.get('typical', '?'):6}  max={d.get('max', '?'):6}"
+                    )
 
         # Tonnage
         tonnage = profile.get("tonnage_range_lasten", {})
@@ -63,7 +65,7 @@ async def main() -> None:
         # Hydrodynamics
         hydro = profile.get("hydrodynamics", {})
         if hydro:
-            print(f"\n  Hydrodynamics:")
+            print("\n  Hydrodynamics:")
             for key, value in hydro.items():
                 if isinstance(value, dict):
                     print(f"    {key}:")
@@ -75,7 +77,7 @@ async def main() -> None:
         # Sinking characteristics
         sinking = profile.get("sinking_characteristics", {})
         if sinking:
-            print(f"\n  Sinking Characteristics:")
+            print("\n  Sinking Characteristics:")
             for key, value in sinking.items():
                 if isinstance(value, dict):
                     print(f"    {key}:")

@@ -9,7 +9,7 @@ structured access to historical maritime shipping records, vessel specifications
 crew muster rolls, cargo manifests, and shipwreck databases from the Dutch East India
 Company (VOC) era, 1595-1795.
 
-- **18 tools** for searching, retrieving, analysing, and exporting maritime archival data
+- **23 tools** for searching, retrieving, analysing, and exporting maritime archival data
 - **Dual output mode** -- all tools return JSON (default) or human-readable text via `output_mode` parameter
 - **Async-first** -- tool entry points are async; sync HTTP I/O runs in thread pools
 - **Pluggable storage** -- exported data stored via chuk-artifacts (memory, filesystem, S3)
@@ -32,7 +32,8 @@ Company (VOC) era, 1595-1795.
 | BGB Cargo | `https://bgb.huygens.knaw.nl` | REST API |
 | MAARER | `https://resources.huygens.knaw.nl/das` | Compiled data endpoint |
 
-All archives fall back to curated sample data when the remote API is unavailable.
+If an archive API is unavailable, the client returns an empty result set and tools
+return a structured error response.
 
 ---
 
@@ -366,6 +367,147 @@ Get the full cargo manifest for a specific voyage.
 | `cargo_entries` | `dict[]` | All cargo entries for the voyage |
 | `voyage_id` | `str` | Voyage identifier |
 | `message` | `str` | Result message |
+
+---
+
+### Location Gazetteer Tools
+
+#### `maritime_lookup_location`
+
+Look up a historical place name in the VOC gazetteer. Returns coordinates, region
+classification, and historical context. Handles aliases and historical spellings.
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `name` | `str` | *required* | Place name to look up (e.g., "Batavia", "Texel", "Kaap de Goede Hoop") |
+
+**Response:** `LocationDetailResponse`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `location` | `LocationInfo` | Location with coordinates, region, type, aliases, notes |
+| `message` | `str` | Result message |
+
+---
+
+#### `maritime_list_locations`
+
+Search or browse the VOC historical gazetteer with optional filters.
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `query` | `str?` | `None` | Text search in names, aliases, and notes (case-insensitive substring) |
+| `region` | `str?` | `None` | Filter by region code (see Regions table) |
+| `location_type` | `str?` | `None` | Filter by type: `port`, `island`, `cape`, `anchorage`, `waterway`, `coast`, `channel`, `region` |
+| `max_results` | `int` | `50` | Maximum results to return |
+
+**Response:** `LocationSearchResponse`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `location_count` | `int` | Number of locations found |
+| `locations` | `LocationInfo[]` | Location entries with coordinates |
+| `message` | `str` | Result message |
+
+---
+
+### Route Tools
+
+#### `maritime_list_routes`
+
+List available VOC standard sailing routes. Optionally filter by direction or ports.
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `direction` | `str?` | `None` | Route direction: `outward`, `return`, `intra_asian` |
+| `departure_port` | `str?` | `None` | Filter routes containing this departure port (substring match) |
+| `destination_port` | `str?` | `None` | Filter routes containing this destination (substring match) |
+
+**Response:** `RouteListResponse`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `route_count` | `int` | Number of routes found |
+| `routes` | `RouteInfo[]` | Route summaries with direction, duration, waypoint count |
+| `message` | `str` | Result message |
+
+---
+
+#### `maritime_get_route`
+
+Get full details of a standard VOC sailing route including all waypoints.
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `route_id` | `str` | *required* | Route identifier: `outward_outer`, `outward_inner`, `return`, `japan`, `spice_islands`, `ceylon`, `coromandel`, `malabar` |
+
+**Response:** `RouteDetailResponse`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `route` | `dict` | Full route: name, description, direction, waypoints, hazards, season notes |
+| `message` | `str` | Result message |
+
+**Route Waypoint Fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | `str` | Waypoint name (e.g., "Cape of Good Hope") |
+| `lat` | `float` | Latitude |
+| `lon` | `float` | Longitude |
+| `region` | `str` | Geographic region code |
+| `cumulative_days` | `int` | Typical days elapsed from departure |
+| `stop_days` | `int` | Typical days spent at this waypoint (0 = passing) |
+| `notes` | `str` | Historical notes |
+
+---
+
+#### `maritime_estimate_position`
+
+Estimate a ship's position on a specific date based on its route. Uses linear
+interpolation between standard waypoints assuming typical sailing times.
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `route_id` | `str` | *required* | Route identifier (from `maritime_list_routes`) |
+| `departure_date` | `str` | *required* | Ship's departure date as `YYYY-MM-DD` |
+| `target_date` | `str` | *required* | Date to estimate position for as `YYYY-MM-DD` |
+
+**Response:** `PositionEstimateResponse`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `estimate` | `dict` | Full estimate with position, segment, confidence, caveats |
+| `message` | `str` | Result message |
+
+**Estimate Output Fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `route_id` | `str` | Route used for estimation |
+| `departure_date` | `str` | Departure date |
+| `target_date` | `str` | Target date |
+| `elapsed_days` | `int` | Days elapsed since departure |
+| `total_route_days` | `int` | Total typical days for this route |
+| `voyage_progress` | `float` | 0.0-1.0 progress through the route |
+| `estimated_position.lat` | `float` | Estimated latitude |
+| `estimated_position.lon` | `float` | Estimated longitude |
+| `estimated_position.region` | `str` | Geographic region at estimated position |
+| `segment.from` | `str` | Previous waypoint name |
+| `segment.to` | `str` | Next waypoint name |
+| `segment.progress` | `float` | 0.0-1.0 progress through current segment |
+| `confidence` | `str` | `high` (at port), `moderate` (between waypoints), `low` (past arrival) |
+| `caveats` | `str[]` | Important caveats about estimate accuracy |
 
 ---
 

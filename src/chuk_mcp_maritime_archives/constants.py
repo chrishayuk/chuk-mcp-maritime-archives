@@ -303,13 +303,6 @@ class MimeType:
     JSON = "application/json"
 
 
-# --- Cache Configuration --------------------------------------------------
-
-
-VOYAGE_CACHE_MAX_ENTRIES: int = 500
-WRECK_CACHE_MAX_ENTRIES: int = 500
-
-
 # --- Messages --------------------------------------------------------------
 
 
@@ -334,5 +327,6 @@ class SuccessMessages:
     VESSELS_FOUND = "Found {} vessels matching criteria"
     CREW_FOUND = "Found {} crew records"
     CARGO_FOUND = "Found {} cargo entries"
+    LOCATIONS_FOUND = "Found {} locations"
     EXPORT_COMPLETE = "Exported {} wreck positions to GeoJSON"
     STATISTICS_COMPLETE = "Statistics for {} losses across {} years"

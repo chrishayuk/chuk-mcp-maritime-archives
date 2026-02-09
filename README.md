@@ -1,6 +1,6 @@
 # Chuk MCP Maritime Archives
 
-**Historical Maritime Archives MCP Server** -- A comprehensive Model Context Protocol (MCP) server for querying VOC (Dutch East India Company) shipping records, vessel specifications, crew muster rolls, cargo manifests, and shipwreck databases spanning 1595-1795.
+**Historical Maritime Archives MCP Server** -- A comprehensive Model Context Protocol (MCP) server for querying historical maritime shipping records, vessel specifications, crew muster rolls, cargo manifests, shipwreck databases, historical place names, and sailing routes spanning 1595-1855.
 
 > This is a demonstration project provided as-is for learning and testing purposes.
 
@@ -8,7 +8,7 @@
 
 ## Features
 
-This MCP server provides structured access to four major historical maritime archives through eighteen tools.
+This MCP server provides structured access to historical maritime archives and reference data through twenty-three tools.
 
 **All tools return fully-typed Pydantic v2 models** for type safety, validation, and excellent IDE support. All tools support `output_mode="text"` for human-readable output alongside the default JSON.
 
@@ -62,13 +62,27 @@ Evaluate historical position quality:
 - 5 uncertainty levels from precise to regional
 - Recommendations for drift modelling and search planning
 
-### 9. Export & Statistics (`maritime_export_geojson`, `maritime_get_statistics`)
+### 9. Location Gazetteer (`maritime_lookup_location`, `maritime_list_locations`)
+Historical place-name resolution:
+- ~160 VOC-era place names with modern coordinates
+- Alias resolution (e.g., "Batavia" -> Jakarta, "Formosa" -> Taiwan)
+- Region classification matching wreck and route data
+- Filter by region, location type, or text search
+
+### 10. Sailing Routes (`maritime_list_routes`, `maritime_get_route`, `maritime_estimate_position`)
+Standard VOC sailing routes with position estimation:
+- 8 routes: outward (outer/inner), return, Japan, Spice Islands, Ceylon, Coromandel, Malabar
+- Waypoints with coordinates, typical sailing days, stop durations
+- Hazards and seasonal navigation notes
+- **Position estimation**: interpolate a ship's likely position on any date
+
+### 11. Export & Statistics (`maritime_export_geojson`, `maritime_get_statistics`)
 Export and analyse wreck data:
 - GeoJSON FeatureCollection export with optional uncertainty
 - Aggregate loss statistics by region, cause, decade
 - Artifact store integration for persistent export
 
-### 10. Server Discovery (`maritime_capabilities`)
+### 12. Server Discovery (`maritime_capabilities`)
 List full server capabilities for LLM workflow planning:
 - Available archives with metadata
 - All registered tools with descriptions
@@ -174,9 +188,54 @@ Once configured, you can ask Claude questions like:
 - "Search for wrecks with cargo worth over 1 million guilders"
 - "What cargo was the Slot ter Hooge carrying when it sank?"
 - "Get the hull profile for a retourschip -- I need drag coefficients for drift modelling"
+- "Where are the coordinates for Batavia?" (gazetteer lookup)
+- "Show me all the ports in Indonesia" (location search)
+- "What route would a ship take from Texel to Batavia?"
+- "If a ship left Texel on 1629-10-28, where would it be on 1630-02-15?"
 - "Assess the position quality for wreck VOC-0456"
 - "Export all Cape wrecks as GeoJSON"
 - "Show me loss statistics by decade for the entire VOC period"
+
+### Running the Examples
+
+The `examples/` directory contains runnable demo scripts that call all 23 MCP tools directly:
+
+```bash
+cd examples
+
+# Quick start (no network required)
+python capabilities_demo.py        # server capabilities, ship types, regions
+python hull_profiles_demo.py       # hydrodynamic data for all 6 ship types
+python location_lookup_demo.py     # VOC gazetteer: place names to coordinates
+python route_explorer_demo.py      # sailing routes + position estimation
+
+# Core tool demos (network required)
+python voyage_search_demo.py       # search + detail workflow
+python wreck_investigation_demo.py # search, assess, export workflow
+python vessel_search_demo.py       # vessel search + ship type comparison
+python crew_muster_demo.py         # crew search + detail retrieval
+python cargo_trade_demo.py         # cargo search + commodity analysis
+python geojson_export_demo.py      # GeoJSON export + filtering
+python statistics_demo.py          # aggregate loss statistics
+
+# Full case study (network required)
+python batavia_case_study_demo.py  # 12-tool chain investigating the Batavia wreck
+```
+
+| Script | Network | Tools Demonstrated |
+|--------|---------|-------------------|
+| `capabilities_demo.py` | No | `maritime_capabilities`, `maritime_list_archives`, `maritime_list_hull_profiles` |
+| `hull_profiles_demo.py` | No | `maritime_list_hull_profiles`, `maritime_get_hull_profile` |
+| `location_lookup_demo.py` | No | `maritime_lookup_location`, `maritime_list_locations` |
+| `route_explorer_demo.py` | No | `maritime_list_routes`, `maritime_get_route`, `maritime_estimate_position` |
+| `voyage_search_demo.py` | Yes | `maritime_search_voyages`, `maritime_get_voyage` |
+| `wreck_investigation_demo.py` | Yes | `maritime_search_wrecks`, `maritime_get_wreck`, `maritime_assess_position`, `maritime_export_geojson` |
+| `vessel_search_demo.py` | Yes | `maritime_search_vessels`, `maritime_get_vessel`, `maritime_get_hull_profile` |
+| `crew_muster_demo.py` | Yes | `maritime_search_crew`, `maritime_get_crew_member` |
+| `cargo_trade_demo.py` | Yes | `maritime_search_cargo`, `maritime_get_cargo_manifest` |
+| `geojson_export_demo.py` | Yes | `maritime_export_geojson`, `maritime_search_wrecks` |
+| `statistics_demo.py` | Yes | `maritime_get_statistics`, `maritime_search_wrecks` |
+| `batavia_case_study_demo.py` | Yes | All 12 tool categories chained together |
 
 ## Tool Reference
 
@@ -198,6 +257,11 @@ All tools accept an optional `output_mode` parameter (`"json"` default, or `"tex
 | `maritime_get_crew_member` | Crew | Get crew member detail |
 | `maritime_search_cargo` | Cargo | Search cargo manifests |
 | `maritime_get_cargo_manifest` | Cargo | Full cargo manifest for a voyage |
+| `maritime_lookup_location` | Location | Look up historical place name in VOC gazetteer |
+| `maritime_list_locations` | Location | Search/browse gazetteer by region, type, or text |
+| `maritime_list_routes` | Routes | List standard VOC sailing routes |
+| `maritime_get_route` | Routes | Full route with waypoints, hazards, season notes |
+| `maritime_estimate_position` | Routes | Estimate ship position on a date from route |
 | `maritime_assess_position` | Position | Position quality and uncertainty assessment |
 | `maritime_export_geojson` | Export | GeoJSON wreck position export |
 | `maritime_get_statistics` | Export | Aggregate loss statistics |
@@ -271,6 +335,53 @@ All tools accept an optional `output_mode` parameter (`"json"` default, or `"tex
 }
 ```
 
+### maritime_lookup_location
+
+```python
+{
+  "name": "Batavia"                              # place name or alias
+}
+```
+
+### maritime_list_locations
+
+```python
+{
+  "query": "spice",                              # optional, text search
+  "region": "indonesia",                         # optional, region code
+  "location_type": "port",                       # optional: port, island, cape, etc.
+  "max_results": 50                              # optional, default 50
+}
+```
+
+### maritime_list_routes
+
+```python
+{
+  "direction": "outward",                        # optional: outward, return, intra_asian
+  "departure_port": "Texel",                     # optional, substring match
+  "destination_port": "Batavia"                  # optional, substring match
+}
+```
+
+### maritime_get_route
+
+```python
+{
+  "route_id": "outward_outer"                    # route identifier
+}
+```
+
+### maritime_estimate_position
+
+```python
+{
+  "route_id": "outward_outer",                   # route identifier
+  "departure_date": "1629-10-28",                # YYYY-MM-DD
+  "target_date": "1630-02-15"                    # date to estimate position
+}
+```
+
 ### maritime_get_hull_profile
 
 ```python
@@ -311,14 +422,12 @@ pytest tests/test_archive_manager.py -v
 ### Code Quality
 
 ```bash
-# Lint with ruff
+# Run all checks (lint, typecheck, security, test)
+make check
+
+# Lint and format with ruff
 ruff check src/ tests/
-
-# Format with black
-black src/ tests/
-
-# Sort imports
-isort src/ tests/
+ruff format src/ tests/
 
 # Type checking
 mypy src/
@@ -391,11 +500,12 @@ Built on top of chuk-mcp-server, this server uses:
 - **Async-First**: Native async/await with sync HTTP wrapped in `asyncio.to_thread()`
 - **Type-Safe**: Pydantic v2 models with `extra="forbid"` for all responses, `extra="allow"` for domain models
 - **LRU Caching**: OrderedDict-based caches for voyages (500), wrecks (500), and vessels
-- **Graceful Degradation**: API failures fall back to curated sample data with warnings logged
+- **Reproducible Data**: Download scripts fetch real data from DAS and CLIWOC; reference data stored as JSON
 - **Pluggable Storage**: Artifact storage via chuk-artifacts (memory, filesystem, S3)
 - **No External HTTP Deps**: Uses stdlib `urllib.request` -- no requests/httpx dependency
-- **Dual Output**: All 18 tools support `output_mode="text"` for human-readable responses
-- **Domain Reference Data**: 6 hull profiles, 15 regions, 4 navigation eras, 5 uncertainty types
+- **Dual Output**: All 23 tools support `output_mode="text"` for human-readable responses
+- **Domain Reference Data**: ~160 place gazetteer, 8 routes, 6 hull profiles, 15 regions, 4 navigation eras
+- **349+ Tests**: Across 7 test modules with 97%+ branch coverage
 
 ### Supported Archives
 
@@ -405,9 +515,50 @@ Built on top of chuk-mcp-server, this server uses:
 | VOC Opvarenden | 774,200 crew | 1633-1794 | nationaalarchief.nl |
 | Boekhouder-Generaal Batavia | ~50,000 cargo | 1700-1795 | bgb.huygens.knaw.nl |
 | MAARER Wrecks | 734 wrecks | 1595-1795 | Compiled dataset |
+| CLIWOC Ship Tracks | ~261,000 positions | 1662-1855 | figshare.com (CLIWOC Slim) |
+
+### Reference Data
+
+| Dataset | Records | Source |
+|---------|---------|--------|
+| VOC Gazetteer | ~160 place names | Curated from historical sources |
+| VOC Routes | 8 sailing routes | Bruijn, Gaastra & Schoffer (1987) |
+| Hull Profiles | 6 ship types | Archaeological measurements |
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for design principles and data flow diagrams.
 See [SPEC.md](SPEC.md) for the full tool specification with parameter tables.
+
+## Roadmap
+
+### Completed (v0.1.0)
+
+- 18 MCP tools across 10 categories (voyages, wrecks, vessels, crew, cargo, position, export, discovery, archives, hull profiles)
+- 4 archive clients: DAS, VOC Crew, BGB Cargo, MAARER Wrecks
+- Pydantic v2 response models with dual output (JSON + text)
+- LRU caching for voyages, wrecks, and vessels
+- Position quality assessment with navigation-era detection
+- GeoJSON export with artifact store integration
+- Hull hydrodynamic profiles for drift modelling
+
+### Completed (v0.2.0)
+
+- **23 MCP tools** across 12 categories (added location gazetteer and sailing routes)
+- **VOC Gazetteer**: ~160 historical place names with coordinates, aliases, and region classification
+- **Sailing routes**: 8 standard VOC routes with waypoints, durations, hazards, and season notes
+- **Position estimation**: interpolate ship position on any date from departure and route
+- **CLIWOC ship tracks**: download script for ~261K logbook positions (1662-1855, all nationalities)
+- **Reproducible data pipeline**: download scripts for DAS and CLIWOC; JSON reference data for gazetteer, routes, and hull profiles
+- 349 tests, 97%+ branch coverage
+
+### Planned
+
+- **CLIWOC MCP tools**: search and browse actual historical ship tracks from the CLIWOC database
+- **Cross-archive linking**: automatic correlation between voyage, crew, and cargo records for the same ship/date
+- **Streaming search**: paginated search results for large result sets
+- **Timeline view**: chronological event tool combining voyage waypoints, crew changes, and incidents
+- **Wreck probability model**: Bayesian position estimation combining navigation era, drift models, and historical accounts
+- **Additional archives**: English East India Company (EIC), Portuguese Estado da India, Spanish Manila Galleon records
+- **WebSocket transport**: real-time subscription to search refinements
 
 ## Contributing
 
@@ -427,6 +578,8 @@ Apache License 2.0 -- See [LICENSE](LICENSE) for details.
 
 - [Huygens Institute](https://resources.huygens.knaw.nl/) for the Dutch Asiatic Shipping database
 - [Nationaal Archief](https://www.nationaalarchief.nl/) for VOC crew and cargo records
+- [CLIWOC](https://www.historicalclimatology.com/cliwoc.html) for the Climatological Database for World's Oceans
+- [Dani Arribas-Bel](https://figshare.com/articles/dataset/CLIWOC_Slim_and_Routes/11941224) for the CLIWOC Slim and Routes dataset
 - [Model Context Protocol](https://modelcontextprotocol.io/) for the MCP specification
 - [Anthropic](https://www.anthropic.com/) for Claude and MCP support
 - J.R. Bruijn, F.S. Gaastra, and I. Schoffer for _Dutch-Asiatic Shipping in the 17th and 18th Centuries_ (1987)

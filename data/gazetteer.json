@@ -1,0 +1,1545 @@
+[
+  {
+    "name": "Texel",
+    "lat": 53.05,
+    "lon": 4.8,
+    "region": "north_sea",
+    "type": "port",
+    "aliases": [
+      "Tessel"
+    ],
+    "notes": "Primary VOC departure anchorage off North Holland."
+  },
+  {
+    "name": "Amsterdam",
+    "lat": 52.37,
+    "lon": 4.9,
+    "region": "north_sea",
+    "type": "port",
+    "aliases": [],
+    "notes": "VOC Amsterdam chamber, largest VOC office."
+  },
+  {
+    "name": "Middelburg",
+    "lat": 51.5,
+    "lon": 3.61,
+    "region": "north_sea",
+    "type": "port",
+    "aliases": [],
+    "notes": "VOC Zeeland chamber headquarters."
+  },
+  {
+    "name": "Vlissingen",
+    "lat": 51.44,
+    "lon": 3.57,
+    "region": "north_sea",
+    "type": "port",
+    "aliases": [
+      "Flushing"
+    ],
+    "notes": "Port at the mouth of the Scheldt, Zeeland."
+  },
+  {
+    "name": "Rotterdam",
+    "lat": 51.92,
+    "lon": 4.48,
+    "region": "north_sea",
+    "type": "port",
+    "aliases": [],
+    "notes": "VOC Rotterdam chamber."
+  },
+  {
+    "name": "Delft",
+    "lat": 52.01,
+    "lon": 4.36,
+    "region": "north_sea",
+    "type": "port",
+    "aliases": [
+      "Delfshaven"
+    ],
+    "notes": "VOC Delft chamber, ships sailed from Delfshaven."
+  },
+  {
+    "name": "Hoorn",
+    "lat": 52.64,
+    "lon": 5.06,
+    "region": "north_sea",
+    "type": "port",
+    "aliases": [],
+    "notes": "VOC Hoorn chamber."
+  },
+  {
+    "name": "Enkhuizen",
+    "lat": 52.7,
+    "lon": 5.29,
+    "region": "north_sea",
+    "type": "port",
+    "aliases": [
+      "Enckhuysen"
+    ],
+    "notes": "VOC Enkhuizen chamber."
+  },
+  {
+    "name": "Goeree",
+    "lat": 51.82,
+    "lon": 3.97,
+    "region": "north_sea",
+    "type": "anchorage",
+    "aliases": [
+      "Goedereede"
+    ],
+    "notes": "Anchorage off Goeree island, common departure point."
+  },
+  {
+    "name": "Rammekens",
+    "lat": 51.44,
+    "lon": 3.57,
+    "region": "north_sea",
+    "type": "anchorage",
+    "aliases": [],
+    "notes": "Fortress anchorage near Vlissingen, Zeeland departure point."
+  },
+  {
+    "name": "Wielingen",
+    "lat": 51.39,
+    "lon": 3.35,
+    "region": "north_sea",
+    "type": "channel",
+    "aliases": [],
+    "notes": "Channel at the mouth of the Scheldt."
+  },
+  {
+    "name": "The Downs",
+    "lat": 51.21,
+    "lon": 1.41,
+    "region": "north_sea",
+    "type": "anchorage",
+    "aliases": [
+      "Duins"
+    ],
+    "notes": "Anchorage off Deal, England. Common waiting point."
+  },
+  {
+    "name": "English Channel",
+    "lat": 50.5,
+    "lon": -1.0,
+    "region": "north_sea",
+    "type": "waterway",
+    "aliases": [
+      "Het Kanaal",
+      "Channel"
+    ],
+    "notes": "Waterway between England and France."
+  },
+  {
+    "name": "Dover",
+    "lat": 51.13,
+    "lon": 1.31,
+    "region": "north_sea",
+    "type": "port",
+    "aliases": [],
+    "notes": "English port at the narrowest point of the Channel."
+  },
+  {
+    "name": "Plymouth",
+    "lat": 50.37,
+    "lon": -4.14,
+    "region": "north_sea",
+    "type": "port",
+    "aliases": [],
+    "notes": "English port, sometimes used as refuge."
+  },
+  {
+    "name": "Falmouth",
+    "lat": 50.15,
+    "lon": -5.07,
+    "region": "north_sea",
+    "type": "port",
+    "aliases": [],
+    "notes": "English port, used for reprovisioning."
+  },
+  {
+    "name": "Hastings",
+    "lat": 50.85,
+    "lon": 0.57,
+    "region": "north_sea",
+    "type": "port",
+    "aliases": [],
+    "notes": "English port on the south coast."
+  },
+  {
+    "name": "Dungeness",
+    "lat": 50.91,
+    "lon": 0.98,
+    "region": "north_sea",
+    "type": "cape",
+    "aliases": [],
+    "notes": "Headland on the English south coast."
+  },
+  {
+    "name": "Ushant",
+    "lat": 48.46,
+    "lon": -5.09,
+    "region": "atlantic_europe",
+    "type": "island",
+    "aliases": [
+      "Ouessant"
+    ],
+    "notes": "Island off Brittany, major navigation waypoint."
+  },
+  {
+    "name": "Bay of Biscay",
+    "lat": 45.0,
+    "lon": -5.0,
+    "region": "atlantic_europe",
+    "type": "waterway",
+    "aliases": [
+      "Biscaye"
+    ],
+    "notes": "Notoriously rough waters between France and Spain."
+  },
+  {
+    "name": "Cadiz",
+    "lat": 36.53,
+    "lon": -6.29,
+    "region": "atlantic_europe",
+    "type": "port",
+    "aliases": [
+      "Cadix"
+    ],
+    "notes": "Spanish port, sometimes visited for supplies."
+  },
+  {
+    "name": "Madeira",
+    "lat": 32.75,
+    "lon": -17.0,
+    "region": "atlantic_europe",
+    "type": "island",
+    "aliases": [],
+    "notes": "Portuguese island, waypoint on southward route."
+  },
+  {
+    "name": "Canary Islands",
+    "lat": 28.1,
+    "lon": -15.4,
+    "region": "atlantic_europe",
+    "type": "island",
+    "aliases": [
+      "Canaries",
+      "Canarische Eilanden"
+    ],
+    "notes": "Spanish islands, common waypoint."
+  },
+  {
+    "name": "Tenerife",
+    "lat": 28.27,
+    "lon": -16.6,
+    "region": "atlantic_europe",
+    "type": "island",
+    "aliases": [],
+    "notes": "Largest Canary Island."
+  },
+  {
+    "name": "Cape Verde",
+    "lat": 15.06,
+    "lon": -23.63,
+    "region": "atlantic_europe",
+    "type": "island",
+    "aliases": [
+      "Kaap Verde",
+      "Cape Verde Islands"
+    ],
+    "notes": "Portuguese islands, major provisioning stop."
+  },
+  {
+    "name": "Santiago",
+    "lat": 14.93,
+    "lon": -23.63,
+    "region": "atlantic_europe",
+    "type": "island",
+    "aliases": [
+      "São Tiago"
+    ],
+    "notes": "Largest Cape Verde island, watering point."
+  },
+  {
+    "name": "Ascension Island",
+    "lat": -7.95,
+    "lon": -14.36,
+    "region": "atlantic_crossing",
+    "type": "island",
+    "aliases": [
+      "Ascension"
+    ],
+    "notes": "Remote Atlantic island."
+  },
+  {
+    "name": "St Helena",
+    "lat": -15.97,
+    "lon": -5.71,
+    "region": "atlantic_crossing",
+    "type": "island",
+    "aliases": [
+      "Sint Helena",
+      "Saint Helena"
+    ],
+    "notes": "British island, used as provisioning stop on return voyages."
+  },
+  {
+    "name": "Tristan da Cunha",
+    "lat": -37.11,
+    "lon": -12.28,
+    "region": "atlantic_crossing",
+    "type": "island",
+    "aliases": [],
+    "notes": "Remote South Atlantic island."
+  },
+  {
+    "name": "Sierra Leone",
+    "lat": 8.48,
+    "lon": -13.23,
+    "region": "atlantic_europe",
+    "type": "anchorage",
+    "aliases": [],
+    "notes": "West African coast, watering point."
+  },
+  {
+    "name": "Cape Palmas",
+    "lat": 4.37,
+    "lon": -7.73,
+    "region": "atlantic_europe",
+    "type": "cape",
+    "aliases": [
+      "Kaap Palmas"
+    ],
+    "notes": "Headland on the Ivory Coast / Liberia border."
+  },
+  {
+    "name": "Elmina",
+    "lat": 5.08,
+    "lon": -1.35,
+    "region": "atlantic_europe",
+    "type": "port",
+    "aliases": [
+      "São Jorge da Mina"
+    ],
+    "notes": "Dutch West India Company fort on the Gold Coast."
+  },
+  {
+    "name": "Annobon",
+    "lat": -1.43,
+    "lon": 5.63,
+    "region": "atlantic_europe",
+    "type": "island",
+    "aliases": [
+      "Annobón",
+      "Pagalu"
+    ],
+    "notes": "Island in the Gulf of Guinea."
+  },
+  {
+    "name": "Luanda",
+    "lat": -8.84,
+    "lon": 13.23,
+    "region": "atlantic_europe",
+    "type": "port",
+    "aliases": [
+      "Loanda"
+    ],
+    "notes": "Portuguese port in Angola."
+  },
+  {
+    "name": "Cape of Good Hope",
+    "lat": -34.36,
+    "lon": 18.47,
+    "region": "cape",
+    "type": "cape",
+    "aliases": [
+      "Kaap de Goede Hoop",
+      "the Cape",
+      "Cape"
+    ],
+    "notes": "Southern tip of Africa, critical waypoint."
+  },
+  {
+    "name": "Table Bay",
+    "lat": -33.9,
+    "lon": 18.43,
+    "region": "cape",
+    "type": "anchorage",
+    "aliases": [
+      "Tafelbaai"
+    ],
+    "notes": "Main VOC anchorage at the Cape, site of Cape Town."
+  },
+  {
+    "name": "Cape Town",
+    "lat": -33.93,
+    "lon": 18.42,
+    "region": "cape",
+    "type": "port",
+    "aliases": [
+      "Kaapstad",
+      "Cabo"
+    ],
+    "notes": "VOC refreshment station established 1652."
+  },
+  {
+    "name": "False Bay",
+    "lat": -34.2,
+    "lon": 18.65,
+    "region": "cape",
+    "type": "anchorage",
+    "aliases": [
+      "Valsbaai"
+    ],
+    "notes": "Bay east of Cape of Good Hope, winter anchorage."
+  },
+  {
+    "name": "Simon's Bay",
+    "lat": -34.19,
+    "lon": 18.44,
+    "region": "cape",
+    "type": "anchorage",
+    "aliases": [
+      "Simonsbaai",
+      "Simon's Town"
+    ],
+    "notes": "Sheltered anchorage in False Bay."
+  },
+  {
+    "name": "Saldanha Bay",
+    "lat": -33.0,
+    "lon": 17.93,
+    "region": "cape",
+    "type": "anchorage",
+    "aliases": [
+      "Saldanhabaai"
+    ],
+    "notes": "Natural harbour north of Cape Town."
+  },
+  {
+    "name": "Robben Island",
+    "lat": -33.81,
+    "lon": 18.37,
+    "region": "cape",
+    "type": "island",
+    "aliases": [
+      "Robbeneiland"
+    ],
+    "notes": "Island in Table Bay, used by VOC."
+  },
+  {
+    "name": "Cape Agulhas",
+    "lat": -34.83,
+    "lon": 20.0,
+    "region": "cape",
+    "type": "cape",
+    "aliases": [
+      "Kaap Agulhas"
+    ],
+    "notes": "Southernmost point of Africa."
+  },
+  {
+    "name": "Struisbaai",
+    "lat": -34.8,
+    "lon": 20.06,
+    "region": "cape",
+    "type": "anchorage",
+    "aliases": [],
+    "notes": "Bay near Cape Agulhas. Several VOC wrecks here."
+  },
+  {
+    "name": "Algoa Bay",
+    "lat": -33.77,
+    "lon": 25.67,
+    "region": "cape",
+    "type": "anchorage",
+    "aliases": [
+      "Algoabaai"
+    ],
+    "notes": "Bay on the south-east coast of South Africa."
+  },
+  {
+    "name": "Mossel Bay",
+    "lat": -34.18,
+    "lon": 22.13,
+    "region": "cape",
+    "type": "anchorage",
+    "aliases": [
+      "Mosselbaai"
+    ],
+    "notes": "Bay on the southern coast of South Africa."
+  },
+  {
+    "name": "Mozambique",
+    "lat": -15.03,
+    "lon": 40.73,
+    "region": "mozambique_channel",
+    "type": "port",
+    "aliases": [
+      "Mosambique"
+    ],
+    "notes": "Portuguese port, sometimes visited by VOC ships."
+  },
+  {
+    "name": "Mozambique Channel",
+    "lat": -18.0,
+    "lon": 42.0,
+    "region": "mozambique_channel",
+    "type": "waterway",
+    "aliases": [
+      "Straat Mozambique"
+    ],
+    "notes": "Channel between Madagascar and East Africa."
+  },
+  {
+    "name": "Delagoa Bay",
+    "lat": -25.97,
+    "lon": 32.58,
+    "region": "mozambique_channel",
+    "type": "anchorage",
+    "aliases": [
+      "Lourenço Marques",
+      "Maputo Bay"
+    ],
+    "notes": "Natural harbour, present-day Maputo."
+  },
+  {
+    "name": "Sofala",
+    "lat": -20.15,
+    "lon": 34.72,
+    "region": "mozambique_channel",
+    "type": "port",
+    "aliases": [],
+    "notes": "Portuguese trading post on the Mozambique coast."
+  },
+  {
+    "name": "Zanzibar",
+    "lat": -6.16,
+    "lon": 39.19,
+    "region": "mozambique_channel",
+    "type": "island",
+    "aliases": [],
+    "notes": "Island off the East African coast."
+  },
+  {
+    "name": "Madagascar",
+    "lat": -18.77,
+    "lon": 46.87,
+    "region": "mozambique_channel",
+    "type": "island",
+    "aliases": [
+      "Sint Laurens"
+    ],
+    "notes": "Large island east of Africa."
+  },
+  {
+    "name": "Fort Dauphin",
+    "lat": -25.04,
+    "lon": 46.99,
+    "region": "mozambique_channel",
+    "type": "port",
+    "aliases": [
+      "Tolagnaro"
+    ],
+    "notes": "French settlement on southern Madagascar."
+  },
+  {
+    "name": "Comoro Islands",
+    "lat": -12.17,
+    "lon": 44.25,
+    "region": "mozambique_channel",
+    "type": "island",
+    "aliases": [
+      "Comores",
+      "Comoros"
+    ],
+    "notes": "Island group between Madagascar and East Africa."
+  },
+  {
+    "name": "Natal",
+    "lat": -29.85,
+    "lon": 31.03,
+    "region": "mozambique_channel",
+    "type": "anchorage",
+    "aliases": [
+      "Terra Natalis"
+    ],
+    "notes": "Coast of present-day KwaZulu-Natal."
+  },
+  {
+    "name": "Mauritius",
+    "lat": -20.35,
+    "lon": 57.55,
+    "region": "indian_ocean",
+    "type": "island",
+    "aliases": [
+      "Ile de France"
+    ],
+    "notes": "Island in the Indian Ocean, Dutch colony 1638-1710."
+  },
+  {
+    "name": "Réunion",
+    "lat": -21.12,
+    "lon": 55.54,
+    "region": "indian_ocean",
+    "type": "island",
+    "aliases": [
+      "Bourbon"
+    ],
+    "notes": "French island east of Madagascar."
+  },
+  {
+    "name": "Rodrigues",
+    "lat": -19.72,
+    "lon": 63.43,
+    "region": "indian_ocean",
+    "type": "island",
+    "aliases": [],
+    "notes": "Island east of Mauritius."
+  },
+  {
+    "name": "Diego Garcia",
+    "lat": -7.32,
+    "lon": 72.42,
+    "region": "indian_ocean",
+    "type": "island",
+    "aliases": [],
+    "notes": "Atoll in the Chagos Archipelago."
+  },
+  {
+    "name": "Maldives",
+    "lat": 3.2,
+    "lon": 73.22,
+    "region": "indian_ocean",
+    "type": "island",
+    "aliases": [
+      "Maldive Islands"
+    ],
+    "notes": "Archipelago in the central Indian Ocean."
+  },
+  {
+    "name": "Seychelles",
+    "lat": -4.68,
+    "lon": 55.49,
+    "region": "indian_ocean",
+    "type": "island",
+    "aliases": [],
+    "notes": "Archipelago in the western Indian Ocean."
+  },
+  {
+    "name": "Goa",
+    "lat": 15.5,
+    "lon": 73.83,
+    "region": "malabar",
+    "type": "port",
+    "aliases": [],
+    "notes": "Portuguese colonial capital on the west coast of India."
+  },
+  {
+    "name": "Surat",
+    "lat": 21.17,
+    "lon": 72.83,
+    "region": "malabar",
+    "type": "port",
+    "aliases": [
+      "Suratte"
+    ],
+    "notes": "Major Mughal port, VOC factory."
+  },
+  {
+    "name": "Cochin",
+    "lat": 9.97,
+    "lon": 76.27,
+    "region": "malabar",
+    "type": "port",
+    "aliases": [
+      "Kochi"
+    ],
+    "notes": "VOC headquarters in Malabar from 1663."
+  },
+  {
+    "name": "Calicut",
+    "lat": 11.25,
+    "lon": 75.77,
+    "region": "malabar",
+    "type": "port",
+    "aliases": [
+      "Kozhikode"
+    ],
+    "notes": "Major spice trading port."
+  },
+  {
+    "name": "Cannanore",
+    "lat": 11.87,
+    "lon": 75.37,
+    "region": "malabar",
+    "type": "port",
+    "aliases": [
+      "Kannur"
+    ],
+    "notes": "VOC factory on the Malabar coast."
+  },
+  {
+    "name": "Malabar Coast",
+    "lat": 10.5,
+    "lon": 76.0,
+    "region": "malabar",
+    "type": "coast",
+    "aliases": [
+      "Malabar"
+    ],
+    "notes": "Western coast of India, pepper and spice region."
+  },
+  {
+    "name": "Bombay",
+    "lat": 19.08,
+    "lon": 72.88,
+    "region": "malabar",
+    "type": "port",
+    "aliases": [
+      "Mumbai"
+    ],
+    "notes": "English East India Company base, west coast of India."
+  },
+  {
+    "name": "Diu",
+    "lat": 20.71,
+    "lon": 70.99,
+    "region": "malabar",
+    "type": "port",
+    "aliases": [],
+    "notes": "Portuguese fortress island off Gujarat."
+  },
+  {
+    "name": "Pulicat",
+    "lat": 13.42,
+    "lon": 80.32,
+    "region": "coromandel",
+    "type": "port",
+    "aliases": [
+      "Palliacatta"
+    ],
+    "notes": "VOC factory, early headquarters on Coromandel coast."
+  },
+  {
+    "name": "Nagapattinam",
+    "lat": 10.77,
+    "lon": 79.84,
+    "region": "coromandel",
+    "type": "port",
+    "aliases": [
+      "Negapatnam"
+    ],
+    "notes": "VOC headquarters on Coromandel coast from 1660."
+  },
+  {
+    "name": "Masulipatnam",
+    "lat": 16.17,
+    "lon": 81.15,
+    "region": "coromandel",
+    "type": "port",
+    "aliases": [
+      "Machilipatnam"
+    ],
+    "notes": "VOC factory, major textile trading port."
+  },
+  {
+    "name": "Madras",
+    "lat": 13.08,
+    "lon": 80.27,
+    "region": "coromandel",
+    "type": "port",
+    "aliases": [
+      "Chennai",
+      "Fort St George"
+    ],
+    "notes": "English East India Company base."
+  },
+  {
+    "name": "Coromandel Coast",
+    "lat": 12.0,
+    "lon": 80.0,
+    "region": "coromandel",
+    "type": "coast",
+    "aliases": [
+      "Coromandel"
+    ],
+    "notes": "Eastern coast of India, major textile region."
+  },
+  {
+    "name": "Pondicherry",
+    "lat": 11.93,
+    "lon": 79.83,
+    "region": "coromandel",
+    "type": "port",
+    "aliases": [
+      "Puducherry"
+    ],
+    "notes": "French trading post on the Coromandel coast."
+  },
+  {
+    "name": "Colombo",
+    "lat": 6.93,
+    "lon": 79.84,
+    "region": "ceylon",
+    "type": "port",
+    "aliases": [],
+    "notes": "VOC headquarters in Ceylon."
+  },
+  {
+    "name": "Galle",
+    "lat": 6.03,
+    "lon": 80.22,
+    "region": "ceylon",
+    "type": "port",
+    "aliases": [],
+    "notes": "Major VOC port, southern Ceylon."
+  },
+  {
+    "name": "Trincomalee",
+    "lat": 8.58,
+    "lon": 81.23,
+    "region": "ceylon",
+    "type": "port",
+    "aliases": [],
+    "notes": "Natural harbour, eastern Ceylon."
+  },
+  {
+    "name": "Jaffna",
+    "lat": 9.66,
+    "lon": 80.01,
+    "region": "ceylon",
+    "type": "port",
+    "aliases": [
+      "Jaffnapatnam"
+    ],
+    "notes": "VOC territory, northern Ceylon."
+  },
+  {
+    "name": "Point de Galle",
+    "lat": 6.03,
+    "lon": 80.22,
+    "region": "ceylon",
+    "type": "cape",
+    "aliases": [
+      "Galle"
+    ],
+    "notes": "Southern tip of Ceylon, major VOC port."
+  },
+  {
+    "name": "Hooghly",
+    "lat": 22.91,
+    "lon": 88.39,
+    "region": "bengal",
+    "type": "port",
+    "aliases": [
+      "Hugli",
+      "Hughli"
+    ],
+    "notes": "VOC factory on the Hooghly River."
+  },
+  {
+    "name": "Chinsura",
+    "lat": 22.9,
+    "lon": 88.39,
+    "region": "bengal",
+    "type": "port",
+    "aliases": [
+      "Chinsurah"
+    ],
+    "notes": "VOC factory in Bengal."
+  },
+  {
+    "name": "Bengal",
+    "lat": 22.5,
+    "lon": 88.5,
+    "region": "bengal",
+    "type": "region",
+    "aliases": [
+      "Bengale"
+    ],
+    "notes": "Region in eastern India, Bay of Bengal."
+  },
+  {
+    "name": "Calcutta",
+    "lat": 22.57,
+    "lon": 88.36,
+    "region": "bengal",
+    "type": "port",
+    "aliases": [
+      "Kolkata"
+    ],
+    "notes": "English East India Company base in Bengal."
+  },
+  {
+    "name": "Andaman Islands",
+    "lat": 12.5,
+    "lon": 92.72,
+    "region": "bengal",
+    "type": "island",
+    "aliases": [
+      "Andamans"
+    ],
+    "notes": "Island group in the Bay of Bengal."
+  },
+  {
+    "name": "Nicobar Islands",
+    "lat": 8.0,
+    "lon": 93.5,
+    "region": "bengal",
+    "type": "island",
+    "aliases": [
+      "Nicobars"
+    ],
+    "notes": "Island group south of the Andamans."
+  },
+  {
+    "name": "Malacca",
+    "lat": 2.19,
+    "lon": 102.25,
+    "region": "malacca",
+    "type": "port",
+    "aliases": [
+      "Melaka",
+      "Malakka"
+    ],
+    "notes": "VOC fortress, key port on the Straits of Malacca."
+  },
+  {
+    "name": "Straits of Malacca",
+    "lat": 3.0,
+    "lon": 101.0,
+    "region": "malacca",
+    "type": "waterway",
+    "aliases": [
+      "Straat Malakka"
+    ],
+    "notes": "Key shipping lane between Sumatra and Malay Peninsula."
+  },
+  {
+    "name": "Penang",
+    "lat": 5.41,
+    "lon": 100.33,
+    "region": "malacca",
+    "type": "island",
+    "aliases": [
+      "Prince of Wales Island"
+    ],
+    "notes": "Island at the northern end of the Straits."
+  },
+  {
+    "name": "Aceh",
+    "lat": 5.55,
+    "lon": 95.32,
+    "region": "malacca",
+    "type": "port",
+    "aliases": [
+      "Atjeh",
+      "Acheen"
+    ],
+    "notes": "Sultanate on the northern tip of Sumatra."
+  },
+  {
+    "name": "Perak",
+    "lat": 4.5,
+    "lon": 100.8,
+    "region": "malacca",
+    "type": "port",
+    "aliases": [],
+    "notes": "Malay tin-producing state."
+  },
+  {
+    "name": "Kedah",
+    "lat": 6.12,
+    "lon": 100.37,
+    "region": "malacca",
+    "type": "port",
+    "aliases": [],
+    "notes": "Malay state on the Straits."
+  },
+  {
+    "name": "Batavia",
+    "lat": -6.13,
+    "lon": 106.85,
+    "region": "indonesia",
+    "type": "port",
+    "aliases": [
+      "Jakarta",
+      "Jacatra"
+    ],
+    "notes": "VOC Asian headquarters from 1619."
+  },
+  {
+    "name": "Sunda Strait",
+    "lat": -6.1,
+    "lon": 105.75,
+    "region": "indonesia",
+    "type": "waterway",
+    "aliases": [
+      "Straat Sunda"
+    ],
+    "notes": "Strait between Java and Sumatra."
+  },
+  {
+    "name": "Bantam",
+    "lat": -6.04,
+    "lon": 106.17,
+    "region": "indonesia",
+    "type": "port",
+    "aliases": [
+      "Banten"
+    ],
+    "notes": "Pepper port in western Java, early VOC presence."
+  },
+  {
+    "name": "Semarang",
+    "lat": -6.97,
+    "lon": 110.42,
+    "region": "indonesia",
+    "type": "port",
+    "aliases": [],
+    "notes": "Port on the north coast of Java."
+  },
+  {
+    "name": "Surabaya",
+    "lat": -7.25,
+    "lon": 112.75,
+    "region": "indonesia",
+    "type": "port",
+    "aliases": [
+      "Soerabaja"
+    ],
+    "notes": "Major port in eastern Java."
+  },
+  {
+    "name": "Bali",
+    "lat": -8.34,
+    "lon": 115.09,
+    "region": "indonesia",
+    "type": "island",
+    "aliases": [],
+    "notes": "Island east of Java."
+  },
+  {
+    "name": "Lombok",
+    "lat": -8.65,
+    "lon": 116.32,
+    "region": "indonesia",
+    "type": "island",
+    "aliases": [],
+    "notes": "Island east of Bali."
+  },
+  {
+    "name": "Bali Strait",
+    "lat": -8.17,
+    "lon": 114.43,
+    "region": "indonesia",
+    "type": "waterway",
+    "aliases": [
+      "Straat Bali"
+    ],
+    "notes": "Narrow strait between Java and Bali."
+  },
+  {
+    "name": "Ambon",
+    "lat": -3.7,
+    "lon": 128.17,
+    "region": "indonesia",
+    "type": "port",
+    "aliases": [
+      "Amboina"
+    ],
+    "notes": "VOC spice trade centre in the Moluccas."
+  },
+  {
+    "name": "Banda Islands",
+    "lat": -4.52,
+    "lon": 129.9,
+    "region": "indonesia",
+    "type": "island",
+    "aliases": [
+      "Banda",
+      "Banda Neira"
+    ],
+    "notes": "Nutmeg and mace monopoly centre."
+  },
+  {
+    "name": "Ternate",
+    "lat": 0.79,
+    "lon": 127.38,
+    "region": "indonesia",
+    "type": "island",
+    "aliases": [],
+    "notes": "Clove-producing island in the Moluccas."
+  },
+  {
+    "name": "Tidore",
+    "lat": 0.69,
+    "lon": 127.42,
+    "region": "indonesia",
+    "type": "island",
+    "aliases": [],
+    "notes": "Clove-producing island in the Moluccas."
+  },
+  {
+    "name": "Makassar",
+    "lat": -5.14,
+    "lon": 119.43,
+    "region": "indonesia",
+    "type": "port",
+    "aliases": [
+      "Macassar",
+      "Ujung Pandang"
+    ],
+    "notes": "Major port in Sulawesi."
+  },
+  {
+    "name": "Palembang",
+    "lat": -2.99,
+    "lon": 104.76,
+    "region": "indonesia",
+    "type": "port",
+    "aliases": [],
+    "notes": "Pepper port on the Musi River, Sumatra."
+  },
+  {
+    "name": "Padang",
+    "lat": -0.95,
+    "lon": 100.35,
+    "region": "indonesia",
+    "type": "port",
+    "aliases": [],
+    "notes": "VOC factory on the west coast of Sumatra."
+  },
+  {
+    "name": "Timor",
+    "lat": -9.0,
+    "lon": 125.73,
+    "region": "indonesia",
+    "type": "island",
+    "aliases": [],
+    "notes": "Island in eastern Indonesia, sandalwood trade."
+  },
+  {
+    "name": "Kupang",
+    "lat": -10.17,
+    "lon": 123.58,
+    "region": "indonesia",
+    "type": "port",
+    "aliases": [
+      "Koepang"
+    ],
+    "notes": "VOC post on western Timor."
+  },
+  {
+    "name": "Borneo",
+    "lat": 1.0,
+    "lon": 114.0,
+    "region": "indonesia",
+    "type": "island",
+    "aliases": [
+      "Kalimantan"
+    ],
+    "notes": "Large island, VOC traded pepper and diamonds."
+  },
+  {
+    "name": "Banjarmasin",
+    "lat": -3.32,
+    "lon": 114.59,
+    "region": "indonesia",
+    "type": "port",
+    "aliases": [],
+    "notes": "Pepper port on the south coast of Borneo."
+  },
+  {
+    "name": "Onrust",
+    "lat": -6.1,
+    "lon": 106.72,
+    "region": "indonesia",
+    "type": "island",
+    "aliases": [],
+    "notes": "VOC shipyard island near Batavia."
+  },
+  {
+    "name": "Bawean",
+    "lat": -5.84,
+    "lon": 112.67,
+    "region": "indonesia",
+    "type": "island",
+    "aliases": [],
+    "notes": "Island in the Java Sea, north of Java."
+  },
+  {
+    "name": "Java Sea",
+    "lat": -5.0,
+    "lon": 112.0,
+    "region": "indonesia",
+    "type": "waterway",
+    "aliases": [
+      "Javazee"
+    ],
+    "notes": "Shallow sea between Java and Borneo."
+  },
+  {
+    "name": "Flores",
+    "lat": -8.66,
+    "lon": 121.07,
+    "region": "indonesia",
+    "type": "island",
+    "aliases": [],
+    "notes": "Island in the Lesser Sundas."
+  },
+  {
+    "name": "Sumba",
+    "lat": -9.64,
+    "lon": 119.95,
+    "region": "indonesia",
+    "type": "island",
+    "aliases": [],
+    "notes": "Island in the Lesser Sundas."
+  },
+  {
+    "name": "Sumbawa",
+    "lat": -8.5,
+    "lon": 117.42,
+    "region": "indonesia",
+    "type": "island",
+    "aliases": [],
+    "notes": "Island in the Lesser Sundas."
+  },
+  {
+    "name": "Sulawesi",
+    "lat": -1.5,
+    "lon": 121.0,
+    "region": "indonesia",
+    "type": "island",
+    "aliases": [
+      "Celebes"
+    ],
+    "notes": "Large island in central Indonesia."
+  },
+  {
+    "name": "Buton",
+    "lat": -5.3,
+    "lon": 122.6,
+    "region": "indonesia",
+    "type": "island",
+    "aliases": [
+      "Butung",
+      "Boeton"
+    ],
+    "notes": "Island off southeast Sulawesi."
+  },
+  {
+    "name": "Canton",
+    "lat": 23.13,
+    "lon": 113.26,
+    "region": "south_china_sea",
+    "type": "port",
+    "aliases": [
+      "Guangzhou",
+      "Kanton"
+    ],
+    "notes": "Major Chinese trading port."
+  },
+  {
+    "name": "Macao",
+    "lat": 22.2,
+    "lon": 113.55,
+    "region": "south_china_sea",
+    "type": "port",
+    "aliases": [
+      "Macau"
+    ],
+    "notes": "Portuguese colony, major trading port."
+  },
+  {
+    "name": "Taiwan",
+    "lat": 23.7,
+    "lon": 120.96,
+    "region": "south_china_sea",
+    "type": "island",
+    "aliases": [
+      "Formosa",
+      "Tayouan"
+    ],
+    "notes": "VOC colony 1624-1662 (Fort Zeelandia)."
+  },
+  {
+    "name": "Tayouan",
+    "lat": 23.0,
+    "lon": 120.2,
+    "region": "south_china_sea",
+    "type": "port",
+    "aliases": [
+      "Fort Zeelandia",
+      "Anping"
+    ],
+    "notes": "VOC fort and trading post on Taiwan."
+  },
+  {
+    "name": "Manila",
+    "lat": 14.6,
+    "lon": 120.98,
+    "region": "south_china_sea",
+    "type": "port",
+    "aliases": [],
+    "notes": "Spanish colonial capital of the Philippines."
+  },
+  {
+    "name": "Tonkin",
+    "lat": 21.03,
+    "lon": 105.85,
+    "region": "south_china_sea",
+    "type": "port",
+    "aliases": [
+      "Tongking"
+    ],
+    "notes": "VOC trading post in northern Vietnam."
+  },
+  {
+    "name": "Hoi An",
+    "lat": 15.88,
+    "lon": 108.33,
+    "region": "south_china_sea",
+    "type": "port",
+    "aliases": [
+      "Faifo",
+      "Quinam"
+    ],
+    "notes": "Vietnamese trading port."
+  },
+  {
+    "name": "Siam",
+    "lat": 13.75,
+    "lon": 100.52,
+    "region": "south_china_sea",
+    "type": "port",
+    "aliases": [
+      "Ayutthaya",
+      "Thailand"
+    ],
+    "notes": "VOC factory in the Siamese capital."
+  },
+  {
+    "name": "Cambodia",
+    "lat": 11.56,
+    "lon": 104.93,
+    "region": "south_china_sea",
+    "type": "port",
+    "aliases": [
+      "Phnom Penh"
+    ],
+    "notes": "VOC trading connections."
+  },
+  {
+    "name": "Paracel Islands",
+    "lat": 16.5,
+    "lon": 112.0,
+    "region": "south_china_sea",
+    "type": "island",
+    "aliases": [
+      "Paracels"
+    ],
+    "notes": "Reef-studded island group, navigation hazard."
+  },
+  {
+    "name": "South China Sea",
+    "lat": 12.0,
+    "lon": 113.0,
+    "region": "south_china_sea",
+    "type": "waterway",
+    "aliases": [
+      "Chineesche Zee"
+    ],
+    "notes": "Major shipping route between SE Asia and China/Japan."
+  },
+  {
+    "name": "Deshima",
+    "lat": 32.74,
+    "lon": 129.87,
+    "region": "japan",
+    "type": "port",
+    "aliases": [
+      "Dejima"
+    ],
+    "notes": "Artificial island in Nagasaki harbour, sole VOC trading post in Japan."
+  },
+  {
+    "name": "Nagasaki",
+    "lat": 32.75,
+    "lon": 129.88,
+    "region": "japan",
+    "type": "port",
+    "aliases": [],
+    "notes": "Japanese port, location of VOC Deshima factory."
+  },
+  {
+    "name": "Hirado",
+    "lat": 33.37,
+    "lon": 129.55,
+    "region": "japan",
+    "type": "port",
+    "aliases": [
+      "Firando"
+    ],
+    "notes": "VOC factory 1609-1641, before move to Deshima."
+  },
+  {
+    "name": "Curaçao",
+    "lat": 12.17,
+    "lon": -68.98,
+    "region": "caribbean",
+    "type": "island",
+    "aliases": [
+      "Curacao"
+    ],
+    "notes": "WIC colony, occasional VOC vessel destination."
+  },
+  {
+    "name": "Sint Eustatius",
+    "lat": 17.49,
+    "lon": -62.97,
+    "region": "caribbean",
+    "type": "island",
+    "aliases": [
+      "Statia"
+    ],
+    "notes": "WIC trading island, sometimes visited by VOC ships."
+  },
+  {
+    "name": "Abrolhos Islands",
+    "lat": -28.72,
+    "lon": 113.77,
+    "region": "indian_ocean",
+    "type": "island",
+    "aliases": [
+      "Houtman Abrolhos"
+    ],
+    "notes": "Reef system off Western Australia. Site of Batavia wreck (1629)."
+  },
+  {
+    "name": "Dirk Hartog Island",
+    "lat": -25.83,
+    "lon": 113.07,
+    "region": "indian_ocean",
+    "type": "island",
+    "aliases": [],
+    "notes": "Island off Western Australia, first recorded European landing 1616."
+  },
+  {
+    "name": "Rottnest Island",
+    "lat": -32.0,
+    "lon": 115.5,
+    "region": "indian_ocean",
+    "type": "island",
+    "aliases": [],
+    "notes": "Island off Western Australia."
+  },
+  {
+    "name": "Western Australia",
+    "lat": -30.0,
+    "lon": 115.0,
+    "region": "indian_ocean",
+    "type": "coast",
+    "aliases": [
+      "Southland",
+      "Eendrachtsland"
+    ],
+    "notes": "Coast of Western Australia, several VOC wrecks."
+  },
+  {
+    "name": "Mocha",
+    "lat": 13.32,
+    "lon": 43.27,
+    "region": "indian_ocean",
+    "type": "port",
+    "aliases": [
+      "Mokka"
+    ],
+    "notes": "Coffee trading port in Yemen."
+  },
+  {
+    "name": "Aden",
+    "lat": 12.79,
+    "lon": 45.04,
+    "region": "indian_ocean",
+    "type": "port",
+    "aliases": [],
+    "notes": "Port at the entrance to the Red Sea."
+  },
+  {
+    "name": "Persia",
+    "lat": 27.19,
+    "lon": 56.27,
+    "region": "indian_ocean",
+    "type": "port",
+    "aliases": [
+      "Bandar Abbas",
+      "Gombroon"
+    ],
+    "notes": "VOC factory in Persia (modern Bandar Abbas)."
+  },
+  {
+    "name": "Basra",
+    "lat": 30.51,
+    "lon": 47.81,
+    "region": "indian_ocean",
+    "type": "port",
+    "aliases": [],
+    "notes": "Port at the head of the Persian Gulf."
+  },
+  {
+    "name": "Tanjore",
+    "lat": 10.79,
+    "lon": 79.14,
+    "region": "coromandel",
+    "type": "port",
+    "aliases": [
+      "Thanjavur"
+    ],
+    "notes": "Kingdom on the Coromandel coast."
+  },
+  {
+    "name": "Tuticorin",
+    "lat": 8.76,
+    "lon": 78.13,
+    "region": "coromandel",
+    "type": "port",
+    "aliases": [
+      "Thoothukudi"
+    ],
+    "notes": "Pearl fishing port, southern Coromandel."
+  },
+  {
+    "name": "Vengurla",
+    "lat": 15.86,
+    "lon": 73.63,
+    "region": "malabar",
+    "type": "port",
+    "aliases": [],
+    "notes": "VOC factory on the Malabar coast."
+  },
+  {
+    "name": "Wingurla",
+    "lat": 15.86,
+    "lon": 73.63,
+    "region": "malabar",
+    "type": "port",
+    "aliases": [
+      "Vengurla"
+    ],
+    "notes": "VOC factory on the Malabar coast."
+  },
+  {
+    "name": "Sadras",
+    "lat": 12.52,
+    "lon": 80.16,
+    "region": "coromandel",
+    "type": "port",
+    "aliases": [],
+    "notes": "VOC factory on the Coromandel coast."
+  }
+]

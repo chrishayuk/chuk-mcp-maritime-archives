@@ -1,0 +1,22 @@
+[
+  {
+    "crew_id": "voc_crew:445892",
+    "name": "Jan Pietersz van der Horst",
+    "rank": "schipper",
+    "ship_name": "Ridderschap van Holland",
+    "voyage_id": "das:5678",
+    "origin": "Amsterdam",
+    "embarkation_date": "1694-01-03",
+    "service_end_reason": "returned"
+  },
+  {
+    "crew_id": "voc_crew:445893",
+    "name": "Hendrik Janssen",
+    "rank": "matroos",
+    "ship_name": "Ridderschap van Holland",
+    "voyage_id": "das:5678",
+    "origin": "Rotterdam",
+    "embarkation_date": "1694-01-03",
+    "service_end_reason": "died"
+  }
+]

@@ -2,72 +2,56 @@
 Base class for archive data source clients.
 
 All archive clients share:
-- async search() with keyword filters
-- async get_by_id() for detail retrieval
-- HTTP helper using urllib.request (no external deps)
-- Graceful degradation when API is unavailable
+- Lazy-loaded JSON data from the local data directory
+- In-memory search with keyword filters
+- Detail retrieval by record ID
 """
 
-import asyncio
 import json
 import logging
-import urllib.error
-import urllib.parse
-import urllib.request
 from abc import ABC, abstractmethod
+from pathlib import Path
 from typing import Any
 
 logger = logging.getLogger(__name__)
 
+# Default data directory relative to the project root
+_DEFAULT_DATA_DIR = Path(__file__).resolve().parent.parent.parent.parent.parent / "data"
+
 
 class BaseArchiveClient(ABC):
     """
-    Abstract base for archive data source HTTP clients.
+    Abstract base for archive data source clients.
 
-    Subclasses implement search and get_by_id against specific archive APIs.
-    HTTP calls are run in threads via asyncio.to_thread to stay non-blocking.
+    Subclasses implement search and get_by_id against locally stored
+    JSON data files produced by the download scripts.
     """
 
-    BASE_URL: str = ""
-    TIMEOUT: int = 30
+    def __init__(self, data_dir: Path | None = None) -> None:
+        self._data_dir = data_dir or _DEFAULT_DATA_DIR
+        self._loaded: dict[str, list[dict]] = {}
 
-    async def _http_get(self, url: str) -> dict | list | None:
-        """Make a GET request and return parsed JSON, or None on failure."""
+    def _load_json(self, filename: str) -> list[dict]:
+        """Load a JSON data file, caching the result in memory."""
+        if filename in self._loaded:
+            return self._loaded[filename]
 
-        def _fetch() -> dict | list | None:
-            try:
-                req = urllib.request.Request(
-                    url,
-                    headers={
-                        "Accept": "application/json",
-                        "User-Agent": "chuk-mcp-maritime-archives/0.1.0",
-                    },
-                )
-                with urllib.request.urlopen(req, timeout=self.TIMEOUT) as resp:
-                    return json.loads(resp.read().decode())
-            except (
-                urllib.error.URLError,
-                urllib.error.HTTPError,
-                TimeoutError,
-                OSError,
-            ) as e:
-                logger.warning("HTTP request failed for %s: %s", url, e)
-                return None
-            except json.JSONDecodeError as e:
-                logger.warning("Invalid JSON from %s: %s", url, e)
-                return None
+        path = Path(self._data_dir) / filename
+        if not path.exists():
+            logger.warning("Data file not found: %s (run scripts/download_das.py)", path)
+            self._loaded[filename] = []
+            return []
 
-        return await asyncio.to_thread(_fetch)
+        with open(path) as f:
+            data = json.load(f)
 
-    async def _http_get_with_params(
-        self, base_url: str, params: dict[str, str]
-    ) -> dict | list | None:
-        """Make a GET request with query parameters."""
-        query = urllib.parse.urlencode(
-            {k: v for k, v in params.items() if v is not None}
-        )
-        url = f"{base_url}?{query}" if query else base_url
-        return await self._http_get(url)
+        if not isinstance(data, list):
+            logger.warning("Expected list in %s, got %s", path, type(data).__name__)
+            data = []
+
+        self._loaded[filename] = data
+        logger.info("Loaded %d records from %s", len(data), path.name)
+        return data
 
     @abstractmethod
     async def search(self, **kwargs: Any) -> list[dict]:
@@ -77,11 +61,6 @@ class BaseArchiveClient(ABC):
     @abstractmethod
     async def get_by_id(self, record_id: str) -> dict | None:
         """Retrieve a single record by ID. Returns record dict or None."""
-        ...
-
-    @abstractmethod
-    def get_sample_data(self) -> list[dict]:
-        """Return sample/fallback data for when API is unavailable."""
         ...
 
     def _filter_by_date_range(
@@ -104,7 +83,17 @@ class BaseArchiveClient(ABC):
         for rec in records:
             date_val = rec.get(date_field, "")
             if date_val and len(date_val) >= 4:
-                record_year = int(date_val[:4])
+                try:
+                    record_year = int(date_val[:4])
+                except ValueError:
+                    continue
                 if start_year <= record_year <= end_year:
                     filtered.append(rec)
         return filtered
+
+    @staticmethod
+    def _contains(haystack: str | None, needle: str) -> bool:
+        """Case-insensitive substring match."""
+        if not haystack:
+            return False
+        return needle.lower() in haystack.lower()

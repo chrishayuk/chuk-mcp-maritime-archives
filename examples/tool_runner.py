@@ -27,7 +27,9 @@ from chuk_mcp_maritime_archives.tools import (
     register_crew_tools,
     register_discovery_tools,
     register_export_tools,
+    register_location_tools,
     register_position_tools,
+    register_route_tools,
     register_vessel_tools,
     register_voyage_tools,
     register_wreck_tools,
@@ -69,7 +71,7 @@ class ToolRunner:
     """
     Run chuk-mcp-maritime-archives MCP tools directly from Python.
 
-    All 18 tools are registered and callable via run(tool_name, **kwargs).
+    All 23 tools are registered and callable via run(tool_name, **kwargs).
     Returns parsed JSON (dict/list) by default. Use run_text() for
     human-readable output. An in-memory artifact store is initialized
     automatically.
@@ -87,6 +89,8 @@ class ToolRunner:
         register_vessel_tools(self._mcp, self.manager)
         register_position_tools(self._mcp, self.manager)
         register_export_tools(self._mcp, self.manager)
+        register_location_tools(self._mcp, self.manager)
+        register_route_tools(self._mcp, self.manager)
         register_discovery_tools(self._mcp, self.manager)
 
     @property
