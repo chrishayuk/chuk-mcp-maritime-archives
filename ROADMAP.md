@@ -188,16 +188,44 @@ Real-time updates for interactive exploration.
 
 ---
 
-## Separate Projects
+## Related Servers (Ecosystem)
 
-### Drift Modelling (chuk-mcp-drift-modelling)
+### chuk-mcp-ocean-drift (v0.1.0, 10 tools, 235 tests)
 
-Drift modelling will be implemented as a dedicated MCP server that consumes hull profiles and position data from this server.
+Drift modelling server that consumes hull profiles and position data from this server.
 
-- Estimate where debris/hull drifted given wreck date, position, and ship type
-- Use hull hydrodynamic profiles (drag coefficients, windage, sinking characteristics)
-- Account for seasonal wind/current patterns
+- Forward and backtrack drift computation from wreck site or sinking point
+- Monte Carlo simulations for probability distributions
+- Uses hull hydrodynamic profiles (drag coefficients, windage, sinking characteristics)
+- Accounts for wind/current patterns
 - Output: probability map of wreck location as GeoJSON
+
+### Composable Ecosystem
+
+This server is the data layer in a composable stack of MCP servers:
+
+| Server | Tools | Tests | Role |
+|--------|-------|-------|------|
+| chuk-mcp-maritime-archives | 29 | 585 | Voyage, wreck, vessel, crew, cargo records |
+| chuk-mcp-ocean-drift | 10 | 235 | Forward/backtrack/Monte Carlo drift |
+| chuk-mcp-dem | 4 | 711 | Bathymetry and elevation data |
+| chuk-mcp-stac | 5 | 382 | Satellite imagery via STAC catalogues |
+| chuk-mcp-celestial | 8 | 254 | Tidal forces, sun/moon positions |
+| chuk-mcp-tides | 8 | 717 | Tidal current data |
+| chuk-mcp-physics | 66 | 240 | Fluid dynamics computations |
+| chuk-mcp-open-meteo | 6 | 22 | Weather and wind data |
+| **Total** | **136** | **3,146** | |
+
+All servers follow the same patterns: Pydantic v2 models, dual output mode, chuk-artifacts storage.
+
+**Example wreck investigation pipeline:**
+1. `maritime_search_wrecks` → find wreck, get position + uncertainty
+2. `maritime_get_hull_profile` → drag coefficients, sinking characteristics
+3. `maritime_assess_position` → quantify position reliability
+4. `ocean_drift_backtrack` → reverse-compute from wreck site to sinking point
+5. `dem_get_elevation` → confirm depth at candidate locations
+6. `tides_get_currents` → tidal influence at the site
+7. `stac_search` → satellite/sonar imagery of search area
 
 ---
 
@@ -215,18 +243,25 @@ Current and potential data sources for the project.
 | VOC Routes | 8 routes | `data/routes.json` | Curated |
 | Hull Profiles | 6 types | `data/hull_profiles.json` | Curated |
 | Speed Profiles | 215 profiles, 6 routes | `data/speed_profiles.json` | Generated from CLIWOC |
-| EIC Archives | ~150 voyages, ~35 wrecks | `generate_eic.py` | Curated from Hardy/Farrington |
-| Carreira da India | ~120 voyages, ~40 wrecks | `generate_carreira.py` | Curated from Guinote/Frutuoso/Lopes |
-| Manila Galleon | ~100 voyages, ~25 wrecks | `generate_galleon.py` | Curated from Schurz |
-| SOIC Archives | ~80 voyages, ~12 wrecks | `generate_soic.py` | Curated from Koninckx |
+| EIC Archives | ~150 voyages, ~35 wrecks | `generate_eic.py` | Curated seed dataset from Hardy/Farrington |
+| Carreira da India | ~120 voyages, ~40 wrecks | `generate_carreira.py` | Curated seed dataset from Guinote/Frutuoso/Lopes |
+| Manila Galleon | ~100 voyages, ~25 wrecks | `generate_galleon.py` | Curated seed dataset from Schurz |
+| SOIC Archives | ~80 voyages, ~12 wrecks | `generate_soic.py` | Curated seed dataset from Koninckx |
+
+> **Note:** The EIC, Carreira, Galleon, and SOIC datasets are curated selections of notable voyages and famous wrecks -- not exhaustive inventories. The EIC conducted thousands of voyages; our ~150 represent historically significant records. Expanding these datasets is a key area for contribution.
+
+### Stub Clients (Partially Implemented)
+
+| Source | Records | Format | Status |
+|--------|---------|--------|--------|
+| [VOC Opvarenden](https://www.nationaalarchief.nl/) | 774,200 crew records | REST API | Stub client -- API may be intermittently unavailable |
+| [BGB Cargo](https://bgb.huygens.knaw.nl/) | ~50,000 cargo records | REST API | Stub client -- API may be intermittently unavailable |
 
 ### Potential
 
 | Source | Description | Format | Notes |
 |--------|-------------|--------|-------|
 | [Dutch Ships and Sailors](https://datasets.iisg.amsterdam/dataverse/dss) | Linked data on Dutch maritime | RDF/SPARQL | Crew, ships, voyages -- needs SPARQL client |
-| [VOC Opvarenden](https://www.nationaalarchief.nl/) | 774,200 crew records | REST API | Currently stub client |
-| [BGB Cargo](https://bgb.huygens.knaw.nl/) | ~50,000 cargo records | REST API | Currently stub client |
 | [Nationaal Archief OAI](https://www.nationaalarchief.nl/) | Archival metadata | OAI-PMH | Broader than just VOC |
 
 ---

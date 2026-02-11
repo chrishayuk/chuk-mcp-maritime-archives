@@ -23,10 +23,12 @@ through the colonial era, 1497-1874. Covers Dutch (VOC), English (EIC), Portugue
 | `voc_crew` | VOC Opvarenden | Nationaal Archief | 774,200 records | 1633-1794 | crew muster rolls |
 | `voc_cargo` | Boekhouder-Generaal Batavia | Nationaal Archief | ~50,000 records | 1700-1795 | cargo manifests |
 | `maarer` | MAARER VOC Wrecks | Maritime Archaeological Research | 734 wrecks | 1595-1795 | wreck positions, incidents |
-| `eic` | English East India Company | Curated from Hardy/Farrington | ~150 voyages, ~35 wrecks | 1600-1874 | voyages, wrecks |
-| `carreira` | Portuguese Carreira da India | Curated from Guinote/Frutuoso/Lopes | ~120 voyages, ~40 wrecks | 1497-1835 | voyages, wrecks |
-| `galleon` | Spanish Manila Galleon | Curated from Schurz | ~100 voyages, ~25 wrecks | 1565-1815 | voyages, wrecks |
-| `soic` | Swedish East India Company | Curated from Koninckx | ~80 voyages, ~12 wrecks | 1731-1813 | voyages, wrecks |
+| `eic` | English East India Company | Curated seed dataset from Hardy/Farrington | ~150 voyages, ~35 wrecks | 1600-1874 | voyages, wrecks |
+| `carreira` | Portuguese Carreira da India | Curated seed dataset from Guinote/Frutuoso/Lopes | ~120 voyages, ~40 wrecks | 1497-1835 | voyages, wrecks |
+| `galleon` | Spanish Manila Galleon | Curated seed dataset from Schurz | ~100 voyages, ~25 wrecks | 1565-1815 | voyages, wrecks |
+| `soic` | Swedish East India Company | Curated seed dataset from Koninckx | ~80 voyages, ~12 wrecks | 1731-1813 | voyages, wrecks |
+
+> **Note on data completeness:** The EIC, Carreira, Galleon, and SOIC archives are curated selections of historically notable voyages and famous wrecks, compiled from published academic sources. They are not exhaustive inventories of all voyages conducted by these trading companies. The VOC Crew (`voc_crew`) and Cargo (`voc_cargo`) clients are stub implementations that depend on external REST APIs which may be intermittently unavailable.
 
 ### Archive Sources
 

@@ -15,13 +15,15 @@ This MCP server provides structured access to historical maritime archives and r
 ### 1. Archive Discovery (`maritime_list_archives`, `maritime_get_archive`)
 Browse 8 maritime archives across 5 nations:
 - Dutch Asiatic Shipping (DAS) -- 8,194 voyages (1595-1795)
-- VOC Opvarenden -- 774,200 crew records (1633-1794)
-- Boekhouder-Generaal Batavia -- ~50,000 cargo records (1700-1795)
+- VOC Opvarenden -- 774,200 crew records (1633-1794) *(stub client, requires network)*
+- Boekhouder-Generaal Batavia -- ~50,000 cargo records (1700-1795) *(stub client, requires network)*
 - MAARER Wreck Database -- 734 wreck positions (1595-1795)
-- English East India Company (EIC) -- ~150 voyages, ~35 wrecks (1600-1874)
-- Portuguese Carreira da India -- ~120 voyages, ~40 wrecks (1497-1835)
-- Spanish Manila Galleon -- ~100 voyages, ~25 wrecks (1565-1815)
-- Swedish East India Company (SOIC) -- ~80 voyages, ~12 wrecks (1731-1813)
+- English East India Company (EIC) -- ~150 curated voyages, ~35 wrecks (1600-1874)
+- Portuguese Carreira da India -- ~120 curated voyages, ~40 wrecks (1497-1835)
+- Spanish Manila Galleon -- ~100 curated voyages, ~25 wrecks (1565-1815)
+- Swedish East India Company (SOIC) -- ~80 curated voyages, ~12 wrecks (1731-1813)
+
+> **Note:** The EIC, Carreira, Galleon, and SOIC archives are curated seed datasets of notable voyages and famous wrecks compiled from published academic sources -- not exhaustive inventories. The EIC alone conducted thousands of voyages; our ~150 represent a selection of historically significant records. The VOC Crew and Cargo clients are stub implementations that depend on external APIs which may be unavailable.
 
 ### 2. Voyage Search (`maritime_search_voyages`, `maritime_get_voyage`)
 Search voyage records across all 5 voyage archives (DAS, EIC, Carreira, Galleon, SOIC):
@@ -50,13 +52,13 @@ Hydrodynamic hull data for drift modelling:
 - Reference wrecks and LLM guidance notes
 
 ### 6. Crew Search (`maritime_search_crew`, `maritime_get_crew_member`)
-Search VOC crew muster rolls:
+Search VOC crew muster rolls *(stub client -- depends on Nationaal Archief API availability)*:
 - Filter by name, rank, ship, origin, fate
 - Personnel records: rank, pay, embarkation/service dates
 - Cross-reference with voyage records
 
 ### 7. Cargo Search (`maritime_search_cargo`, `maritime_get_cargo_manifest`)
-Search cargo manifests:
+Search cargo manifests *(stub client -- depends on BGB Huygens API availability)*:
 - Filter by commodity, origin, destination, value
 - Full voyage manifests with quantities and values
 - Dutch and English commodity names
@@ -742,7 +744,7 @@ See [ROADMAP.md](ROADMAP.md) for the development roadmap and planned features.
 
 - **Streaming search**: paginated search results for large result sets
 - **WebSocket transport**: real-time subscription to search refinements
-- **Drift modelling**: planned as a separate MCP server (chuk-mcp-drift-modelling)
+- **Drift modelling**: available as chuk-mcp-ocean-drift (10 tools, v0.1.0) — forward/backtrack/Monte Carlo drift computation using hull profiles and position data from this server
 
 ## Contributing
 
