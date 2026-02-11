@@ -31,11 +31,17 @@ def register_voyage_tools(mcp: object, manager: object) -> None:
         output_mode: str = "json",
     ) -> str:
         """
-        Search for VOC voyages matching one or more criteria.
+        Search for maritime voyages matching one or more criteria.
 
-        Queries the Dutch Asiatic Shipping (DAS) database for voyages
-        between the Netherlands and Asia, 1595-1795. All search parameters
+        Queries multiple maritime archives for voyages. All search parameters
         are optional and combined with AND logic.
+
+        Archives available:
+            - das: Dutch Asiatic Shipping (VOC), 1595-1795
+            - eic: English East India Company, 1600-1874
+            - carreira: Portuguese Carreira da India, 1497-1835
+            - galleon: Spanish Manila Galleon, 1565-1815
+            - soic: Swedish East India Company, 1731-1813
 
         Args:
             ship_name: Ship name or partial name (case-insensitive)
@@ -45,7 +51,7 @@ def register_voyage_tools(mcp: object, manager: object) -> None:
             destination_port: Destination port name or partial name
             route: Route keyword (searches departure, destination, and summary)
             fate: Voyage outcome - completed, wrecked, captured, scuttled, missing
-            archive: Restrict to a specific archive (default: all)
+            archive: Restrict to specific archive - das, eic, carreira, galleon, soic (default: all)
             max_results: Maximum results to return (default: 50)
             output_mode: Response format - "json" (default) or "text"
 
@@ -56,9 +62,12 @@ def register_voyage_tools(mcp: object, manager: object) -> None:
             - Start broad (ship_name only) and narrow down with additional filters
             - Use date_range to focus on a specific century or decade
             - Set fate="wrecked" to find shipwreck voyages
+            - Use archive="eic" for English East India Company voyages
+            - Use archive="carreira" for Portuguese India Run voyages
+            - Use archive="galleon" for Spanish Manila Galleon crossings
+            - Use archive="soic" for Swedish East India Company voyages
             - Follow up with maritime_get_voyage for full voyage details
-            - Combine with maritime_search_crew to find crew on a specific voyage
-            - Combine with maritime_get_cargo_manifest for cargo carried
+            - Use maritime_list_archives to see all available archives
         """
         try:
             results = await manager.search_voyages(  # type: ignore[union-attr]
@@ -90,6 +99,7 @@ def register_voyage_tools(mcp: object, manager: object) -> None:
                     destination_port=v.get("destination_port"),
                     fate=v.get("fate"),
                     summary=v.get("summary"),
+                    archive=v.get("archive"),
                 )
                 for v in results
             ]

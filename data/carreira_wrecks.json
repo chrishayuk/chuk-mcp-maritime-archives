@@ -1,0 +1,762 @@
+[
+  {
+    "wreck_id": "carreira_wreck:0001",
+    "voyage_id": "carreira:0034",
+    "ship_name": "Sao Joao",
+    "loss_date": "1552-06-11",
+    "loss_cause": "storm",
+    "loss_location": "Natal coast, South Africa",
+    "region": "cape",
+    "status": "unfound",
+    "position": {
+      "lat": -31.0,
+      "lon": 30.2,
+      "uncertainty_km": 50
+    },
+    "depth_estimate_m": null,
+    "tonnage": 400,
+    "archive": "carreira",
+    "particulars": "One of the most famous Portuguese shipwrecks. Captain Sepulveda, his wife Leonor, and children died during the overland march. Central to the Historia Tragico-Maritima."
+  },
+  {
+    "wreck_id": "carreira_wreck:0002",
+    "voyage_id": "carreira:0035",
+    "ship_name": "Sao Bento",
+    "loss_date": "1554-04-22",
+    "loss_cause": "storm",
+    "loss_location": "Msikaba River, Natal coast, South Africa",
+    "region": "cape",
+    "status": "unfound",
+    "position": {
+      "lat": -31.5,
+      "lon": 29.8,
+      "uncertainty_km": 30
+    },
+    "depth_estimate_m": null,
+    "tonnage": 500,
+    "archive": "carreira",
+    "particulars": "Wrecked on the Natal coast. Survivors endured months of overland march to reach Mozambique. Account by Manuel de Mesquita Perestrelo published in the Historia Tragico-Maritima."
+  },
+  {
+    "wreck_id": "carreira_wreck:0003",
+    "voyage_id": "carreira:0021",
+    "ship_name": "Flor de la Mar",
+    "loss_date": "1511-11-20",
+    "loss_cause": "storm",
+    "loss_location": "off northeast coast of Sumatra",
+    "region": "southeast_asia",
+    "status": "unfound",
+    "position": {
+      "lat": 5.35,
+      "lon": 97.5,
+      "uncertainty_km": 50
+    },
+    "depth_estimate_m": null,
+    "tonnage": 400,
+    "archive": "carreira",
+    "particulars": "Possibly the richest shipwreck in history. Carried the treasure of the Sultan of Malacca after Albuquerque's conquest, including perhaps 60 tons of gold. Albuquerque barely escaped. Despite many search expeditions, she remains unfound."
+  },
+  {
+    "wreck_id": "carreira_wreck:0004",
+    "voyage_id": "carreira:0050",
+    "ship_name": "Madre de Deus",
+    "loss_date": "1592-08-03",
+    "loss_cause": "captured",
+    "loss_location": "off the Azores, Atlantic Ocean",
+    "region": "atlantic",
+    "status": "unfound",
+    "position": {
+      "lat": 38.5,
+      "lon": -28.5,
+      "uncertainty_km": 20
+    },
+    "depth_estimate_m": null,
+    "tonnage": 1600,
+    "archive": "carreira",
+    "particulars": "Captured by English fleet including Sir Walter Raleigh's ships. Her enormous cargo of pepper, cloves, cinnamon, silk, calico, gold, silver, pearls, and jewels was worth half the English Treasury. This capture directly inspired the founding of the EIC."
+  },
+  {
+    "wreck_id": "carreira_wreck:0005",
+    "voyage_id": "carreira:0006",
+    "ship_name": "Anunciada",
+    "loss_date": "1500-05-24",
+    "loss_cause": "storm",
+    "loss_location": "off the Cape of Good Hope",
+    "region": "cape",
+    "status": "unfound",
+    "position": {
+      "lat": -35.0,
+      "lon": 20.0,
+      "uncertainty_km": 200
+    },
+    "depth_estimate_m": null,
+    "tonnage": 300,
+    "archive": "carreira",
+    "particulars": "Lost rounding the Cape in Cabral's fleet (1500). Part of the same storm that killed Bartolomeu Dias. All hands lost."
+  },
+  {
+    "wreck_id": "carreira_wreck:0006",
+    "voyage_id": "carreira:0007",
+    "ship_name": "Nau de Vasco de Ataide",
+    "loss_date": "1500-03-25",
+    "loss_cause": "storm",
+    "loss_location": "Atlantic Ocean, south of the equator",
+    "region": "atlantic",
+    "status": "unfound",
+    "position": {
+      "lat": -10.0,
+      "lon": -25.0,
+      "uncertainty_km": 500
+    },
+    "depth_estimate_m": null,
+    "tonnage": 250,
+    "archive": "carreira",
+    "particulars": "Disappeared in the Atlantic in Cabral's fleet. Exact location unknown. Bartolomeu Dias, discoverer of the Cape, also perished when another ship sank in the same storm."
+  },
+  {
+    "wreck_id": "carreira_wreck:0007",
+    "voyage_id": "carreira:0018",
+    "ship_name": "Nau de Jorge de Aguiar",
+    "loss_date": "1508-09-15",
+    "loss_cause": "storm",
+    "loss_location": "near Mozambique Island, East Africa",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -15.0,
+      "lon": 40.5,
+      "uncertainty_km": 100
+    },
+    "depth_estimate_m": null,
+    "tonnage": 500,
+    "archive": "carreira",
+    "particulars": "Fleet commander Aguiar's ship lost in a storm near Mozambique."
+  },
+  {
+    "wreck_id": "carreira_wreck:0008",
+    "voyage_id": "carreira:0037",
+    "ship_name": "Sao Paulo",
+    "loss_date": "1561-01-28",
+    "loss_cause": "grounding",
+    "loss_location": "reef off Sumatra",
+    "region": "southeast_asia",
+    "status": "unfound",
+    "position": {
+      "lat": 2.0,
+      "lon": 100.0,
+      "uncertainty_km": 50
+    },
+    "depth_estimate_m": null,
+    "tonnage": 500,
+    "archive": "carreira",
+    "particulars": "Wrecked on a reef off Sumatra in 1561. Survivors built a boat from the wreckage -- one of the great survival stories of the era."
+  },
+  {
+    "wreck_id": "carreira_wreck:0009",
+    "voyage_id": "carreira:0048",
+    "ship_name": "Santo Alberto",
+    "loss_date": "1593-03-24",
+    "loss_cause": "grounding",
+    "loss_location": "Natal coast near Umtata River, South Africa",
+    "region": "cape",
+    "status": "unfound",
+    "position": {
+      "lat": -31.6,
+      "lon": 29.5,
+      "uncertainty_km": 30
+    },
+    "depth_estimate_m": null,
+    "tonnage": 700,
+    "archive": "carreira",
+    "particulars": "Wrecked on the return voyage from India. Another Natal coast wreck from the Historia Tragico-Maritima."
+  },
+  {
+    "wreck_id": "carreira_wreck:0010",
+    "voyage_id": "carreira:0051",
+    "ship_name": "Chagas",
+    "loss_date": "1594-06-29",
+    "loss_cause": "fire",
+    "loss_location": "near the Azores, Atlantic Ocean",
+    "region": "atlantic",
+    "status": "unfound",
+    "position": {
+      "lat": 38.0,
+      "lon": -29.0,
+      "uncertainty_km": 30
+    },
+    "depth_estimate_m": null,
+    "tonnage": 2000,
+    "archive": "carreira",
+    "particulars": "Enormous 2,000-ton carrack attacked by English raiders. Caught fire and exploded. Over 600 died. One of the greatest maritime disasters of the era."
+  },
+  {
+    "wreck_id": "carreira_wreck:0011",
+    "voyage_id": "carreira:0054",
+    "ship_name": "Nossa Senhora dos Martires",
+    "loss_date": "1606-09-14",
+    "loss_cause": "storm",
+    "loss_location": "mouth of the Tagus, near Sao Juliao da Barra",
+    "region": "atlantic",
+    "status": "found",
+    "position": {
+      "lat": 38.67,
+      "lon": -9.32,
+      "uncertainty_km": 1
+    },
+    "depth_estimate_m": 10,
+    "tonnage": 600,
+    "archive": "carreira",
+    "particulars": "Wrecked almost within sight of Lisbon at the Tagus bar. Archaeologically excavated in 1996-2001. Important source of information on Carreira cargo and ship construction."
+  },
+  {
+    "wreck_id": "carreira_wreck:0012",
+    "voyage_id": "carreira:0061",
+    "ship_name": "Nossa Senhora do Carmo",
+    "loss_date": "1624-07-20",
+    "loss_cause": "storm",
+    "loss_location": "Mozambique Channel",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -14.0,
+      "lon": 41.0,
+      "uncertainty_km": 100
+    },
+    "depth_estimate_m": null,
+    "tonnage": 700,
+    "archive": "carreira",
+    "particulars": "Lost in a storm in the Mozambique Channel."
+  },
+  {
+    "wreck_id": "carreira_wreck:0013",
+    "voyage_id": "carreira:0062",
+    "ship_name": "Sao Goncalo",
+    "loss_date": "1630-08-05",
+    "loss_cause": "storm",
+    "loss_location": "Natal coast, South Africa",
+    "region": "cape",
+    "status": "unfound",
+    "position": {
+      "lat": -30.5,
+      "lon": 30.5,
+      "uncertainty_km": 40
+    },
+    "depth_estimate_m": null,
+    "tonnage": 600,
+    "archive": "carreira",
+    "particulars": "Wrecked on the Natal coast. Yet another tragedy of the South African coast. Account in the Historia Tragico-Maritima."
+  },
+  {
+    "wreck_id": "carreira_wreck:0014",
+    "voyage_id": "carreira:0063",
+    "ship_name": "Sacramento",
+    "loss_date": "1647-06-30",
+    "loss_cause": "storm",
+    "loss_location": "Schoenmakerskop, near Port Elizabeth, South Africa",
+    "region": "cape",
+    "status": "found",
+    "position": {
+      "lat": -33.98,
+      "lon": 25.8,
+      "uncertainty_km": 2
+    },
+    "depth_estimate_m": 8,
+    "tonnage": 800,
+    "archive": "carreira",
+    "particulars": "Wrecked off Schoenmakerskop. One of the earliest South African wreck sites to be archaeologically investigated (1977)."
+  },
+  {
+    "wreck_id": "carreira_wreck:0015",
+    "voyage_id": "carreira:0068",
+    "ship_name": "Santissimo Sacramento",
+    "loss_date": "1668-06-26",
+    "loss_cause": "storm",
+    "loss_location": "near Mozambique Island",
+    "region": "indian_ocean",
+    "status": "approximate",
+    "position": {
+      "lat": -15.05,
+      "lon": 40.7,
+      "uncertainty_km": 10
+    },
+    "depth_estimate_m": 15,
+    "tonnage": 700,
+    "archive": "carreira",
+    "particulars": "Major warship/cargo vessel lost near Mozambique. The wreck site has been approximately located."
+  },
+  {
+    "wreck_id": "carreira_wreck:0016",
+    "voyage_id": "carreira:0081",
+    "ship_name": "Sao Jose",
+    "loss_date": "1756-11-15",
+    "loss_cause": "storm",
+    "loss_location": "off Lisbon",
+    "region": "atlantic",
+    "status": "unfound",
+    "position": {
+      "lat": 38.6,
+      "lon": -9.4,
+      "uncertainty_km": 20
+    },
+    "depth_estimate_m": null,
+    "tonnage": 400,
+    "archive": "carreira",
+    "particulars": "Lost in the aftermath of the Great Lisbon Earthquake (1755). Harbor infrastructure destroyed."
+  },
+  {
+    "wreck_id": "carreira_wreck:0017",
+    "voyage_id": "carreira:0092",
+    "ship_name": "Sao Pedro de Alcantara",
+    "loss_date": "1786-02-02",
+    "loss_cause": "storm",
+    "loss_location": "off Peniche, Portugal",
+    "region": "atlantic",
+    "status": "found",
+    "position": {
+      "lat": 39.37,
+      "lon": -9.4,
+      "uncertainty_km": 1
+    },
+    "depth_estimate_m": 15,
+    "tonnage": 600,
+    "archive": "carreira",
+    "particulars": "Wrecked off Peniche on the Portuguese coast. Cargo included valuables from Goa. Wreck located and studied."
+  },
+  {
+    "wreck_id": "carreira_wreck:0018",
+    "voyage_id": "carreira:0094",
+    "ship_name": "Sao Jose Indiano",
+    "loss_date": "1798-12-27",
+    "loss_cause": "storm",
+    "loss_location": "off the Cape of Good Hope",
+    "region": "cape",
+    "status": "found",
+    "position": {
+      "lat": -34.2,
+      "lon": 18.3,
+      "uncertainty_km": 2
+    },
+    "depth_estimate_m": 12,
+    "tonnage": 350,
+    "archive": "carreira",
+    "particulars": "Slave ship wrecked off the Cape of Good Hope. Archaeological excavation (2010-2015) recovered the first known slave ship artifacts from the Carreira."
+  },
+  {
+    "wreck_id": "carreira_wreck:0019",
+    "voyage_id": "carreira:0098",
+    "ship_name": "Santo Antonio",
+    "loss_date": "1806-06-15",
+    "loss_cause": "captured",
+    "loss_location": "off the Canary Islands, Atlantic",
+    "region": "atlantic",
+    "status": "unfound",
+    "position": {
+      "lat": 28.0,
+      "lon": -16.0,
+      "uncertainty_km": 50
+    },
+    "depth_estimate_m": null,
+    "tonnage": 300,
+    "archive": "carreira",
+    "particulars": "Captured by a French privateer during the Napoleonic Wars."
+  },
+  {
+    "wreck_id": "carreira_wreck:0020",
+    "voyage_id": "carreira:0114",
+    "ship_name": "Cinco Chagas",
+    "loss_date": "1559-07-15",
+    "loss_cause": "storm",
+    "loss_location": "near the Azores, Atlantic",
+    "region": "atlantic",
+    "status": "unfound",
+    "position": {
+      "lat": 38.0,
+      "lon": -28.0,
+      "uncertainty_km": 50
+    },
+    "depth_estimate_m": null,
+    "tonnage": 1500,
+    "archive": "carreira",
+    "particulars": "Enormous carrack lost near the Azores. One of the largest ships afloat at the time. Significant cargo of spices and valuables."
+  },
+  {
+    "wreck_id": "carreira_wreck:0021",
+    "voyage_id": "carreira:0115",
+    "ship_name": "Santa Maria de Deus",
+    "loss_date": "1600-04-20",
+    "loss_cause": "captured",
+    "loss_location": "near Saint Helena Island, South Atlantic",
+    "region": "south_atlantic",
+    "status": "unfound",
+    "position": {
+      "lat": -16.0,
+      "lon": -5.7,
+      "uncertainty_km": 30
+    },
+    "depth_estimate_m": null,
+    "tonnage": 900,
+    "archive": "carreira",
+    "particulars": "Captured by the Dutch near Saint Helena. One of the early Dutch seizures of Carreira ships, foreshadowing the loss of the spice trade."
+  },
+  {
+    "wreck_id": "carreira_wreck:0022",
+    "voyage_id": null,
+    "ship_name": "Santiago",
+    "loss_date": "1585-09-01",
+    "loss_cause": "storm",
+    "loss_location": "Bassas da India, Mozambique Channel",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -21.5,
+      "lon": 39.7,
+      "uncertainty_km": 15
+    },
+    "depth_estimate_m": null,
+    "tonnage": 600,
+    "archive": "carreira",
+    "particulars": "Wrecked on the Bassas da India atoll, a treacherous low-lying reef in the Mozambique Channel. Many Carreira ships lost here."
+  },
+  {
+    "wreck_id": "carreira_wreck:0023",
+    "voyage_id": null,
+    "ship_name": "Sao Tome",
+    "loss_date": "1589-04-15",
+    "loss_cause": "storm",
+    "loss_location": "Natal coast, South Africa",
+    "region": "cape",
+    "status": "unfound",
+    "position": {
+      "lat": -31.2,
+      "lon": 30.0,
+      "uncertainty_km": 40
+    },
+    "depth_estimate_m": null,
+    "tonnage": 500,
+    "archive": "carreira",
+    "particulars": "Another ship lost on the treacherous Natal coast."
+  },
+  {
+    "wreck_id": "carreira_wreck:0024",
+    "voyage_id": null,
+    "ship_name": "Nossa Senhora da Candelaria",
+    "loss_date": "1606-07-20",
+    "loss_cause": "grounding",
+    "loss_location": "shoals off Mozambique",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -13.5,
+      "lon": 41.5,
+      "uncertainty_km": 30
+    },
+    "depth_estimate_m": null,
+    "tonnage": 500,
+    "archive": "carreira",
+    "particulars": "Wrecked on shoals near the coast of Mozambique."
+  },
+  {
+    "wreck_id": "carreira_wreck:0025",
+    "voyage_id": null,
+    "ship_name": "Sao Francisco",
+    "loss_date": "1614-08-22",
+    "loss_cause": "storm",
+    "loss_location": "off the coast of East Africa",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -10.0,
+      "lon": 42.0,
+      "uncertainty_km": 100
+    },
+    "depth_estimate_m": null,
+    "tonnage": 400,
+    "archive": "carreira",
+    "particulars": "Lost in a cyclone in the Indian Ocean."
+  },
+  {
+    "wreck_id": "carreira_wreck:0026",
+    "voyage_id": null,
+    "ship_name": "Bom Jesus",
+    "loss_date": "1533-04-16",
+    "loss_cause": "storm",
+    "loss_location": "off the coast of Namibia, near Oranjemund",
+    "region": "south_atlantic",
+    "status": "found",
+    "position": {
+      "lat": -28.63,
+      "lon": 16.43,
+      "uncertainty_km": 1
+    },
+    "depth_estimate_m": 5,
+    "tonnage": 300,
+    "archive": "carreira",
+    "particulars": "The 'Diamond Shipwreck' discovered in 2008 during diamond mining operations. Found with gold coins, copper ingots, elephant tusks, and personal effects. Remarkably well preserved."
+  },
+  {
+    "wreck_id": "carreira_wreck:0027",
+    "voyage_id": null,
+    "ship_name": "Santa Maria da Barca",
+    "loss_date": "1559-09-01",
+    "loss_cause": "storm",
+    "loss_location": "Bassas da India, Mozambique Channel",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -21.5,
+      "lon": 39.8,
+      "uncertainty_km": 20
+    },
+    "depth_estimate_m": null,
+    "tonnage": 700,
+    "archive": "carreira",
+    "particulars": "Lost on the Bassas da India atoll."
+  },
+  {
+    "wreck_id": "carreira_wreck:0028",
+    "voyage_id": null,
+    "ship_name": "Sao Joao Baptista",
+    "loss_date": "1622-05-20",
+    "loss_cause": "storm",
+    "loss_location": "off Mombasa, East Africa",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -4.0,
+      "lon": 39.7,
+      "uncertainty_km": 30
+    },
+    "depth_estimate_m": null,
+    "tonnage": 600,
+    "archive": "carreira",
+    "particulars": "Lost in a storm off the coast of Mombasa."
+  },
+  {
+    "wreck_id": "carreira_wreck:0029",
+    "voyage_id": null,
+    "ship_name": "Nossa Senhora da Luz",
+    "loss_date": "1615-03-10",
+    "loss_cause": "fire",
+    "loss_location": "near Mozambique Island",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -15.0,
+      "lon": 40.8,
+      "uncertainty_km": 20
+    },
+    "depth_estimate_m": null,
+    "tonnage": 500,
+    "archive": "carreira",
+    "particulars": "Caught fire and burned near Mozambique Island."
+  },
+  {
+    "wreck_id": "carreira_wreck:0030",
+    "voyage_id": null,
+    "ship_name": "Sao Bartholomeu",
+    "loss_date": "1570-08-14",
+    "loss_cause": "storm",
+    "loss_location": "Table Bay, Cape of Good Hope",
+    "region": "cape",
+    "status": "unfound",
+    "position": {
+      "lat": -33.9,
+      "lon": 18.4,
+      "uncertainty_km": 10
+    },
+    "depth_estimate_m": null,
+    "tonnage": 400,
+    "archive": "carreira",
+    "particulars": "Lost in Table Bay. The Cape was a frequent location for shipwrecks."
+  },
+  {
+    "wreck_id": "carreira_wreck:0031",
+    "voyage_id": null,
+    "ship_name": "Garca",
+    "loss_date": "1559-06-01",
+    "loss_cause": "grounding",
+    "loss_location": "off Sofala, Mozambique",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -20.0,
+      "lon": 35.0,
+      "uncertainty_km": 30
+    },
+    "depth_estimate_m": null,
+    "tonnage": 300,
+    "archive": "carreira",
+    "particulars": "Wrecked on the coast near Sofala."
+  },
+  {
+    "wreck_id": "carreira_wreck:0032",
+    "voyage_id": null,
+    "ship_name": "Santa Clara",
+    "loss_date": "1564-09-15",
+    "loss_cause": "storm",
+    "loss_location": "near Madagascar",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -12.0,
+      "lon": 49.0,
+      "uncertainty_km": 100
+    },
+    "depth_estimate_m": null,
+    "tonnage": 500,
+    "archive": "carreira",
+    "particulars": "Lost in a cyclone near northern Madagascar."
+  },
+  {
+    "wreck_id": "carreira_wreck:0033",
+    "voyage_id": null,
+    "ship_name": "Sao Lourenco",
+    "loss_date": "1649-07-10",
+    "loss_cause": "storm",
+    "loss_location": "Mozambique Channel",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -16.0,
+      "lon": 42.0,
+      "uncertainty_km": 50
+    },
+    "depth_estimate_m": null,
+    "tonnage": 500,
+    "archive": "carreira",
+    "particulars": "Lost in the Mozambique Channel during monsoon."
+  },
+  {
+    "wreck_id": "carreira_wreck:0034",
+    "voyage_id": null,
+    "ship_name": "Nossa Senhora do Rosario",
+    "loss_date": "1580-05-25",
+    "loss_cause": "storm",
+    "loss_location": "off Cape Correntes, Mozambique",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -23.5,
+      "lon": 35.5,
+      "uncertainty_km": 30
+    },
+    "depth_estimate_m": null,
+    "tonnage": 600,
+    "archive": "carreira",
+    "particulars": "Lost near Cape Correntes, one of the most dangerous points on the Mozambique coast."
+  },
+  {
+    "wreck_id": "carreira_wreck:0035",
+    "voyage_id": null,
+    "ship_name": "Sao Antonio",
+    "loss_date": "1527-08-18",
+    "loss_cause": "grounding",
+    "loss_location": "near Mombasa, East Africa",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -4.0,
+      "lon": 39.5,
+      "uncertainty_km": 20
+    },
+    "depth_estimate_m": null,
+    "tonnage": 300,
+    "archive": "carreira",
+    "particulars": "Early Carreira wreck off the East African coast."
+  },
+  {
+    "wreck_id": "carreira_wreck:0036",
+    "voyage_id": null,
+    "ship_name": "Conceicao",
+    "loss_date": "1555-07-22",
+    "loss_cause": "storm",
+    "loss_location": "Natal coast, South Africa",
+    "region": "cape",
+    "status": "unfound",
+    "position": {
+      "lat": -30.0,
+      "lon": 31.0,
+      "uncertainty_km": 40
+    },
+    "depth_estimate_m": null,
+    "tonnage": 400,
+    "archive": "carreira",
+    "particulars": "Yet another Natal coast wreck. The stretch between the Cape and Mozambique was the most dangerous part of the route."
+  },
+  {
+    "wreck_id": "carreira_wreck:0037",
+    "voyage_id": null,
+    "ship_name": "Sao Bento Novo",
+    "loss_date": "1640-11-15",
+    "loss_cause": "storm",
+    "loss_location": "off the Cape of Good Hope",
+    "region": "cape",
+    "status": "unfound",
+    "position": {
+      "lat": -34.5,
+      "lon": 19.0,
+      "uncertainty_km": 50
+    },
+    "depth_estimate_m": null,
+    "tonnage": 500,
+    "archive": "carreira",
+    "particulars": "Lost near the Cape of Good Hope in a winter storm."
+  },
+  {
+    "wreck_id": "carreira_wreck:0038",
+    "voyage_id": null,
+    "ship_name": "Nossa Senhora de Belem",
+    "loss_date": "1635-06-20",
+    "loss_cause": "grounding",
+    "loss_location": "reefs near Inhambane, Mozambique",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -23.8,
+      "lon": 35.4,
+      "uncertainty_km": 20
+    },
+    "depth_estimate_m": null,
+    "tonnage": 600,
+    "archive": "carreira",
+    "particulars": "Wrecked on reefs near Inhambane on the Mozambique coast."
+  },
+  {
+    "wreck_id": "carreira_wreck:0039",
+    "voyage_id": null,
+    "ship_name": "Sao Marcos",
+    "loss_date": "1708-09-01",
+    "loss_cause": "storm",
+    "loss_location": "off Madagascar",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -13.0,
+      "lon": 48.0,
+      "uncertainty_km": 80
+    },
+    "depth_estimate_m": null,
+    "tonnage": 400,
+    "archive": "carreira",
+    "particulars": "Lost during cyclone season near Madagascar."
+  },
+  {
+    "wreck_id": "carreira_wreck:0040",
+    "voyage_id": null,
+    "ship_name": "Nau de Bartolomeu Dias",
+    "loss_date": "1500-05-24",
+    "loss_cause": "storm",
+    "loss_location": "off the Cape of Good Hope",
+    "region": "cape",
+    "status": "unfound",
+    "position": {
+      "lat": -35.0,
+      "lon": 21.0,
+      "uncertainty_km": 200
+    },
+    "depth_estimate_m": null,
+    "tonnage": 250,
+    "archive": "carreira",
+    "particulars": "Ship of Bartolomeu Dias, first European to round the Cape in 1488. He perished in the same storm that struck Cabral's fleet in 1500, a tragic irony: the man who discovered the Cape route died there."
+  }
+]

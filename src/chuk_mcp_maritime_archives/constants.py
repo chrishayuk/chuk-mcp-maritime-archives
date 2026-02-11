@@ -13,7 +13,7 @@ from typing import Literal
 
 class ServerConfig(str, Enum):
     NAME = "chuk-mcp-maritime-archives"
-    VERSION = "0.6.0"
+    VERSION = "0.7.0"
     DESCRIPTION = "Historical Maritime Archives"
 
 
@@ -64,6 +64,10 @@ class ArchiveId(str, Enum):
     VOC_CREW = "voc_crew"
     VOC_CARGO = "voc_cargo"
     MAARER = "maarer"
+    EIC = "eic"
+    CARREIRA = "carreira"
+    GALLEON = "galleon"
+    SOIC = "soic"
 
 
 ARCHIVE_METADATA: dict[str, dict] = {
@@ -133,6 +137,90 @@ ARCHIVE_METADATA: dict[str, dict] = {
         ),
         "license": "Open access for research",
     },
+    "eic": {
+        "name": "English East India Company",
+        "organisation": "India Office Records, British Library",
+        "coverage_start": "1600",
+        "coverage_end": "1874",
+        "record_types": ["voyages", "wrecks"],
+        "total_voyages": 150,
+        "total_losses": 35,
+        "access_method": "curated",
+        "description": (
+            "Curated voyage records from the English East India Company, "
+            "1600-1874. Routes between London and India/China via the Cape "
+            "of Good Hope. Compiled from published India Office Records "
+            "and ship registers."
+        ),
+        "citation": (
+            "Hardy, Charles. A Register of Ships Employed in the Service "
+            "of the East India Company. London, 1835. Farrington, Anthony. "
+            "Catalogue of East India Company Ships' Journals and Logs "
+            "1600-1834. London: British Library, 1999."
+        ),
+        "license": "Curated from published academic sources",
+    },
+    "carreira": {
+        "name": "Portuguese Carreira da India",
+        "organisation": "Arquivo Nacional da Torre do Tombo",
+        "coverage_start": "1497",
+        "coverage_end": "1835",
+        "record_types": ["voyages", "wrecks"],
+        "total_voyages": 120,
+        "total_losses": 40,
+        "access_method": "curated",
+        "description": (
+            "Curated voyage records from the Portuguese India Run "
+            "(Carreira da India), 1497-1835. The longest-running European "
+            "maritime trade route: Lisbon to Goa via the Cape of Good Hope."
+        ),
+        "citation": (
+            "Guinote, Paulo, Eduardo Frutuoso, and Antonio Lopes. "
+            "As Armadas da India 1497-1835. Lisbon, 2002."
+        ),
+        "license": "Curated from published academic sources",
+    },
+    "galleon": {
+        "name": "Spanish Manila Galleon",
+        "organisation": "Archivo General de Indias",
+        "coverage_start": "1565",
+        "coverage_end": "1815",
+        "record_types": ["voyages", "wrecks"],
+        "total_voyages": 100,
+        "total_losses": 25,
+        "access_method": "curated",
+        "description": (
+            "Curated voyage records from the Manila Galleon trade, "
+            "1565-1815. Pacific crossing between Acapulco (New Spain) "
+            "and Manila carrying silver eastbound and silk, spices, "
+            "and porcelain westbound."
+        ),
+        "citation": (
+            "Schurz, William Lytle. The Manila Galleon. New York: "
+            "E.P. Dutton, 1939."
+        ),
+        "license": "Curated from published academic sources",
+    },
+    "soic": {
+        "name": "Swedish East India Company",
+        "organisation": "Gothenburg City Archives",
+        "coverage_start": "1731",
+        "coverage_end": "1813",
+        "record_types": ["voyages", "wrecks"],
+        "total_voyages": 80,
+        "total_losses": 12,
+        "access_method": "curated",
+        "description": (
+            "Curated voyage records from the Swedish East India Company "
+            "(Svenska Ostindiska Companiet), 1731-1813. Routes between "
+            "Gothenburg and Canton (China) via the Cape of Good Hope."
+        ),
+        "citation": (
+            "Koninckx, Christian. The First and Second Charters of the "
+            "Swedish East India Company (1731-1766). Kortrijk, 1980."
+        ),
+        "license": "Curated from published academic sources",
+    },
 }
 
 
@@ -155,6 +243,13 @@ REGIONS: dict[str, str] = {
     "south_china_sea": "Vietnam, Philippines, South China",
     "japan": "Japanese waters",
     "caribbean": "Caribbean Sea",
+    "pacific": "Pacific Ocean crossing",
+    "philippine_sea": "Philippine Sea / Western Pacific",
+    "south_atlantic": "South Atlantic Ocean",
+    "arabian_sea": "Arabian Sea / Western Indian Ocean",
+    "south_china_coast": "Canton / Pearl River Delta",
+    "english_channel": "English Channel / Downs",
+    "west_africa": "West African coast",
 }
 
 
@@ -245,6 +340,16 @@ NAVIGATION_ERAS: dict[str, dict] = {
         "typical_accuracy_km": 10,
         "notes": "Harrison's chronometer. Longitude measurable but instruments rare on VOC ships.",
     },
+    "1795-1840": {
+        "technology": "chronometer_widespread",
+        "typical_accuracy_km": 5,
+        "notes": "Marine chronometers widely available. Longitude reliably measured.",
+    },
+    "1840-1880": {
+        "technology": "steam_era_navigation",
+        "typical_accuracy_km": 2,
+        "notes": "Steam power, improved charts, telegraphic longitude determination.",
+    },
 }
 
 
@@ -271,7 +376,7 @@ DEFAULT_ARCHIVE: str = "das"
 # --- Type Literals ---------------------------------------------------------
 
 
-ArchiveName = Literal["das", "voc_crew", "voc_cargo", "maarer"]
+ArchiveName = Literal["das", "voc_crew", "voc_cargo", "maarer", "eic", "carreira", "galleon", "soic"]
 RegionName = Literal[
     "north_sea",
     "atlantic_europe",
@@ -288,6 +393,13 @@ RegionName = Literal[
     "south_china_sea",
     "japan",
     "caribbean",
+    "pacific",
+    "philippine_sea",
+    "south_atlantic",
+    "arabian_sea",
+    "south_china_coast",
+    "english_channel",
+    "west_africa",
 ]
 
 

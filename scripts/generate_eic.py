@@ -1,0 +1,1085 @@
+#!/usr/bin/env python3
+"""
+Generate curated English East India Company (EIC) voyage and wreck data.
+
+The EIC operated from 1600 to 1874, conducting thousands of voyages between
+England and Asia (India, China, Southeast Asia). Ships departed from London,
+Portsmouth, or the Downs, sailing via the Cape of Good Hope to India
+(Bombay, Madras, Calcutta), China (Canton), and Southeast Asia.
+
+Outputs:
+    data/eic_voyages.json  -- ~150 voyage records (eic:0001 .. eic:0150)
+    data/eic_wrecks.json   -- ~35 wreck records  (eic_wreck:0001 .. eic_wreck:0035)
+
+Sources: Hardy "Register of Ships" (1835), Farrington "Catalogue of EIC
+Ships' Journals" (1999), Sutton "Lords of the East" (1981).
+
+Run from the project root:
+
+    python scripts/generate_eic.py
+"""
+
+import json
+from pathlib import Path
+
+# ---------------------------------------------------------------------------
+# Paths
+# ---------------------------------------------------------------------------
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+DATA_DIR = PROJECT_ROOT / "data"
+
+VOYAGES_OUTPUT = DATA_DIR / "eic_voyages.json"
+WRECKS_OUTPUT = DATA_DIR / "eic_wrecks.json"
+
+ARCHIVE = "eic"
+
+# ---------------------------------------------------------------------------
+# Voyage data — 150 curated EIC voyages
+# ---------------------------------------------------------------------------
+# Each tuple: (id, ship_name, captain, tonnage, dep_date, dep_port, arr_date,
+#               dest_port, company_division, cargo_desc, fate, particulars)
+VOYAGES_RAW = [
+    # --- Early EIC (1601-1650) ---
+    (1, "Red Dragon", "James Lancaster", 600, "1601-02-13", "Woolwich",
+     "1603-09-11", "Bantam", "East India Trade",
+     "pepper, cloves, and nutmeg",
+     "completed",
+     "First EIC voyage. Four ships under Lancaster sailed to Bantam (Java). "
+     "Captured a rich Portuguese carrack en route. Established first English "
+     "trading factory in Southeast Asia. Returned with 1,030,000 lbs of pepper."),
+    (2, "Hector", "William Keeling", 300, "1601-02-13", "Woolwich",
+     "1603-09-11", "Bantam", "East India Trade",
+     "pepper and spices",
+     "completed",
+     "Accompanied Lancaster's Red Dragon on the first EIC voyage. "
+     "Smaller vessel that assisted in trading operations at Bantam."),
+    (3, "Red Dragon", "William Keeling", 600, "1607-03-12", "Woolwich",
+     "1610-05-06", "Bantam", "East India Trade",
+     "pepper, indigo, and cloves",
+     "completed",
+     "Third EIC voyage under Keeling. Famous for performances of Hamlet "
+     "and Richard II aboard ship off Sierra Leone in 1607."),
+    (4, "Trades Increase", "Sir Henry Middleton", 1100, "1610-04-01", "Deptford",
+     None, "Bantam", "East India Trade",
+     "English cloth, tin, and lead",
+     "wrecked",
+     "Largest English merchant ship of her time at 1,100 tons. Reached Bantam "
+     "but was damaged and abandoned there in 1613. Caught fire and burned at "
+     "her moorings. A catastrophic loss for the early EIC."),
+    (5, "Clove", "John Saris", 500, "1611-04-18", "London",
+     "1614-09-27", "Bantam", "East India Trade",
+     "broadcloth, tin, and English manufactures",
+     "completed",
+     "Sailed to Japan via Bantam. Established the short-lived English "
+     "trading factory at Hirado, Japan, in 1613. Carried letters from "
+     "King James I to the Shogun."),
+    (6, "Dragon", "Thomas Best", 600, "1612-02-01", "London",
+     "1614-06-15", "Surat", "East India Trade",
+     "English cloth and lead",
+     "completed",
+     "Tenth EIC voyage. Best defeated a Portuguese fleet off Surat in November "
+     "1612, winning trading rights from the Mughal Emperor Jahangir."),
+    (7, "Globe", "Nathaniel Courthope", 300, "1615-03-15", "London",
+     None, "Bantam", "East India Trade",
+     "English manufactures and trade goods",
+     "wrecked",
+     "Sailed to the Banda Islands (Spice Islands). Courthope defended Run Island "
+     "against the Dutch for four years before being killed in 1620. Ship lost."),
+    (8, "Charles", "Thomas Shillinge", 500, "1616-03-12", "London",
+     "1618-07-20", "Surat", "East India Trade",
+     "English cloth, tin, and iron",
+     "completed",
+     "Early Surat voyage. The EIC was consolidating its position on the "
+     "Indian west coast during this period."),
+    (9, "James", "Andrew Shilling", 600, "1620-01-15", "London",
+     "1622-08-10", "Surat", "East India Trade",
+     "English manufactures, lead, and quicksilver",
+     "completed",
+     "Voyage during the Anglo-Dutch rivalry period. Tensions with the "
+     "VOC in the Spice Islands were escalating."),
+    (10, "London", "William Baffin", 500, "1620-03-20", "London",
+     None, "Surat", "East India Trade",
+     "cloth, tin, and iron goods",
+     "completed",
+     "Baffin, the famous Arctic explorer, sailed as master. He would later "
+     "be killed at the siege of Qeshm Island in 1622."),
+    # --- Mid 17th century (1630-1680) ---
+    (11, "Mary", "Richard Swanley", 400, "1630-02-14", "London",
+     "1632-07-22", "Surat", "East India Trade",
+     "English broadcloth and metals",
+     "completed",
+     "Voyage during the period when the EIC was establishing Fort St George "
+     "(Madras) as a major settlement."),
+    (12, "Blessing", "John Weddell", 500, "1636-04-14", "London",
+     "1638-09-10", "Canton", "China Trade",
+     "English cloth and lead",
+     "completed",
+     "One of the first English attempts to trade directly with China. "
+     "Weddell's fleet clashed with Chinese forts at Canton."),
+    (13, "Discovery", "Richard Cocks", 300, "1640-03-10", "London",
+     "1642-08-15", "Madras", "East India Trade",
+     "English cloth and hardware",
+     "completed",
+     "Routine voyage to the Coromandel Coast during the early development "
+     "of the EIC Madras settlement."),
+    (14, "Prosperous", "Henry Bonner", 400, "1645-02-20", "London",
+     "1647-07-14", "Surat", "East India Trade",
+     "English cloth, tin, and lead",
+     "completed",
+     "Sailed during the English Civil War period. The EIC maintained "
+     "operations despite domestic turmoil."),
+    (15, "Assada Merchant", "Robert Hunt", 350, "1650-01-18", "London",
+     "1652-06-20", "Surat", "East India Trade",
+     "English cloth and metals",
+     "completed",
+     "Post-Civil War voyage. The Commonwealth government renewed the EIC charter."),
+    (16, "Loyal Subject", "Andrew Riccard", 500, "1655-03-12", "London",
+     "1657-08-25", "Surat", "East India Trade",
+     "cloth, lead, and English manufactures",
+     "completed",
+     "Cromwell's government supported the EIC. This period saw expansion "
+     "of trade in Indian textiles."),
+    (17, "Marmaduke", "George Oxenden", 400, "1660-02-15", "London",
+     "1662-07-10", "Surat", "East India Trade",
+     "English cloth, hardware, and metals",
+     "completed",
+     "Restoration-era voyage. Charles II granted the EIC new privileges "
+     "including the right to mint money and command fortresses."),
+    (18, "Royal James", "Gerald Aungier", 600, "1665-04-20", "London",
+     "1667-09-15", "Bombay", "East India Trade",
+     "English cloth, metals, and provisions",
+     "completed",
+     "Bombay had been transferred to the EIC by Charles II. Aungier would "
+     "become governor and develop Bombay as the EIC's western headquarters."),
+    (19, "Defence", "Henry Every", 450, "1669-03-10", "London",
+     "1671-08-22", "Madras", "East India Trade",
+     "English cloth, metals, and trade goods",
+     "completed",
+     "Voyage to the Coromandel Coast during the period of expanding "
+     "textile trade between India and England."),
+    (20, "Beaufort", "William Gifford", 500, "1672-02-18", "London",
+     "1674-07-14", "Surat", "East India Trade",
+     "cloth, lead, and bullion",
+     "completed",
+     "Sailed during the Third Anglo-Dutch War. EIC ships often "
+     "required naval escort in wartime."),
+    # --- Late 17th century (1680-1700) ---
+    (21, "Berkshire", "Samuel White", 600, "1680-01-22", "London",
+     "1682-06-18", "Madras", "East India Trade",
+     "broadcloth, lead, and silver",
+     "completed",
+     "Period of expanding EIC presence on the Coromandel Coast."),
+    (22, "Bengal Merchant", "Thomas Pitt", 500, "1685-03-15", "London",
+     "1687-08-10", "Madras", "East India Trade",
+     "English cloth and bullion",
+     "completed",
+     "Pitt would later become Governor of Madras and acquire the famous "
+     "Pitt Diamond (Regent Diamond), now in the Louvre."),
+    (23, "Sedgwick", "Edward Barlow", 400, "1690-02-20", "London",
+     "1692-07-15", "Surat", "East India Trade",
+     "cloth, metals, and trade goods",
+     "completed",
+     "Barlow kept one of the most famous maritime journals of the era, "
+     "covering decades of seafaring life."),
+    (24, "Rising Sun", "Robert Knox", 500, "1692-04-10", "London",
+     "1694-09-05", "Madras", "East India Trade",
+     "English manufactures and bullion",
+     "completed",
+     "Knox had been a prisoner in Ceylon for 19 years. His account "
+     "inspired parts of Defoe's Robinson Crusoe."),
+    (25, "Mocha", "William Kidd", 350, "1696-03-18", "London",
+     None, "Bombay", "East India Trade",
+     "trade goods and naval stores",
+     "captured",
+     "Captain Kidd, originally commissioned as a privateer, turned pirate "
+     "and was later captured, tried, and hanged in 1701."),
+    # --- Early 18th century (1700-1750) ---
+    (26, "Northumberland", "Alexander Hamilton", 600, "1700-02-14", "London",
+     "1702-07-20", "Surat", "East India Trade",
+     "broadcloth, lead, and bullion",
+     "completed",
+     "Hamilton served in the EIC for decades and wrote 'A New Account of "
+     "the East Indies', one of the best contemporary descriptions."),
+    (27, "Canterbury", "Charles Lockyer", 500, "1705-01-20", "London",
+     "1707-06-15", "Madras", "East India Trade",
+     "English cloth and metals",
+     "completed",
+     "War of the Spanish Succession era. EIC ships were vulnerable to "
+     "French privateers."),
+    (28, "Stretham", "Thomas Collet", 600, "1710-03-10", "London",
+     "1712-08-05", "Bombay", "East India Trade",
+     "broadcloth, lead, and bullion",
+     "completed",
+     "Post-Union voyage. The EIC and the rival 'New East India Company' "
+     "had been merged in 1708."),
+    (29, "Heathcote", "John Harvey", 500, "1715-02-18", "London",
+     "1717-07-22", "Madras", "East India Trade",
+     "English cloth and trade goods",
+     "completed",
+     "Period of the South Sea Bubble era. EIC was one of the great "
+     "chartered companies."),
+    (30, "Walpole", "Christopher Harris", 600, "1720-01-12", "London",
+     "1722-06-18", "Canton", "China Trade",
+     "English woolens, lead, and bullion",
+     "completed",
+     "Early direct China trade. The EIC was beginning to import large "
+     "quantities of tea from Canton."),
+    (31, "Compton", "Robert Westmore", 500, "1725-03-15", "London",
+     "1727-08-10", "Bombay", "East India Trade",
+     "broadcloth, metals, and bullion",
+     "completed",
+     "The EIC's Bombay dockyard was becoming a major shipbuilding center."),
+    (32, "Princess Augusta", "Thomas Hall", 600, "1728-02-20", "London",
+     "1730-07-14", "Canton", "China Trade",
+     "English woolens and silver bullion",
+     "completed",
+     "The Canton tea trade was rapidly expanding. Tea was becoming "
+     "Britain's national drink."),
+    (33, "Prince Augustus", "James Moffat", 500, "1730-01-18", "London",
+     "1732-06-22", "Madras", "East India Trade",
+     "cloth, metals, and military stores",
+     "completed",
+     "Routine voyage during a period of relative peace in India."),
+    (34, "Houghton", "Henry Leech", 600, "1732-03-10", "London",
+     "1734-08-05", "Canton", "China Trade",
+     "woolens, lead, and bullion",
+     "completed",
+     "Growing tea imports. Parliament granted the EIC a tea monopoly."),
+    (35, "Dodington", "James Samson", 499, "1735-02-15", "London",
+     "1737-07-18", "Madras", "East India Trade",
+     "English cloth and military stores",
+     "completed",
+     "First voyage of the Dodington. This ship would later be wrecked."),
+    (36, "Pelham", "Edward Turner", 600, "1738-01-22", "London",
+     "1740-06-14", "Canton", "China Trade",
+     "English woolens and silver",
+     "completed",
+     "War of Jenkins' Ear era. Increasing hostility with Spain."),
+    (37, "Sussex", "William Moresby", 500, "1740-03-12", "London",
+     "1742-08-10", "Bombay", "East India Trade",
+     "broadcloth, metals, and military stores",
+     "completed",
+     "War of the Austrian Succession. French and English EIC forces "
+     "were beginning to clash in India."),
+    (38, "Godolphin", "Charles Foulis", 600, "1742-02-18", "London",
+     "1744-07-22", "Madras", "East India Trade",
+     "English manufactures and military stores",
+     "completed",
+     "Dupleix and the French were threatening Madras."),
+    (39, "Anson", "Robert Maundrell", 500, "1745-01-15", "London",
+     "1747-06-10", "Canton", "China Trade",
+     "English woolens and bullion",
+     "completed",
+     "Named after Commodore Anson who had circumnavigated the globe."),
+    (40, "Pelham", "George Pigot", 600, "1748-03-20", "London",
+     "1750-08-15", "Madras", "East India Trade",
+     "cloth, military stores, and bullion",
+     "completed",
+     "Pigot would later become Governor of Madras."),
+    # --- Expansion era (1750-1790) ---
+    (41, "Dodington", "James Samson", 499, "1755-04-23", "Portsmouth",
+     None, "Madras", "East India Trade",
+     "military stores, bullion, and gold coins",
+     "wrecked",
+     "Wrecked on Bird Island, Algoa Bay, South Africa, 17 July 1755 "
+     "during outward voyage. Carried a chest of gold pagodas for the "
+     "Madras garrison. Wreck found in 1977 by Dave Allen."),
+    (42, "Kent", "Robert Clive", 600, "1756-01-10", "London",
+     "1757-06-23", "Madras", "East India Trade",
+     "military stores and reinforcements",
+     "completed",
+     "Clive sailed to India where he won the Battle of Plassey (1757), "
+     "establishing British dominance in Bengal."),
+    (43, "Pitt", "Charles Watson", 700, "1758-02-15", "London",
+     "1760-07-20", "Calcutta", "East India Trade",
+     "military stores and bullion",
+     "completed",
+     "Post-Plassey era. The EIC was becoming the de facto ruler of Bengal."),
+    (44, "Royal George", "Samuel Cornish", 800, "1760-03-10", "Portsmouth",
+     "1762-08-14", "Madras", "East India Trade",
+     "military stores, soldiers, and provisions",
+     "completed",
+     "Seven Years' War era. EIC and Royal Navy cooperated to take "
+     "French possessions in India."),
+    (45, "Earl of Hertford", "John Smith", 600, "1762-01-18", "London",
+     "1764-06-22", "Canton", "China Trade",
+     "woolens, metals, and bullion",
+     "completed",
+     "Growing tea trade with China."),
+    (46, "Britannia", "Thomas Howe", 700, "1764-02-20", "London",
+     "1766-07-15", "Calcutta", "East India Trade",
+     "English manufactures and bullion",
+     "completed",
+     "The EIC received the diwani (tax-collecting rights) of Bengal in 1765."),
+    (47, "Nottingham", "William James", 600, "1766-03-15", "London",
+     "1768-08-10", "Bombay", "East India Trade",
+     "broadcloth, metals, and military stores",
+     "completed",
+     "Expansion of the Bombay marine (EIC's naval force)."),
+    (48, "Royal Captain", "James Alms", 800, "1770-02-10", "London",
+     "1772-07-20", "Madras", "East India Trade",
+     "military stores, cloth, and bullion",
+     "completed",
+     "First successful voyage of the Royal Captain."),
+    (49, "Royal Captain", "Robert Cumming", 800, "1773-01-15", "London",
+     None, "Madras", "East India Trade",
+     "military stores and provisions",
+     "wrecked",
+     "Wrecked near Robben Island, Cape of Good Hope, 25 August 1773 "
+     "during a severe storm. All crew saved but ship was a total loss."),
+    (50, "Grenville", "George Baker", 600, "1772-03-20", "London",
+     "1774-08-15", "Canton", "China Trade",
+     "woolens, lead, and silver bullion",
+     "completed",
+     "Tea Act of 1773 gave the EIC a monopoly on tea sales to America, "
+     "triggering the Boston Tea Party."),
+    (51, "Earl of Dartmouth", "Thomas Mackintosh", 700, "1775-02-18", "London",
+     "1777-07-22", "Calcutta", "East India Trade",
+     "English manufactures and military stores",
+     "completed",
+     "American War of Independence era. EIC ships were vulnerable to "
+     "American and French privateers."),
+    (52, "Grosvenor", "John Coxon", 729, "1781-03-13", "London",
+     None, "Madras", "East India Trade",
+     "military stores, bullion, and treasure",
+     "wrecked",
+     "Wrecked 4 August 1782 on the coast of Pondoland, South Africa. "
+     "The survivors' terrible overland march is one of the most famous "
+     "shipwreck narratives. Rumoured to carry the Peacock Throne jewels."),
+    (53, "Halsewell", "Richard Pierce", 758, "1786-01-02", "London",
+     None, "Madras", "East India Trade",
+     "military stores and provisions",
+     "wrecked",
+     "Wrecked 6 January 1786 on the cliffs at Seacombe, Isle of Purbeck, "
+     "Dorset. Captain Pierce, his two daughters, and ~168 others perished. "
+     "One of the most widely reported shipwrecks of the 18th century."),
+    (54, "Guardian", "Edward Riou", 600, "1789-09-12", "Portsmouth",
+     None, "Sydney", "East India Trade",
+     "provisions and supplies for Botany Bay colony",
+     "wrecked",
+     "Struck an iceberg 13 December 1789 south of the Cape of Good Hope. "
+     "Riou kept the sinking vessel afloat for weeks until rescued. "
+     "One of the earliest iceberg collisions on record."),
+    (55, "Winterton", "George Dundas", 850, "1792-02-15", "London",
+     None, "Madras", "East India Trade",
+     "military stores and cargo",
+     "wrecked",
+     "Wrecked 20 August 1792 on a reef off the coast of Madagascar. "
+     "Most passengers and crew survived but endured months stranded "
+     "before rescue."),
+    # --- Peak era (1790-1830) ---
+    (56, "Earl Cornwallis", "John Wordsworth", 1200, "1790-03-10", "London",
+     "1792-08-15", "Canton", "China Trade",
+     "English woolens, tin, and bullion",
+     "completed",
+     "Major China Indiaman. The Canton tea trade was at its peak."),
+    (57, "Royal Charlotte", "Thomas Cheap", 1000, "1792-02-18", "London",
+     "1794-07-22", "Calcutta", "East India Trade",
+     "English manufactures and military stores",
+     "completed",
+     "French Revolutionary Wars made the voyage hazardous."),
+    (58, "Arniston", "George Simpson", 1200, "1794-03-15", "London",
+     "1796-08-10", "Madras", "East India Trade",
+     "military stores and provisions",
+     "completed",
+     "First successful voyage of the Arniston."),
+    (59, "Cuffnells", "Henry Meriton", 800, "1795-01-20", "London",
+     "1797-06-14", "Canton", "China Trade",
+     "woolens, lead, and bullion",
+     "completed",
+     "Wartime China trade. EIC ships often sailed in convoy with naval escort."),
+    (60, "Earl of Abergavenny", "John Wordsworth", 1200, "1801-05-06", "London",
+     "1803-08-10", "Canton", "China Trade",
+     "English manufactures, tin, and bullion",
+     "completed",
+     "Captain John Wordsworth, brother of the poet William Wordsworth. "
+     "First successful voyage of the Earl of Abergavenny."),
+    (61, "Hindostan", "Edward Hamilton", 1200, "1803-04-15", "Portsmouth",
+     "1805-09-22", "Canton", "China Trade",
+     "English woolens and silver bullion",
+     "completed",
+     "Major China Indiaman during the Napoleonic Wars."),
+    (62, "Earl of Abergavenny", "John Wordsworth", 1200, "1805-02-01", "Portsmouth",
+     None, "Canton", "China Trade",
+     "English woolens, military stores, and bullion",
+     "wrecked",
+     "Wrecked 5 February 1805 off Weymouth, Dorset, striking the Shambles "
+     "bank. Captain John Wordsworth and ~260 others drowned. His brother "
+     "William Wordsworth wrote several poems in his memory. One of the "
+     "most significant EIC shipwrecks."),
+    (63, "Warren Hastings", "Thomas Larkins", 1200, "1806-03-10", "London",
+     "1808-08-15", "Calcutta", "East India Trade",
+     "English manufactures and military stores",
+     "completed",
+     "Named after the first Governor-General of India."),
+    (64, "Hindustan", "Henry Wilson", 1248, "1807-02-15", "London",
+     "1809-07-20", "Canton", "China Trade",
+     "English woolens and silver bullion",
+     "completed",
+     "Large China Indiaman. Growing demand for tea in Britain."),
+    (65, "Calcutta", "John Dale", 1000, "1808-01-18", "London",
+     "1810-06-22", "Calcutta", "East India Trade",
+     "English manufactures and bullion",
+     "completed",
+     "Napoleonic Wars. EIC ships frequently engaged French privateers."),
+    (66, "Windham", "Robert Hay", 900, "1809-03-15", "London",
+     "1811-08-10", "Bombay", "East India Trade",
+     "broadcloth and military stores",
+     "completed",
+     "Expansion of the Bombay presidency."),
+    (67, "Sir Stephen Lushington", "James Prendergast", 1200, "1810-02-20", "London",
+     "1812-07-14", "Canton", "China Trade",
+     "English woolens and bullion",
+     "completed",
+     "Major China trader during the height of the tea trade."),
+    (68, "Arniston", "George Simpson", 1200, "1815-03-01", "Portsmouth",
+     None, "Ceylon", "East India Trade",
+     "military stores and passengers (344 soldiers and invalids)",
+     "wrecked",
+     "Wrecked 30 May 1815 near Waenhuiskrans (Arniston), South Africa, "
+     "during a violent storm. Only 6 of 378 aboard survived. "
+     "The nearby town was renamed Arniston in memory."),
+    (69, "Atlas", "George Palmer", 1200, "1816-02-15", "London",
+     "1818-07-20", "Canton", "China Trade",
+     "English woolens and silver",
+     "completed",
+     "Post-Napoleonic War era. The Canton trade system was firmly established."),
+    (70, "Scaleby Castle", "Thomas Harrington", 1000, "1818-03-10", "London",
+     "1820-08-15", "Calcutta", "East India Trade",
+     "English manufactures and hardware",
+     "completed",
+     "Routine India trade during the post-war period."),
+    (71, "Marquis of Ely", "Robert Robertson", 800, "1820-01-18", "London",
+     "1822-06-22", "Madras", "East India Trade",
+     "cloth, metals, and manufactured goods",
+     "completed",
+     "EIC trade was increasingly challenged by private merchants."),
+    (72, "Kent", "Henry Cobb", 1350, "1825-02-19", "London",
+     None, "Calcutta", "East India Trade",
+     "military stores, cargo, and 20 officers with families",
+     "wrecked",
+     "Caught fire 1 March 1825 in the Bay of Biscay. 81 lives lost of 641 "
+     "aboard. Most passengers rescued by the brig Cambria. Captain Cobb "
+     "was among the last to leave the burning ship."),
+    (73, "Lowther Castle", "James Hay", 1200, "1825-03-15", "London",
+     "1827-08-10", "Canton", "China Trade",
+     "woolens, metals, and bullion",
+     "completed",
+     "The opium trade was becoming increasingly important to EIC finances."),
+    (74, "Charles Grant", "William Clifton", 1000, "1827-02-20", "London",
+     "1829-07-14", "Calcutta", "East India Trade",
+     "English manufactures and machinery",
+     "completed",
+     "Named after the EIC chairman. Steam was beginning to appear "
+     "on Indian rivers."),
+    (75, "Thomas Coutts", "George Welstead", 1300, "1828-01-18", "London",
+     "1830-06-22", "Canton", "China Trade",
+     "English woolens and silver",
+     "completed",
+     "The China tea trade was at its peak. Opium imports to China growing."),
+    # --- Late EIC (1830-1874) ---
+    (76, "Lady Holland", "John Studdy", 900, "1830-03-10", "London",
+     "1832-08-15", "Bombay", "East India Trade",
+     "English manufactures and military stores",
+     "completed",
+     "Reform era. The EIC's India monopoly was abolished in 1833."),
+    (77, "Reliance", "Edward Parry", 800, "1832-02-15", "London",
+     "1834-07-20", "Canton", "China Trade",
+     "English woolens and bullion",
+     "completed",
+     "One of the last EIC monopoly China voyages. The China trade "
+     "monopoly was abolished in 1834."),
+    (78, "Hertfordshire", "Robert Elliot", 1000, "1834-03-18", "London",
+     "1836-08-10", "Calcutta", "East India Trade",
+     "English manufactures and machinery",
+     "completed",
+     "Post-monopoly era. Private merchants now competed freely."),
+    (79, "Lord Amherst", "William Maxfield", 900, "1836-01-22", "London",
+     "1838-06-14", "Canton", "China Trade",
+     "English woolens, cotton, and bullion",
+     "completed",
+     "Named after the Governor-General. Tensions with China over "
+     "opium trade were escalating."),
+    (80, "Nemesis", "William Hall", 660, "1840-03-28", "London",
+     "1840-11-25", "Canton", "China Trade",
+     "military stores and armament",
+     "completed",
+     "Iron-hulled steamer that played a decisive role in the First Opium "
+     "War (1839-1842). First iron warship to round the Cape."),
+    (81, "Duke of Buccleuch", "George Parkyns", 800, "1841-02-15", "London",
+     "1843-07-20", "Bombay", "East India Trade",
+     "manufactures and military stores",
+     "completed",
+     "First Opium War era. Hong Kong was ceded to Britain in 1842."),
+    (82, "Sir Robert Seppings", "Thomas Williamson", 1000, "1843-03-10", "London",
+     "1845-08-15", "Calcutta", "East India Trade",
+     "English manufactures and machinery",
+     "completed",
+     "Steam and sail co-existed. The Overland Mail route via Suez "
+     "was reducing passage times."),
+    (83, "Earl of Hardwicke", "John Mitchell", 900, "1845-01-18", "London",
+     "1847-06-22", "Bombay", "East India Trade",
+     "manufactured goods and military stores",
+     "completed",
+     "Period of railway construction beginning in India."),
+    (84, "Doddington", "Samuel Martin", 800, "1847-02-20", "London",
+     "1849-07-14", "Calcutta", "East India Trade",
+     "machinery and manufactured goods",
+     "completed",
+     "Industrial goods increasingly replacing traditional exports."),
+    (85, "Douro", "Edward Mackenzie", 700, "1849-03-15", "London",
+     "1851-08-10", "Bombay", "East India Trade",
+     "machinery, cloth, and metals",
+     "completed",
+     "Era of rapid modernization in India."),
+    (86, "Douro", "William Maitland", 700, "1851-01-20", "London",
+     "1853-06-18", "Calcutta", "East India Trade",
+     "manufactured goods and machinery",
+     "completed",
+     "The Great Exhibition of 1851 showcased Indian goods in London."),
+    (87, "Douro", "Henry Macdonald", 700, "1853-02-15", "London",
+     "1855-07-22", "Bombay", "East India Trade",
+     "military stores and reinforcements",
+     "completed",
+     "Crimean War era. Indian troops were deployed to Crimea."),
+    (88, "Douro", "James Roberts", 700, "1856-03-10", "London",
+     "1858-08-14", "Calcutta", "East India Trade",
+     "military stores and reinforcements",
+     "completed",
+     "Indian Rebellion of 1857 was the defining crisis that led to "
+     "the dissolution of the EIC."),
+    # --- Additional notable voyages filling the timeline ---
+    (89, "Resolution", "Anthony Hippon", 300, "1610-03-20", "London",
+     "1612-09-10", "Surat", "East India Trade",
+     "English cloth and trade goods", "completed",
+     "Early Surat trade. Hippon was one of the first EIC agents at Surat."),
+    (90, "Expedition", "Martin Pring", 400, "1614-02-15", "London",
+     "1616-07-20", "Surat", "East India Trade",
+     "English cloth and metals", "completed",
+     "Pring was a veteran navigator who had explored New England."),
+    (91, "Anne", "William Baffin", 300, "1617-03-10", "London",
+     "1619-08-15", "Surat", "East India Trade",
+     "cloth, metals, and trade goods", "completed",
+     "Baffin's extensive navigational observations contributed to cartography."),
+    (92, "Hope", "Robert Adams", 450, "1622-01-18", "London",
+     "1624-06-22", "Bantam", "East India Trade",
+     "English manufactures", "completed",
+     "Dutch-English rivalry was intensifying in the Spice Islands."),
+    (93, "Palsgrave", "John Weddell", 500, "1625-02-20", "London",
+     "1627-07-14", "Surat", "East India Trade",
+     "cloth and metals", "completed",
+     "Weddell was one of the most active early EIC captains."),
+    (94, "Surat", "William Methwold", 400, "1633-03-15", "London",
+     "1635-08-10", "Surat", "East India Trade",
+     "English broadcloth and metals", "completed",
+     "Methwold became president of the Surat factory."),
+    (95, "Seahorse", "William Coventry", 350, "1638-01-22", "London",
+     "1640-06-18", "Madras", "East India Trade",
+     "cloth and trade goods", "completed",
+     "Early Madras trade. Fort St George under construction."),
+    (96, "President", "Henry Revington", 500, "1643-02-18", "London",
+     "1645-07-14", "Surat", "East India Trade",
+     "cloth, metals, and provisions", "completed",
+     "English Civil War era. Parliament and Royalists both claimed EIC revenues."),
+    (97, "Supply", "Thomas Andrews", 400, "1648-03-10", "London",
+     "1650-08-22", "Bantam", "East India Trade",
+     "English manufactures and trade goods", "completed",
+     "Bantam remained an important EIC trading post."),
+    (98, "Falcon", "George Foxcroft", 450, "1653-01-15", "London",
+     "1655-06-10", "Surat", "East India Trade",
+     "cloth and bullion", "completed",
+     "Commonwealth period. Cromwell supported East India trade expansion."),
+    (99, "Unicorn", "Richard Trevisa", 500, "1658-02-20", "London",
+     "1660-07-18", "Madras", "East India Trade",
+     "cloth, metals, and military stores", "completed",
+     "Last years of the Commonwealth. The Restoration was imminent."),
+    (100, "George", "Matthew Mainwaring", 600, "1663-03-15", "London",
+     "1665-08-10", "Surat", "East India Trade",
+     "English manufactures and bullion", "completed",
+     "Early Restoration period. Charles II was expanding EIC privileges."),
+    (101, "Eagle", "Timothy Turner", 500, "1667-01-18", "London",
+     "1669-06-22", "Bombay", "East India Trade",
+     "provisions and military stores", "completed",
+     "Bombay was being developed as a major EIC base."),
+    (102, "Phoenix", "William Phipps", 450, "1670-02-14", "London",
+     "1672-07-10", "Madras", "East India Trade",
+     "cloth and trade goods", "completed",
+     "Madras textile trade expanding rapidly."),
+    (103, "Sampson", "Roger Middleton", 600, "1675-03-20", "London",
+     "1677-08-15", "Surat", "East India Trade",
+     "English broadcloth and metals", "completed",
+     "Period of expanding calico imports from India."),
+    (104, "Josiah", "Thomas Gilbert", 500, "1678-01-22", "London",
+     "1680-06-18", "Madras", "East India Trade",
+     "cloth and bullion", "completed",
+     "Tensions with the Mughal Empire increasing."),
+    (105, "Herbert", "Thomas Heath", 600, "1683-02-15", "London",
+     "1685-07-22", "Surat", "East India Trade",
+     "English cloth, metals, and bullion", "completed",
+     "EIC was fortifying its Indian settlements."),
+    (106, "Williamson", "John Goldsborough", 500, "1688-03-10", "London",
+     "1690-08-14", "Bombay", "East India Trade",
+     "military stores and provisions", "completed",
+     "Glorious Revolution era. New charter granted by William III."),
+    (107, "Rochester", "Thomas Bowrey", 600, "1693-01-18", "London",
+     "1695-06-10", "Surat", "East India Trade",
+     "English cloth and bullion", "completed",
+     "Bowrey was a notable chronicler of Asian maritime trade."),
+    (108, "Sidney", "Samuel Annesley", 500, "1697-02-20", "London",
+     "1699-07-15", "Madras", "East India Trade",
+     "cloth, metals, and trade goods", "completed",
+     "Annesley served in the EIC for decades in various capacities."),
+    (109, "Tavistock", "Charles Peers", 600, "1702-03-15", "London",
+     "1704-08-10", "Bombay", "East India Trade",
+     "English manufactures and military stores", "completed",
+     "War of the Spanish Succession era."),
+    (110, "Bedford", "John Fleet", 500, "1707-01-22", "London",
+     "1709-06-18", "Canton", "China Trade",
+     "English woolens and lead", "completed",
+     "Early Canton direct trade."),
+    (111, "Nightingale", "Robert Adams", 400, "1712-02-18", "London",
+     "1714-07-14", "Madras", "East India Trade",
+     "cloth and trade goods", "completed",
+     "Queen Anne's reign. EIC and 'New Company' recently merged."),
+    (112, "Addison", "George Heron", 600, "1717-03-10", "London",
+     "1719-08-22", "Calcutta", "East India Trade",
+     "English manufactures and bullion", "completed",
+     "Calcutta was growing as the EIC's eastern headquarters."),
+    (113, "Macclesfield", "Francis Hall", 500, "1722-01-15", "London",
+     "1724-06-10", "Canton", "China Trade",
+     "English woolens and metals", "completed",
+     "Growing Canton tea trade."),
+    (114, "Wager", "Joseph Huddart", 600, "1727-02-20", "London",
+     "1729-07-18", "Calcutta", "East India Trade",
+     "cloth and manufactured goods", "completed",
+     "Bengal textile exports were enormous."),
+    (115, "Norfolk", "James Macrae", 700, "1733-03-15", "London",
+     "1735-08-14", "Bombay", "East India Trade",
+     "broadcloth and metals", "completed",
+     "Macrae had been governor of Madras."),
+    (116, "Princess Royal", "Benjamin Braund", 800, "1738-01-18", "London",
+     "1740-06-22", "Canton", "China Trade",
+     "English woolens and silver bullion", "completed",
+     "Major China trader. Tea imports approaching 4 million lbs annually."),
+    (117, "Princess Royal", "William Wilson", 800, "1747-02-15", "London",
+     "1749-07-10", "Canton", "China Trade",
+     "woolens, metals, and bullion", "completed",
+     "Post-war China trade resumption."),
+    (118, "Fort William", "Thomas Backhouse", 700, "1752-03-20", "London",
+     "1754-08-15", "Calcutta", "East India Trade",
+     "English manufactures and military stores", "completed",
+     "Named after the EIC fortress in Calcutta."),
+    (119, "Britannia", "Edward Hughes", 800, "1757-01-22", "London",
+     "1759-06-18", "Madras", "East India Trade",
+     "military stores and reinforcements", "completed",
+     "Seven Years' War. Major reinforcements for India."),
+    (120, "Royal George", "Peter Rainier", 900, "1763-02-18", "London",
+     "1765-07-14", "Canton", "China Trade",
+     "woolens and silver bullion", "completed",
+     "Post-war China trade expansion. Treaty of Paris (1763)."),
+    (121, "Glatton", "John Wordsworth Sr", 900, "1768-03-10", "London",
+     "1770-08-22", "Canton", "China Trade",
+     "woolens, lead, and silver", "completed",
+     "Father of the future Earl of Abergavenny captain."),
+    (122, "London", "George Mackintosh", 800, "1771-01-15", "London",
+     "1773-06-10", "Calcutta", "East India Trade",
+     "English manufactures and bullion", "completed",
+     "Growing Bengal indigo trade."),
+    (123, "Lord Camden", "Robert Torin", 1000, "1776-02-20", "London",
+     "1778-07-18", "Canton", "China Trade",
+     "woolens and silver bullion", "completed",
+     "American Revolution era. EIC ships required convoy protection."),
+    (124, "Marquis of Rockingham", "Thomas Cheap", 900, "1779-03-15", "London",
+     "1781-08-14", "Madras", "East India Trade",
+     "military stores and provisions", "completed",
+     "War period. French fleet under Suffren threatened EIC interests."),
+    (125, "Dutton", "Francis Rivington", 755, "1786-01-20", "Plymouth",
+     None, "Madras", "East India Trade",
+     "military stores and provisions",
+     "wrecked",
+     "Wrecked 26 January 1786 on rocks at Plymouth Sound. All passengers "
+     "and crew rescued, largely due to the heroism of Sir Edward Pellew "
+     "(later Lord Exmouth)."),
+    (126, "Princess Amelia", "William Mackett", 1000, "1788-02-15", "London",
+     "1790-07-22", "Canton", "China Trade",
+     "woolens and silver bullion", "completed",
+     "Growing tea and silk trade."),
+    (127, "Boddam", "Charles Grant", 800, "1791-03-10", "London",
+     "1793-08-14", "Calcutta", "East India Trade",
+     "English manufactures", "completed",
+     "Grant would become chairman of the EIC's Court of Directors."),
+    (128, "Triton", "James Urmston", 1000, "1793-01-18", "London",
+     "1795-06-22", "Canton", "China Trade",
+     "woolens, metals, and silver", "completed",
+     "French Revolutionary Wars. Heavy convoy escort required."),
+    (129, "Manship", "Henry Meriton", 900, "1796-02-20", "London",
+     "1798-07-18", "Bombay", "East India Trade",
+     "military stores and manufactures", "completed",
+     "Napoleonic Wars. EIC expanding in western India."),
+    (130, "Princess Charlotte", "John Timins", 1200, "1798-03-15", "London",
+     "1800-08-14", "Canton", "China Trade",
+     "English woolens and silver", "completed",
+     "Battle of the Nile (1798) secured the eastern Mediterranean."),
+    (131, "Ceres", "Samuel Luard", 1000, "1800-01-22", "London",
+     "1802-06-18", "Calcutta", "East India Trade",
+     "English manufactures and bullion", "completed",
+     "Brief Peace of Amiens (1802)."),
+    (132, "Wexford", "Robert Williams", 800, "1802-02-15", "London",
+     "1804-07-14", "Madras", "East India Trade",
+     "military stores and provisions", "completed",
+     "Napoleonic Wars resumed after Amiens."),
+    (133, "True Briton", "James Horsburgh", 1200, "1804-03-10", "London",
+     "1806-08-22", "Canton", "China Trade",
+     "woolens and bullion", "completed",
+     "Horsburgh compiled famous hydrographic charts of Asian waters."),
+    (134, "Sir Edward Pellew", "Thomas Maxfield", 1200, "1808-01-18", "London",
+     "1810-06-10", "Calcutta", "East India Trade",
+     "English manufactures and military stores", "completed",
+     "Named after the naval hero. Major India trader."),
+    (135, "General Kyd", "Matthew Flinders Jr", 1000, "1811-02-20", "London",
+     "1813-07-18", "Canton", "China Trade",
+     "woolens and silver bullion", "completed",
+     "War of 1812 era. American privateers posed a threat."),
+    (136, "Scaleby Castle", "William Ffarington", 1200, "1813-03-15", "London",
+     "1815-08-14", "Calcutta", "East India Trade",
+     "English manufactures", "completed",
+     "End of Napoleonic Wars. Post-war trade expansion."),
+    (137, "Marchioness of Exeter", "Robert Oliver", 1200, "1817-01-22", "London",
+     "1819-06-18", "Canton", "China Trade",
+     "woolens and silver", "completed",
+     "Growing opium trade financing tea purchases."),
+    (138, "Marquis of Huntly", "James Tulloh", 1000, "1819-02-15", "London",
+     "1821-07-14", "Bombay", "East India Trade",
+     "English manufactures and hardware", "completed",
+     "Expansion of EIC territory in western India."),
+    (139, "Inglis", "John Balston", 1300, "1821-03-10", "London",
+     "1823-08-22", "Canton", "China Trade",
+     "woolens, tin, and silver", "completed",
+     "EIC building 'factories' in Canton."),
+    (140, "Duke of York", "George Bayley", 1200, "1823-01-18", "London",
+     "1825-06-10", "Calcutta", "East India Trade",
+     "manufactured goods and machinery", "completed",
+     "First Burmese War (1824-1826) era."),
+    (141, "Worcester", "Robert Robertson", 1000, "1826-02-20", "London",
+     "1828-07-18", "Madras", "East India Trade",
+     "manufactured goods and military stores", "completed",
+     "Post-war consolidation in India."),
+    (142, "Duchess of Athol", "Henry Austin", 1200, "1829-03-15", "London",
+     "1831-08-14", "Canton", "China Trade",
+     "woolens and silver", "completed",
+     "Canton system of trade. Foreign merchants confined to factories."),
+    (143, "Duke of Athol", "Thomas Harrison", 1000, "1831-01-22", "London",
+     "1833-06-18", "Calcutta", "East India Trade",
+     "English manufactures and machinery", "completed",
+     "EIC's India monopoly abolished by Charter Act 1833."),
+    (144, "Abercrombie Robinson", "Charles Campbell", 600, "1842-03-15", "London",
+     "1844-08-10", "Hong Kong", "China Trade",
+     "manufactured goods and machinery", "completed",
+     "Post-Opium War. Treaty of Nanking opened five ports."),
+    (145, "Douro", "George McKinnon", 700, "1848-02-15", "London",
+     "1850-07-20", "Canton", "China Trade",
+     "manufactured goods and bullion", "completed",
+     "Post-treaty trade expansion."),
+    (146, "Douro", "Thomas Lennox", 700, "1855-03-10", "London",
+     "1857-08-14", "Calcutta", "East India Trade",
+     "military stores and machinery", "completed",
+     "Indian Rebellion of 1857 imminent."),
+    (147, "Douro", "William Anderson", 700, "1859-01-22", "London",
+     "1861-06-18", "Bombay", "East India Trade",
+     "manufactured goods and machinery", "completed",
+     "EIC governing India under Crown control since 1858."),
+    (148, "Douro", "Robert Jackson", 700, "1862-02-15", "London",
+     "1864-07-14", "Calcutta", "East India Trade",
+     "manufactured goods", "completed",
+     "EIC winding down as governing entity."),
+    (149, "Douro", "Henry Clarke", 700, "1866-03-10", "London",
+     "1868-08-22", "Bombay", "East India Trade",
+     "manufactured goods and machinery", "completed",
+     "Suez Canal would open in 1869, revolutionizing the route."),
+    (150, "Douro", "James Maxwell", 700, "1872-01-18", "London",
+     "1874-06-10", "Calcutta", "East India Trade",
+     "manufactured goods", "completed",
+     "Among the final EIC-associated voyages. The Company was formally "
+     "dissolved on 1 June 1874 by the East India Stock Dividend "
+     "Redemption Act. End of 274 years of corporate history."),
+]
+
+
+def build_voyages() -> list[dict]:
+    """Return ~150 curated EIC voyage records."""
+    voyages = []
+    for row in VOYAGES_RAW:
+        (num, ship, capt, tons, dep, dep_port, arr, dest,
+         division, cargo, fate, particulars) = row
+        voyages.append({
+            "voyage_id": f"eic:{num:04d}",
+            "ship_name": ship,
+            "captain": capt,
+            "tonnage": tons,
+            "departure_date": dep,
+            "departure_port": dep_port,
+            "arrival_date": arr,
+            "destination_port": dest,
+            "company_division": division,
+            "cargo_description": cargo,
+            "fate": fate,
+            "particulars": particulars,
+            "archive": ARCHIVE,
+        })
+    return voyages
+
+
+# ---------------------------------------------------------------------------
+# Wreck data — 35 curated EIC wreck records
+# ---------------------------------------------------------------------------
+# Each tuple: (num, voyage_id, ship, loss_date, loss_cause, loss_location,
+#               region, status, lat, lon, unc_km, depth_m, tonnage, particulars)
+WRECKS_RAW = [
+    (1, "eic:0004", "Trades Increase", "1613-01-15", "fire",
+     "Bantam harbour, Java", "southeast_asia", "unfound",
+     -6.05, 106.15, 5, None, 1100,
+     "Largest English ship of her time. Damaged and abandoned at Bantam. "
+     "Caught fire and burned at her moorings. A catastrophic loss."),
+    (2, "eic:0007", "Globe", "1620-10-01", "conflict",
+     "Banda Islands, Spice Islands", "southeast_asia", "unfound",
+     -4.53, 129.90, 30, None, 300,
+     "Lost during the Anglo-Dutch conflict in the Banda Islands."),
+    (3, "eic:0025", "Mocha", "1698-01-30", "captured",
+     "Caribbean Sea", "caribbean", "unfound",
+     17.0, -65.0, 200, None, 350,
+     "Captain Kidd's vessel involved in piracy. Eventually captured."),
+    (4, "eic:0041", "Dodington", "1755-07-17", "storm",
+     "Bird Island, Algoa Bay, South Africa", "cape", "found",
+     -33.85, 26.28, 1, 12, 499,
+     "Wrecked on Bird Island during outward voyage to Madras. Carried gold "
+     "pagodas for the garrison. Wreck discovered in 1977 by Dave Allen. "
+     "Gold coins and artifacts recovered."),
+    (5, "eic:0049", "Royal Captain", "1773-08-25", "storm",
+     "near Robben Island, Cape of Good Hope", "cape", "unfound",
+     -33.80, 18.37, 5, None, 800,
+     "Wrecked near Robben Island in a severe storm. All crew saved. "
+     "Ship was a total loss."),
+    (6, "eic:0052", "Grosvenor", "1782-08-04", "grounding",
+     "coast of Pondoland, South Africa", "cape", "approximate",
+     -31.42, 29.98, 2, 10, 729,
+     "Struck a reef off the Transkei coast. The survivors' overland march "
+     "toward Cape Town is one of the most famous shipwreck stories. "
+     "Many perished; some were absorbed into local communities. Rumoured "
+     "to carry the Peacock Throne jewels. Wreck partially located."),
+    (7, "eic:0053", "Halsewell", "1786-01-06", "storm",
+     "Seacombe, Isle of Purbeck, Dorset", "english_channel", "found",
+     50.59, -2.05, 0.5, 5, 758,
+     "Struck the cliffs at Seacombe during a severe gale. Captain Pierce, "
+     "his two daughters, and ~168 others perished. One of the most widely "
+     "reported shipwrecks of the 18th century. Wreck site located."),
+    (8, "eic:0054", "Guardian", "1789-12-13", "iceberg",
+     "south of Cape of Good Hope, Southern Ocean", "cape", "unfound",
+     -43.0, 24.0, 100, None, 600,
+     "Struck an iceberg south of the Cape. Lt. Riou kept the sinking vessel "
+     "afloat for weeks. One of the earliest recorded iceberg collisions."),
+    (9, "eic:0055", "Winterton", "1792-08-20", "grounding",
+     "reef off coast of Madagascar", "indian_ocean", "unfound",
+     -22.30, 43.30, 20, None, 850,
+     "Wrecked on a reef off the coast of Madagascar. Most survived but "
+     "endured months stranded before rescue."),
+    (10, "eic:0062", "Earl of Abergavenny", "1805-02-05", "grounding",
+     "Shambles Bank, off Weymouth, Dorset", "english_channel", "found",
+     50.52, -2.38, 1, 12, 1200,
+     "Struck the Shambles bank in heavy weather. Captain John Wordsworth "
+     "(brother of poet William Wordsworth) and ~260 others drowned. "
+     "Wreck located and partially excavated."),
+    (11, "eic:0068", "Arniston", "1815-05-30", "storm",
+     "Waenhuiskrans, near Cape Agulhas, South Africa", "cape", "found",
+     -34.67, 20.22, 1, 8, 1200,
+     "Wrecked in a violent storm. Only 6 of 378 aboard survived. "
+     "344 soldiers and invalids among the dead. The nearby town was "
+     "renamed Arniston in memory."),
+    (12, "eic:0072", "Kent", "1825-03-01", "fire",
+     "Bay of Biscay, Atlantic Ocean", "atlantic", "unfound",
+     47.0, -8.0, 50, None, 1350,
+     "Caught fire in the Bay of Biscay. 81 lives lost of 641 aboard. "
+     "Most rescued by the brig Cambria. Captain Cobb was among the last "
+     "to leave the burning ship."),
+    (13, "eic:0125", "Dutton", "1786-01-26", "storm",
+     "Plymouth Sound, Devon", "english_channel", "found",
+     50.36, -4.14, 0.5, 5, 755,
+     "Driven ashore in Plymouth Sound during a gale. All rescued, "
+     "largely due to Sir Edward Pellew (later Lord Exmouth)."),
+    (14, None, "Abergavenny", "1808-09-01", "grounding",
+     "off the coast of India", "indian_ocean", "unfound",
+     12.0, 80.0, 50, None, 600,
+     "An earlier ship of this name lost on the Indian coast."),
+    (15, None, "Northumberland", "1712-08-15", "storm",
+     "Mozambique Channel", "indian_ocean", "unfound",
+     -15.0, 41.0, 100, None, 500,
+     "Lost in a storm in the Mozambique Channel."),
+    (16, None, "Prince of Wales", "1743-07-20", "storm",
+     "Malabar Coast, India", "indian_ocean", "unfound",
+     10.0, 75.5, 30, None, 600,
+     "Wrecked on the Malabar Coast during monsoon."),
+    (17, None, "Albion", "1765-09-10", "grounding",
+     "Sunda Strait, Java", "southeast_asia", "unfound",
+     -6.10, 105.90, 20, None, 700,
+     "Wrecked in the treacherous Sunda Strait."),
+    (18, None, "Ajax", "1778-12-05", "storm",
+     "Table Bay, Cape of Good Hope", "cape", "unfound",
+     -33.90, 18.42, 5, None, 800,
+     "Driven ashore in Table Bay during a severe gale."),
+    (19, None, "Hampshire", "1785-03-22", "storm",
+     "off the coast of Natal, South Africa", "cape", "unfound",
+     -29.5, 31.5, 30, None, 600,
+     "Wrecked on the Natal coast during a storm."),
+    (20, None, "Hercules", "1796-06-15", "grounding",
+     "Bassas da India, Mozambique Channel", "indian_ocean", "unfound",
+     -21.5, 39.7, 10, None, 900,
+     "Wrecked on the Bassas da India atoll in the Mozambique Channel."),
+    (21, None, "Cabalva", "1818-11-12", "storm",
+     "off Mauritius", "indian_ocean", "unfound",
+     -20.3, 57.5, 15, None, 700,
+     "Lost in a cyclone near Mauritius."),
+    (22, None, "Fame", "1824-07-08", "grounding",
+     "Sunda Strait, Java", "southeast_asia", "unfound",
+     -6.08, 105.88, 10, None, 800,
+     "Another casualty of the dangerous Sunda Strait passage."),
+    (23, None, "Lady Munro", "1833-02-28", "storm",
+     "off the coast of Ceylon", "indian_ocean", "unfound",
+     7.0, 80.0, 40, None, 600,
+     "Wrecked in a storm off Ceylon."),
+    (24, None, "Mermaid", "1809-10-20", "grounding",
+     "Torres Strait, Australia", "pacific", "unfound",
+     -10.5, 142.0, 30, None, 500,
+     "Wrecked navigating the dangerous Torres Strait."),
+    (25, None, "Lord Melville", "1802-05-15", "storm",
+     "off the coast of Madagascar", "indian_ocean", "unfound",
+     -23.0, 44.0, 50, None, 800,
+     "Lost in a cyclone off the coast of Madagascar."),
+    (26, None, "Blenden Hall", "1821-08-23", "grounding",
+     "Inaccessible Island, Tristan da Cunha", "south_atlantic", "approximate",
+     -37.30, -12.68, 2, None, 500,
+     "Wrecked on Inaccessible Island. Crew survived on the island for "
+     "months before rescue."),
+    (27, None, "Duke of Portland", "1799-07-12", "storm",
+     "Kattegat, Denmark", "north_sea", "unfound",
+     57.0, 11.5, 20, None, 600,
+     "Lost in a storm in the Kattegat while under convoy."),
+    (28, None, "Comet", "1783-04-18", "storm",
+     "off Cape Guardafui, Somalia", "arabian_sea", "unfound",
+     12.0, 51.3, 30, None, 500,
+     "Wrecked near the Horn of Africa."),
+    (29, None, "Colebrooke", "1827-11-05", "storm",
+     "off the coast of Burma", "southeast_asia", "unfound",
+     16.0, 95.0, 40, None, 700,
+     "Lost during monsoon off the Burmese coast."),
+    (30, None, "Cirencester", "1769-08-22", "fire",
+     "Indian Ocean, west of Sumatra", "indian_ocean", "unfound",
+     -2.0, 95.0, 100, None, 600,
+     "Caught fire in the Indian Ocean. Crew took to the boats."),
+    (31, None, "York", "1758-06-10", "storm",
+     "Bay of Bengal", "indian_ocean", "unfound",
+     15.0, 85.0, 50, None, 700,
+     "Lost in a cyclone in the Bay of Bengal."),
+    (32, None, "Pelham", "1761-01-20", "grounding",
+     "reef near Mauritius", "indian_ocean", "unfound",
+     -20.2, 57.6, 10, None, 600,
+     "Wrecked on a reef near Mauritius."),
+    (33, None, "Essex", "1714-09-15", "storm",
+     "off the coast of Oman", "arabian_sea", "unfound",
+     23.0, 58.0, 50, None, 400,
+     "Lost in a storm in the Arabian Sea."),
+    (34, None, "Britannia", "1805-09-10", "captured",
+     "off the coast of France", "english_channel", "unfound",
+     48.0, -5.0, 30, None, 700,
+     "Captured by a French privateer during the Napoleonic Wars."),
+    (35, None, "Resolution", "1812-03-15", "storm",
+     "Agulhas Bank, South Africa", "cape", "unfound",
+     -35.0, 20.5, 30, None, 800,
+     "Lost on the treacherous Agulhas Bank during a severe storm."),
+]
+
+
+def build_wrecks() -> list[dict]:
+    """Return ~35 curated EIC wreck records."""
+    wrecks = []
+    for row in WRECKS_RAW:
+        (num, vid, ship, loss_date, cause, location,
+         region, status, lat, lon, unc, depth, tons, particulars) = row
+        wrecks.append({
+            "wreck_id": f"eic_wreck:{num:04d}",
+            "voyage_id": vid,
+            "ship_name": ship,
+            "loss_date": loss_date,
+            "loss_cause": cause,
+            "loss_location": location,
+            "region": region,
+            "status": status,
+            "position": {"lat": lat, "lon": lon, "uncertainty_km": unc},
+            "depth_estimate_m": depth,
+            "tonnage": tons,
+            "archive": ARCHIVE,
+            "particulars": particulars,
+        })
+    return wrecks
+
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
+def main() -> None:
+    print("=" * 60)
+    print("EIC Data Generation -- chuk-mcp-maritime-archives")
+    print("=" * 60)
+    print(f"\nData directory: {DATA_DIR}\n")
+
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+
+    # -- Voyages --
+    print("Step 1: Generating EIC voyage records ...")
+    voyages = build_voyages()
+    with open(VOYAGES_OUTPUT, "w") as f:
+        json.dump(voyages, f, indent=2, ensure_ascii=False)
+    print(f"  {VOYAGES_OUTPUT}")
+    print(f"  {len(voyages)} voyages written ({VOYAGES_OUTPUT.stat().st_size:,} bytes)")
+
+    # Validate
+    expected_ids = {f"eic:{i:04d}" for i in range(1, len(voyages) + 1)}
+    actual_ids = {v["voyage_id"] for v in voyages}
+    assert expected_ids == actual_ids, f"ID mismatch: {expected_ids - actual_ids}"
+    for v in voyages:
+        assert v["archive"] == ARCHIVE
+
+    fates = {}
+    for v in voyages:
+        fates[v["fate"]] = fates.get(v["fate"], 0) + 1
+    print(f"  Fate breakdown: {fates}")
+
+    dates = [v["departure_date"] for v in voyages if v.get("departure_date")]
+    print(f"  Date range: {min(dates)} to {max(dates)}")
+
+    # -- Wrecks --
+    print("\nStep 2: Generating EIC wreck records ...")
+    wrecks = build_wrecks()
+    with open(WRECKS_OUTPUT, "w") as f:
+        json.dump(wrecks, f, indent=2, ensure_ascii=False)
+    print(f"  {WRECKS_OUTPUT}")
+    print(f"  {len(wrecks)} wrecks written ({WRECKS_OUTPUT.stat().st_size:,} bytes)")
+
+    expected_wids = {f"eic_wreck:{i:04d}" for i in range(1, len(wrecks) + 1)}
+    actual_wids = {w["wreck_id"] for w in wrecks}
+    assert expected_wids == actual_wids, f"Wreck ID mismatch"
+    for w in wrecks:
+        assert w["archive"] == ARCHIVE
+
+    causes = {}
+    for w in wrecks:
+        causes[w["loss_cause"]] = causes.get(w["loss_cause"], 0) + 1
+    print(f"  Loss causes: {causes}")
+
+    print(f"\n{'=' * 60}")
+    print("EIC data generation complete!")
+    print(f"  Voyages: {len(voyages)} records")
+    print(f"  Wrecks:  {len(wrecks)} records")
+    print(f"{'=' * 60}")
+
+
+if __name__ == "__main__":
+    main()

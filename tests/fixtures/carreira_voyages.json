@@ -1,0 +1,31 @@
+[
+  {
+    "voyage_id": "carreira:0001",
+    "ship_name": "Sao Gabriel",
+    "captain": "Vasco da Gama",
+    "tonnage": 178,
+    "departure_date": "1497-07-08",
+    "departure_port": "Lisbon",
+    "destination_port": "Calicut",
+    "arrival_date": "1498-05-20",
+    "fate": "completed",
+    "particulars": "First Portuguese voyage to India. Fleet of four ships departed Lisbon, arrived Calicut after rounding the Cape of Good Hope.",
+    "archive": "carreira",
+    "armada_year": 1497,
+    "fleet_commander": "Vasco da Gama"
+  },
+  {
+    "voyage_id": "carreira:0002",
+    "ship_name": "Sao Joao",
+    "captain": "Manuel de Sousa Sepulveda",
+    "tonnage": 400,
+    "departure_date": "1552-02-03",
+    "departure_port": "Cochin",
+    "destination_port": "Lisbon",
+    "fate": "wrecked",
+    "particulars": "Wrecked on the Natal coast, South Africa. One of the most famous Portuguese shipwrecks, recorded in Historia Tragico-Maritima.",
+    "archive": "carreira",
+    "armada_year": 1552,
+    "fleet_commander": null
+  }
+]

@@ -115,6 +115,7 @@ class VoyageInfo(BaseModel):
     destination_port: str | None = None
     fate: str | None = None
     summary: str | None = None
+    archive: str | None = None
 
 
 class VoyageSearchResponse(BaseModel):
@@ -129,7 +130,8 @@ class VoyageSearchResponse(BaseModel):
         lines = [self.message, ""]
         for v in self.voyages:
             fate_str = f" [{v.fate}]" if v.fate else ""
-            lines.append(f"  {v.voyage_id}: {v.ship_name}{fate_str}")
+            archive_str = f" ({v.archive})" if v.archive else ""
+            lines.append(f"  {v.voyage_id}: {v.ship_name}{fate_str}{archive_str}")
             if v.departure_port and v.departure_date:
                 lines.append(
                     f"    {v.departure_port} ({v.departure_date}) -> {v.destination_port or '?'}"
@@ -263,6 +265,7 @@ class WreckInfo(BaseModel):
     region: str | None = None
     status: str | None = None
     position: dict[str, Any] | None = None
+    archive: str | None = None
 
 
 class WreckSearchResponse(BaseModel):

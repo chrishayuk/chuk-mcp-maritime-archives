@@ -1,15 +1,23 @@
 """Archive data source clients."""
 
 from .base import BaseArchiveClient
-from .das_client import DASClient
-from .crew_client import CrewClient
 from .cargo_client import CargoClient
+from .carreira_client import CarreiraClient
+from .crew_client import CrewClient
+from .das_client import DASClient
+from .eic_client import EICClient
+from .galleon_client import GalleonClient
+from .soic_client import SOICClient
 from .wreck_client import WreckClient
 
 __all__ = [
     "BaseArchiveClient",
-    "DASClient",
-    "CrewClient",
     "CargoClient",
+    "CarreiraClient",
+    "CrewClient",
+    "DASClient",
+    "EICClient",
+    "GalleonClient",
+    "SOICClient",
     "WreckClient",
 ]

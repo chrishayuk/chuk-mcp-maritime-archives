@@ -1,0 +1,667 @@
+[
+  {
+    "wreck_id": "eic_wreck:0001",
+    "voyage_id": "eic:0004",
+    "ship_name": "Trades Increase",
+    "loss_date": "1613-01-15",
+    "loss_cause": "fire",
+    "loss_location": "Bantam harbour, Java",
+    "region": "southeast_asia",
+    "status": "unfound",
+    "position": {
+      "lat": -6.05,
+      "lon": 106.15,
+      "uncertainty_km": 5
+    },
+    "depth_estimate_m": null,
+    "tonnage": 1100,
+    "archive": "eic",
+    "particulars": "Largest English ship of her time. Damaged and abandoned at Bantam. Caught fire and burned at her moorings. A catastrophic loss."
+  },
+  {
+    "wreck_id": "eic_wreck:0002",
+    "voyage_id": "eic:0007",
+    "ship_name": "Globe",
+    "loss_date": "1620-10-01",
+    "loss_cause": "conflict",
+    "loss_location": "Banda Islands, Spice Islands",
+    "region": "southeast_asia",
+    "status": "unfound",
+    "position": {
+      "lat": -4.53,
+      "lon": 129.9,
+      "uncertainty_km": 30
+    },
+    "depth_estimate_m": null,
+    "tonnage": 300,
+    "archive": "eic",
+    "particulars": "Lost during the Anglo-Dutch conflict in the Banda Islands."
+  },
+  {
+    "wreck_id": "eic_wreck:0003",
+    "voyage_id": "eic:0025",
+    "ship_name": "Mocha",
+    "loss_date": "1698-01-30",
+    "loss_cause": "captured",
+    "loss_location": "Caribbean Sea",
+    "region": "caribbean",
+    "status": "unfound",
+    "position": {
+      "lat": 17.0,
+      "lon": -65.0,
+      "uncertainty_km": 200
+    },
+    "depth_estimate_m": null,
+    "tonnage": 350,
+    "archive": "eic",
+    "particulars": "Captain Kidd's vessel involved in piracy. Eventually captured."
+  },
+  {
+    "wreck_id": "eic_wreck:0004",
+    "voyage_id": "eic:0041",
+    "ship_name": "Dodington",
+    "loss_date": "1755-07-17",
+    "loss_cause": "storm",
+    "loss_location": "Bird Island, Algoa Bay, South Africa",
+    "region": "cape",
+    "status": "found",
+    "position": {
+      "lat": -33.85,
+      "lon": 26.28,
+      "uncertainty_km": 1
+    },
+    "depth_estimate_m": 12,
+    "tonnage": 499,
+    "archive": "eic",
+    "particulars": "Wrecked on Bird Island during outward voyage to Madras. Carried gold pagodas for the garrison. Wreck discovered in 1977 by Dave Allen. Gold coins and artifacts recovered."
+  },
+  {
+    "wreck_id": "eic_wreck:0005",
+    "voyage_id": "eic:0049",
+    "ship_name": "Royal Captain",
+    "loss_date": "1773-08-25",
+    "loss_cause": "storm",
+    "loss_location": "near Robben Island, Cape of Good Hope",
+    "region": "cape",
+    "status": "unfound",
+    "position": {
+      "lat": -33.8,
+      "lon": 18.37,
+      "uncertainty_km": 5
+    },
+    "depth_estimate_m": null,
+    "tonnage": 800,
+    "archive": "eic",
+    "particulars": "Wrecked near Robben Island in a severe storm. All crew saved. Ship was a total loss."
+  },
+  {
+    "wreck_id": "eic_wreck:0006",
+    "voyage_id": "eic:0052",
+    "ship_name": "Grosvenor",
+    "loss_date": "1782-08-04",
+    "loss_cause": "grounding",
+    "loss_location": "coast of Pondoland, South Africa",
+    "region": "cape",
+    "status": "approximate",
+    "position": {
+      "lat": -31.42,
+      "lon": 29.98,
+      "uncertainty_km": 2
+    },
+    "depth_estimate_m": 10,
+    "tonnage": 729,
+    "archive": "eic",
+    "particulars": "Struck a reef off the Transkei coast. The survivors' overland march toward Cape Town is one of the most famous shipwreck stories. Many perished; some were absorbed into local communities. Rumoured to carry the Peacock Throne jewels. Wreck partially located."
+  },
+  {
+    "wreck_id": "eic_wreck:0007",
+    "voyage_id": "eic:0053",
+    "ship_name": "Halsewell",
+    "loss_date": "1786-01-06",
+    "loss_cause": "storm",
+    "loss_location": "Seacombe, Isle of Purbeck, Dorset",
+    "region": "english_channel",
+    "status": "found",
+    "position": {
+      "lat": 50.59,
+      "lon": -2.05,
+      "uncertainty_km": 0.5
+    },
+    "depth_estimate_m": 5,
+    "tonnage": 758,
+    "archive": "eic",
+    "particulars": "Struck the cliffs at Seacombe during a severe gale. Captain Pierce, his two daughters, and ~168 others perished. One of the most widely reported shipwrecks of the 18th century. Wreck site located."
+  },
+  {
+    "wreck_id": "eic_wreck:0008",
+    "voyage_id": "eic:0054",
+    "ship_name": "Guardian",
+    "loss_date": "1789-12-13",
+    "loss_cause": "iceberg",
+    "loss_location": "south of Cape of Good Hope, Southern Ocean",
+    "region": "cape",
+    "status": "unfound",
+    "position": {
+      "lat": -43.0,
+      "lon": 24.0,
+      "uncertainty_km": 100
+    },
+    "depth_estimate_m": null,
+    "tonnage": 600,
+    "archive": "eic",
+    "particulars": "Struck an iceberg south of the Cape. Lt. Riou kept the sinking vessel afloat for weeks. One of the earliest recorded iceberg collisions."
+  },
+  {
+    "wreck_id": "eic_wreck:0009",
+    "voyage_id": "eic:0055",
+    "ship_name": "Winterton",
+    "loss_date": "1792-08-20",
+    "loss_cause": "grounding",
+    "loss_location": "reef off coast of Madagascar",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -22.3,
+      "lon": 43.3,
+      "uncertainty_km": 20
+    },
+    "depth_estimate_m": null,
+    "tonnage": 850,
+    "archive": "eic",
+    "particulars": "Wrecked on a reef off the coast of Madagascar. Most survived but endured months stranded before rescue."
+  },
+  {
+    "wreck_id": "eic_wreck:0010",
+    "voyage_id": "eic:0062",
+    "ship_name": "Earl of Abergavenny",
+    "loss_date": "1805-02-05",
+    "loss_cause": "grounding",
+    "loss_location": "Shambles Bank, off Weymouth, Dorset",
+    "region": "english_channel",
+    "status": "found",
+    "position": {
+      "lat": 50.52,
+      "lon": -2.38,
+      "uncertainty_km": 1
+    },
+    "depth_estimate_m": 12,
+    "tonnage": 1200,
+    "archive": "eic",
+    "particulars": "Struck the Shambles bank in heavy weather. Captain John Wordsworth (brother of poet William Wordsworth) and ~260 others drowned. Wreck located and partially excavated."
+  },
+  {
+    "wreck_id": "eic_wreck:0011",
+    "voyage_id": "eic:0068",
+    "ship_name": "Arniston",
+    "loss_date": "1815-05-30",
+    "loss_cause": "storm",
+    "loss_location": "Waenhuiskrans, near Cape Agulhas, South Africa",
+    "region": "cape",
+    "status": "found",
+    "position": {
+      "lat": -34.67,
+      "lon": 20.22,
+      "uncertainty_km": 1
+    },
+    "depth_estimate_m": 8,
+    "tonnage": 1200,
+    "archive": "eic",
+    "particulars": "Wrecked in a violent storm. Only 6 of 378 aboard survived. 344 soldiers and invalids among the dead. The nearby town was renamed Arniston in memory."
+  },
+  {
+    "wreck_id": "eic_wreck:0012",
+    "voyage_id": "eic:0072",
+    "ship_name": "Kent",
+    "loss_date": "1825-03-01",
+    "loss_cause": "fire",
+    "loss_location": "Bay of Biscay, Atlantic Ocean",
+    "region": "atlantic",
+    "status": "unfound",
+    "position": {
+      "lat": 47.0,
+      "lon": -8.0,
+      "uncertainty_km": 50
+    },
+    "depth_estimate_m": null,
+    "tonnage": 1350,
+    "archive": "eic",
+    "particulars": "Caught fire in the Bay of Biscay. 81 lives lost of 641 aboard. Most rescued by the brig Cambria. Captain Cobb was among the last to leave the burning ship."
+  },
+  {
+    "wreck_id": "eic_wreck:0013",
+    "voyage_id": "eic:0125",
+    "ship_name": "Dutton",
+    "loss_date": "1786-01-26",
+    "loss_cause": "storm",
+    "loss_location": "Plymouth Sound, Devon",
+    "region": "english_channel",
+    "status": "found",
+    "position": {
+      "lat": 50.36,
+      "lon": -4.14,
+      "uncertainty_km": 0.5
+    },
+    "depth_estimate_m": 5,
+    "tonnage": 755,
+    "archive": "eic",
+    "particulars": "Driven ashore in Plymouth Sound during a gale. All rescued, largely due to Sir Edward Pellew (later Lord Exmouth)."
+  },
+  {
+    "wreck_id": "eic_wreck:0014",
+    "voyage_id": null,
+    "ship_name": "Abergavenny",
+    "loss_date": "1808-09-01",
+    "loss_cause": "grounding",
+    "loss_location": "off the coast of India",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": 12.0,
+      "lon": 80.0,
+      "uncertainty_km": 50
+    },
+    "depth_estimate_m": null,
+    "tonnage": 600,
+    "archive": "eic",
+    "particulars": "An earlier ship of this name lost on the Indian coast."
+  },
+  {
+    "wreck_id": "eic_wreck:0015",
+    "voyage_id": null,
+    "ship_name": "Northumberland",
+    "loss_date": "1712-08-15",
+    "loss_cause": "storm",
+    "loss_location": "Mozambique Channel",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -15.0,
+      "lon": 41.0,
+      "uncertainty_km": 100
+    },
+    "depth_estimate_m": null,
+    "tonnage": 500,
+    "archive": "eic",
+    "particulars": "Lost in a storm in the Mozambique Channel."
+  },
+  {
+    "wreck_id": "eic_wreck:0016",
+    "voyage_id": null,
+    "ship_name": "Prince of Wales",
+    "loss_date": "1743-07-20",
+    "loss_cause": "storm",
+    "loss_location": "Malabar Coast, India",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": 10.0,
+      "lon": 75.5,
+      "uncertainty_km": 30
+    },
+    "depth_estimate_m": null,
+    "tonnage": 600,
+    "archive": "eic",
+    "particulars": "Wrecked on the Malabar Coast during monsoon."
+  },
+  {
+    "wreck_id": "eic_wreck:0017",
+    "voyage_id": null,
+    "ship_name": "Albion",
+    "loss_date": "1765-09-10",
+    "loss_cause": "grounding",
+    "loss_location": "Sunda Strait, Java",
+    "region": "southeast_asia",
+    "status": "unfound",
+    "position": {
+      "lat": -6.1,
+      "lon": 105.9,
+      "uncertainty_km": 20
+    },
+    "depth_estimate_m": null,
+    "tonnage": 700,
+    "archive": "eic",
+    "particulars": "Wrecked in the treacherous Sunda Strait."
+  },
+  {
+    "wreck_id": "eic_wreck:0018",
+    "voyage_id": null,
+    "ship_name": "Ajax",
+    "loss_date": "1778-12-05",
+    "loss_cause": "storm",
+    "loss_location": "Table Bay, Cape of Good Hope",
+    "region": "cape",
+    "status": "unfound",
+    "position": {
+      "lat": -33.9,
+      "lon": 18.42,
+      "uncertainty_km": 5
+    },
+    "depth_estimate_m": null,
+    "tonnage": 800,
+    "archive": "eic",
+    "particulars": "Driven ashore in Table Bay during a severe gale."
+  },
+  {
+    "wreck_id": "eic_wreck:0019",
+    "voyage_id": null,
+    "ship_name": "Hampshire",
+    "loss_date": "1785-03-22",
+    "loss_cause": "storm",
+    "loss_location": "off the coast of Natal, South Africa",
+    "region": "cape",
+    "status": "unfound",
+    "position": {
+      "lat": -29.5,
+      "lon": 31.5,
+      "uncertainty_km": 30
+    },
+    "depth_estimate_m": null,
+    "tonnage": 600,
+    "archive": "eic",
+    "particulars": "Wrecked on the Natal coast during a storm."
+  },
+  {
+    "wreck_id": "eic_wreck:0020",
+    "voyage_id": null,
+    "ship_name": "Hercules",
+    "loss_date": "1796-06-15",
+    "loss_cause": "grounding",
+    "loss_location": "Bassas da India, Mozambique Channel",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -21.5,
+      "lon": 39.7,
+      "uncertainty_km": 10
+    },
+    "depth_estimate_m": null,
+    "tonnage": 900,
+    "archive": "eic",
+    "particulars": "Wrecked on the Bassas da India atoll in the Mozambique Channel."
+  },
+  {
+    "wreck_id": "eic_wreck:0021",
+    "voyage_id": null,
+    "ship_name": "Cabalva",
+    "loss_date": "1818-11-12",
+    "loss_cause": "storm",
+    "loss_location": "off Mauritius",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -20.3,
+      "lon": 57.5,
+      "uncertainty_km": 15
+    },
+    "depth_estimate_m": null,
+    "tonnage": 700,
+    "archive": "eic",
+    "particulars": "Lost in a cyclone near Mauritius."
+  },
+  {
+    "wreck_id": "eic_wreck:0022",
+    "voyage_id": null,
+    "ship_name": "Fame",
+    "loss_date": "1824-07-08",
+    "loss_cause": "grounding",
+    "loss_location": "Sunda Strait, Java",
+    "region": "southeast_asia",
+    "status": "unfound",
+    "position": {
+      "lat": -6.08,
+      "lon": 105.88,
+      "uncertainty_km": 10
+    },
+    "depth_estimate_m": null,
+    "tonnage": 800,
+    "archive": "eic",
+    "particulars": "Another casualty of the dangerous Sunda Strait passage."
+  },
+  {
+    "wreck_id": "eic_wreck:0023",
+    "voyage_id": null,
+    "ship_name": "Lady Munro",
+    "loss_date": "1833-02-28",
+    "loss_cause": "storm",
+    "loss_location": "off the coast of Ceylon",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": 7.0,
+      "lon": 80.0,
+      "uncertainty_km": 40
+    },
+    "depth_estimate_m": null,
+    "tonnage": 600,
+    "archive": "eic",
+    "particulars": "Wrecked in a storm off Ceylon."
+  },
+  {
+    "wreck_id": "eic_wreck:0024",
+    "voyage_id": null,
+    "ship_name": "Mermaid",
+    "loss_date": "1809-10-20",
+    "loss_cause": "grounding",
+    "loss_location": "Torres Strait, Australia",
+    "region": "pacific",
+    "status": "unfound",
+    "position": {
+      "lat": -10.5,
+      "lon": 142.0,
+      "uncertainty_km": 30
+    },
+    "depth_estimate_m": null,
+    "tonnage": 500,
+    "archive": "eic",
+    "particulars": "Wrecked navigating the dangerous Torres Strait."
+  },
+  {
+    "wreck_id": "eic_wreck:0025",
+    "voyage_id": null,
+    "ship_name": "Lord Melville",
+    "loss_date": "1802-05-15",
+    "loss_cause": "storm",
+    "loss_location": "off the coast of Madagascar",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -23.0,
+      "lon": 44.0,
+      "uncertainty_km": 50
+    },
+    "depth_estimate_m": null,
+    "tonnage": 800,
+    "archive": "eic",
+    "particulars": "Lost in a cyclone off the coast of Madagascar."
+  },
+  {
+    "wreck_id": "eic_wreck:0026",
+    "voyage_id": null,
+    "ship_name": "Blenden Hall",
+    "loss_date": "1821-08-23",
+    "loss_cause": "grounding",
+    "loss_location": "Inaccessible Island, Tristan da Cunha",
+    "region": "south_atlantic",
+    "status": "approximate",
+    "position": {
+      "lat": -37.3,
+      "lon": -12.68,
+      "uncertainty_km": 2
+    },
+    "depth_estimate_m": null,
+    "tonnage": 500,
+    "archive": "eic",
+    "particulars": "Wrecked on Inaccessible Island. Crew survived on the island for months before rescue."
+  },
+  {
+    "wreck_id": "eic_wreck:0027",
+    "voyage_id": null,
+    "ship_name": "Duke of Portland",
+    "loss_date": "1799-07-12",
+    "loss_cause": "storm",
+    "loss_location": "Kattegat, Denmark",
+    "region": "north_sea",
+    "status": "unfound",
+    "position": {
+      "lat": 57.0,
+      "lon": 11.5,
+      "uncertainty_km": 20
+    },
+    "depth_estimate_m": null,
+    "tonnage": 600,
+    "archive": "eic",
+    "particulars": "Lost in a storm in the Kattegat while under convoy."
+  },
+  {
+    "wreck_id": "eic_wreck:0028",
+    "voyage_id": null,
+    "ship_name": "Comet",
+    "loss_date": "1783-04-18",
+    "loss_cause": "storm",
+    "loss_location": "off Cape Guardafui, Somalia",
+    "region": "arabian_sea",
+    "status": "unfound",
+    "position": {
+      "lat": 12.0,
+      "lon": 51.3,
+      "uncertainty_km": 30
+    },
+    "depth_estimate_m": null,
+    "tonnage": 500,
+    "archive": "eic",
+    "particulars": "Wrecked near the Horn of Africa."
+  },
+  {
+    "wreck_id": "eic_wreck:0029",
+    "voyage_id": null,
+    "ship_name": "Colebrooke",
+    "loss_date": "1827-11-05",
+    "loss_cause": "storm",
+    "loss_location": "off the coast of Burma",
+    "region": "southeast_asia",
+    "status": "unfound",
+    "position": {
+      "lat": 16.0,
+      "lon": 95.0,
+      "uncertainty_km": 40
+    },
+    "depth_estimate_m": null,
+    "tonnage": 700,
+    "archive": "eic",
+    "particulars": "Lost during monsoon off the Burmese coast."
+  },
+  {
+    "wreck_id": "eic_wreck:0030",
+    "voyage_id": null,
+    "ship_name": "Cirencester",
+    "loss_date": "1769-08-22",
+    "loss_cause": "fire",
+    "loss_location": "Indian Ocean, west of Sumatra",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -2.0,
+      "lon": 95.0,
+      "uncertainty_km": 100
+    },
+    "depth_estimate_m": null,
+    "tonnage": 600,
+    "archive": "eic",
+    "particulars": "Caught fire in the Indian Ocean. Crew took to the boats."
+  },
+  {
+    "wreck_id": "eic_wreck:0031",
+    "voyage_id": null,
+    "ship_name": "York",
+    "loss_date": "1758-06-10",
+    "loss_cause": "storm",
+    "loss_location": "Bay of Bengal",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": 15.0,
+      "lon": 85.0,
+      "uncertainty_km": 50
+    },
+    "depth_estimate_m": null,
+    "tonnage": 700,
+    "archive": "eic",
+    "particulars": "Lost in a cyclone in the Bay of Bengal."
+  },
+  {
+    "wreck_id": "eic_wreck:0032",
+    "voyage_id": null,
+    "ship_name": "Pelham",
+    "loss_date": "1761-01-20",
+    "loss_cause": "grounding",
+    "loss_location": "reef near Mauritius",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -20.2,
+      "lon": 57.6,
+      "uncertainty_km": 10
+    },
+    "depth_estimate_m": null,
+    "tonnage": 600,
+    "archive": "eic",
+    "particulars": "Wrecked on a reef near Mauritius."
+  },
+  {
+    "wreck_id": "eic_wreck:0033",
+    "voyage_id": null,
+    "ship_name": "Essex",
+    "loss_date": "1714-09-15",
+    "loss_cause": "storm",
+    "loss_location": "off the coast of Oman",
+    "region": "arabian_sea",
+    "status": "unfound",
+    "position": {
+      "lat": 23.0,
+      "lon": 58.0,
+      "uncertainty_km": 50
+    },
+    "depth_estimate_m": null,
+    "tonnage": 400,
+    "archive": "eic",
+    "particulars": "Lost in a storm in the Arabian Sea."
+  },
+  {
+    "wreck_id": "eic_wreck:0034",
+    "voyage_id": null,
+    "ship_name": "Britannia",
+    "loss_date": "1805-09-10",
+    "loss_cause": "captured",
+    "loss_location": "off the coast of France",
+    "region": "english_channel",
+    "status": "unfound",
+    "position": {
+      "lat": 48.0,
+      "lon": -5.0,
+      "uncertainty_km": 30
+    },
+    "depth_estimate_m": null,
+    "tonnage": 700,
+    "archive": "eic",
+    "particulars": "Captured by a French privateer during the Napoleonic Wars."
+  },
+  {
+    "wreck_id": "eic_wreck:0035",
+    "voyage_id": null,
+    "ship_name": "Resolution",
+    "loss_date": "1812-03-15",
+    "loss_cause": "storm",
+    "loss_location": "Agulhas Bank, South Africa",
+    "region": "cape",
+    "status": "unfound",
+    "position": {
+      "lat": -35.0,
+      "lon": 20.5,
+      "uncertainty_km": 30
+    },
+    "depth_estimate_m": null,
+    "tonnage": 800,
+    "archive": "eic",
+    "particulars": "Lost on the treacherous Agulhas Bank during a severe storm."
+  }
+]

@@ -1,0 +1,477 @@
+[
+  {
+    "wreck_id": "galleon_wreck:0001",
+    "archive": "galleon",
+    "voyage_id": "galleon:0006",
+    "ship_name": "Santa Ana",
+    "loss_date": "1587-11-04",
+    "loss_cause": "captured",
+    "loss_location": "Cabo San Lucas, Baja California",
+    "region": "eastern_pacific",
+    "status": "burned",
+    "position": {
+      "lat": 22.89,
+      "lon": -109.91,
+      "uncertainty_km": 10
+    },
+    "depth_estimate_m": null,
+    "tonnage": 700,
+    "particulars": "Captured and burned by the English privateer Thomas Cavendish during his circumnavigation. One of the richest prizes ever taken from the galleon trade."
+  },
+  {
+    "wreck_id": "galleon_wreck:0002",
+    "archive": "galleon",
+    "voyage_id": "galleon:0007",
+    "ship_name": "San Felipe",
+    "loss_date": "1596-10-19",
+    "loss_cause": "storm damage and seizure",
+    "loss_location": "Urado, Tosa Province, Japan",
+    "region": "western_pacific",
+    "status": "salvaged by Japanese",
+    "position": {
+      "lat": 33.52,
+      "lon": 133.54,
+      "uncertainty_km": 15
+    },
+    "depth_estimate_m": null,
+    "tonnage": 700,
+    "particulars": "Storm-damaged and driven ashore at Urado. Cargo seized by Toyotomi Hideyoshi. The incident led to the persecution and martyrdom of 26 Christians at Nagasaki in February 1597."
+  },
+  {
+    "wreck_id": "galleon_wreck:0003",
+    "archive": "galleon",
+    "voyage_id": "galleon:0009",
+    "ship_name": "San Diego",
+    "loss_date": "1600-12-14",
+    "loss_cause": "battle with Dutch",
+    "loss_location": "Fortune Island, Nasugbu, Batangas, Philippines",
+    "region": "south_china_sea",
+    "status": "discovered",
+    "position": {
+      "lat": 13.83,
+      "lon": 120.6,
+      "uncertainty_km": 2
+    },
+    "depth_estimate_m": 52,
+    "tonnage": 300,
+    "particulars": "Sunk in battle against the Dutch ship Mauritius commanded by Olivier van Noort. Over 350 lives lost. Wreck discovered by Franck Goddio in 1991; over 34,000 artifacts recovered."
+  },
+  {
+    "wreck_id": "galleon_wreck:0004",
+    "archive": "galleon",
+    "voyage_id": "galleon:0014",
+    "ship_name": "San Francisco",
+    "loss_date": "1609-09-30",
+    "loss_cause": "typhoon",
+    "loss_location": "Onjuku, Chiba Province, Japan",
+    "region": "western_pacific",
+    "status": "salvaged",
+    "position": {
+      "lat": 35.18,
+      "lon": 140.35,
+      "uncertainty_km": 5
+    },
+    "depth_estimate_m": null,
+    "tonnage": 500,
+    "particulars": "Wrecked on the coast of Japan. Former Governor Rodrigo de Vivero aboard. Led to diplomatic contacts with Tokugawa shogunate."
+  },
+  {
+    "wreck_id": "galleon_wreck:0005",
+    "archive": "galleon",
+    "voyage_id": "galleon:0020",
+    "ship_name": "Nuestra Senora de la Concepcion",
+    "loss_date": "1638-09-20",
+    "loss_cause": "typhoon",
+    "loss_location": "Agingan Point, Saipan, Mariana Islands",
+    "region": "western_pacific",
+    "status": "discovered",
+    "position": {
+      "lat": 15.15,
+      "lon": 145.7,
+      "uncertainty_km": 1
+    },
+    "depth_estimate_m": 30,
+    "tonnage": 800,
+    "particulars": "Wrecked on the reef at Agingan Point during a typhoon. Approximately 180 of 400 aboard perished. Discovered by William Mathers in 1987. Thousands of artifacts recovered, including gold jewelry, Chinese porcelain, and silver coins."
+  },
+  {
+    "wreck_id": "galleon_wreck:0006",
+    "archive": "galleon",
+    "voyage_id": "galleon:0024",
+    "ship_name": "Encarnacion",
+    "loss_date": "1645-08-15",
+    "loss_cause": "typhoon",
+    "loss_location": "San Bernardino Strait, Philippines",
+    "region": "western_pacific",
+    "status": "unfound",
+    "position": {
+      "lat": 12.55,
+      "lon": 124.2,
+      "uncertainty_km": 30
+    },
+    "depth_estimate_m": null,
+    "tonnage": 1000,
+    "particulars": "Wrecked in a typhoon near the San Bernardino Strait shortly after departure. Broke apart on a reef."
+  },
+  {
+    "wreck_id": "galleon_wreck:0007",
+    "archive": "galleon",
+    "voyage_id": "galleon:0027",
+    "ship_name": "San Jose",
+    "loss_date": "1651-09-01",
+    "loss_cause": "typhoon, presumed",
+    "loss_location": "Philippine Sea (unknown exact location)",
+    "region": "western_pacific",
+    "status": "unfound",
+    "position": {
+      "lat": 18.0,
+      "lon": 135.0,
+      "uncertainty_km": 500
+    },
+    "depth_estimate_m": null,
+    "tonnage": 500,
+    "particulars": "Departed Cavite and vanished. Presumed lost in a typhoon in the Philippine Sea. No survivors or wreckage found."
+  },
+  {
+    "wreck_id": "galleon_wreck:0008",
+    "archive": "galleon",
+    "voyage_id": "galleon:0033",
+    "ship_name": "Nuestra Senora de la Victoria",
+    "loss_date": "1668-10-01",
+    "loss_cause": "unknown, presumed storm",
+    "loss_location": "Pacific Ocean (unknown)",
+    "region": "pacific",
+    "status": "unfound",
+    "position": {
+      "lat": 25.0,
+      "lon": 155.0,
+      "uncertainty_km": 1000
+    },
+    "depth_estimate_m": null,
+    "tonnage": 500,
+    "particulars": "Vanished on the Pacific crossing without a trace. Presumed lost in a storm somewhere on the northern route."
+  },
+  {
+    "wreck_id": "galleon_wreck:0009",
+    "archive": "galleon",
+    "voyage_id": "galleon:0036",
+    "ship_name": "Santa Maria Magdalena",
+    "loss_date": "1678-08-25",
+    "loss_cause": "typhoon",
+    "loss_location": "Catanduanes Island, Philippines",
+    "region": "western_pacific",
+    "status": "unfound",
+    "position": {
+      "lat": 13.8,
+      "lon": 124.25,
+      "uncertainty_km": 20
+    },
+    "depth_estimate_m": null,
+    "tonnage": 400,
+    "particulars": "Wrecked in a typhoon near Catanduanes Island east of Luzon. Most crew survived by reaching shore."
+  },
+  {
+    "wreck_id": "galleon_wreck:0010",
+    "archive": "galleon",
+    "voyage_id": "galleon:0100",
+    "ship_name": "Nuestra Senora del Pilar",
+    "loss_date": "1690-08-10",
+    "loss_cause": "typhoon",
+    "loss_location": "San Bernardino Strait, Philippines",
+    "region": "western_pacific",
+    "status": "unfound",
+    "position": {
+      "lat": 12.55,
+      "lon": 124.1,
+      "uncertainty_km": 15
+    },
+    "depth_estimate_m": null,
+    "tonnage": 700,
+    "particulars": "Driven onto a reef in the Embocadero (San Bernardino Strait) during a typhoon. Most crew reached shore."
+  },
+  {
+    "wreck_id": "galleon_wreck:0011",
+    "archive": "galleon",
+    "voyage_id": "galleon:0040",
+    "ship_name": "Santo Cristo de Burgos",
+    "loss_date": "1693-09-01",
+    "loss_cause": "unknown",
+    "loss_location": "Pacific Ocean (unknown)",
+    "region": "pacific",
+    "status": "unfound",
+    "position": {
+      "lat": 28.0,
+      "lon": 160.0,
+      "uncertainty_km": 1500
+    },
+    "depth_estimate_m": null,
+    "tonnage": 1000,
+    "particulars": "One of the most mysterious losses. Departed Cavite July 1693 and was never seen again. Approximately 400 people lost. Cause of loss remains unknown."
+  },
+  {
+    "wreck_id": "galleon_wreck:0012",
+    "archive": "galleon",
+    "voyage_id": "galleon:0039",
+    "ship_name": "San Jose",
+    "loss_date": "1694-06-25",
+    "loss_cause": "battle with English",
+    "loss_location": "Lubang Island, Philippines",
+    "region": "south_china_sea",
+    "status": "unfound",
+    "position": {
+      "lat": 13.82,
+      "lon": 120.1,
+      "uncertainty_km": 10
+    },
+    "depth_estimate_m": null,
+    "tonnage": 900,
+    "particulars": "Sunk in battle against an English privateer squadron off Lubang Island. Battle lasted several hours. Immensely valuable cargo lost. Hundreds of lives lost."
+  },
+  {
+    "wreck_id": "galleon_wreck:0013",
+    "archive": "galleon",
+    "voyage_id": "galleon:0043",
+    "ship_name": "Encarnacion",
+    "loss_date": "1705-09-10",
+    "loss_cause": "typhoon",
+    "loss_location": "San Bernardino Strait, Philippines",
+    "region": "western_pacific",
+    "status": "unfound",
+    "position": {
+      "lat": 12.58,
+      "lon": 124.15,
+      "uncertainty_km": 20
+    },
+    "depth_estimate_m": null,
+    "tonnage": 900,
+    "particulars": "Caught in a severe typhoon near the Embocadero and driven onto rocks. Most of the crew perished."
+  },
+  {
+    "wreck_id": "galleon_wreck:0014",
+    "archive": "galleon",
+    "voyage_id": "galleon:0048",
+    "ship_name": "Sacra Familia",
+    "loss_date": "1725-09-05",
+    "loss_cause": "typhoon",
+    "loss_location": "Catanduanes Island, Philippines",
+    "region": "western_pacific",
+    "status": "unfound",
+    "position": {
+      "lat": 13.75,
+      "lon": 124.3,
+      "uncertainty_km": 15
+    },
+    "depth_estimate_m": null,
+    "tonnage": 600,
+    "particulars": "Heavily damaged by a typhoon. Limped back toward Luzon but broke apart on a reef near Catanduanes. About half the crew survived."
+  },
+  {
+    "wreck_id": "galleon_wreck:0015",
+    "archive": "galleon",
+    "voyage_id": "galleon:0051",
+    "ship_name": "Nuestra Senora de Covadonga",
+    "loss_date": "1743-06-20",
+    "loss_cause": "captured by English",
+    "loss_location": "off Cape Espiritu Santo, Philippines",
+    "region": "western_pacific",
+    "status": "captured",
+    "position": {
+      "lat": 11.58,
+      "lon": 125.5,
+      "uncertainty_km": 20
+    },
+    "depth_estimate_m": null,
+    "tonnage": 700,
+    "particulars": "Captured by Commodore George Anson's HMS Centurion. Prize contained 1,313,843 pieces of eight and 35,682 ounces of silver. The capture was a sensation in Britain. Anson later became First Lord of the Admiralty."
+  },
+  {
+    "wreck_id": "galleon_wreck:0016",
+    "archive": "galleon",
+    "voyage_id": "galleon:0099",
+    "ship_name": "Nuestra Senora de Guia",
+    "loss_date": "1755-10-01",
+    "loss_cause": "typhoon",
+    "loss_location": "western Pacific, south of Japan",
+    "region": "western_pacific",
+    "status": "unfound",
+    "position": {
+      "lat": 28.0,
+      "lon": 140.0,
+      "uncertainty_km": 200
+    },
+    "depth_estimate_m": null,
+    "tonnage": 600,
+    "particulars": "Caught in a typhoon on the northern great-circle route. Lost masts and gradually sank. Only a few crew survived."
+  },
+  {
+    "wreck_id": "galleon_wreck:0017",
+    "archive": "galleon",
+    "voyage_id": "galleon:0060",
+    "ship_name": "Santisima Trinidad",
+    "loss_date": "1762-10-30",
+    "loss_cause": "captured by British",
+    "loss_location": "off Manila Bay, Philippines",
+    "region": "south_china_sea",
+    "status": "captured",
+    "position": {
+      "lat": 14.35,
+      "lon": 120.55,
+      "uncertainty_km": 15
+    },
+    "depth_estimate_m": null,
+    "tonnage": 2000,
+    "particulars": "Captured by the British naval squadron under Admiral Samuel Cornish during the siege of Manila in the Seven Years' War. The richest prize of the Manila campaign, carrying approximately 3 million pesos in cargo."
+  },
+  {
+    "wreck_id": "galleon_wreck:0018",
+    "archive": "galleon",
+    "voyage_id": "galleon:0066",
+    "ship_name": "San Carlos",
+    "loss_date": "1772-09-15",
+    "loss_cause": "typhoon",
+    "loss_location": "coast of Samar, Philippines",
+    "region": "western_pacific",
+    "status": "unfound",
+    "position": {
+      "lat": 12.0,
+      "lon": 125.0,
+      "uncertainty_km": 30
+    },
+    "depth_estimate_m": null,
+    "tonnage": 700,
+    "particulars": "Struck by typhoon east of the Philippines. Turned back but wrecked on the coast of Samar. Most crew survived."
+  },
+  {
+    "wreck_id": "galleon_wreck:0019",
+    "archive": "galleon",
+    "voyage_id": "galleon:0081",
+    "ship_name": "San Fernando",
+    "loss_date": "1798-10-01",
+    "loss_cause": "typhoon",
+    "loss_location": "Philippine Sea",
+    "region": "western_pacific",
+    "status": "unfound",
+    "position": {
+      "lat": 20.0,
+      "lon": 132.0,
+      "uncertainty_km": 200
+    },
+    "depth_estimate_m": null,
+    "tonnage": 800,
+    "particulars": "Masts carried away in typhoon. Drifted helplessly and sank. Some crew rescued after drifting in boats for weeks."
+  },
+  {
+    "wreck_id": "galleon_wreck:0020",
+    "archive": "galleon",
+    "voyage_id": "galleon:0017",
+    "ship_name": "San Nicolas",
+    "loss_date": "1625-09-01",
+    "loss_cause": "typhoon, presumed",
+    "loss_location": "Philippine Sea (unknown)",
+    "region": "western_pacific",
+    "status": "unfound",
+    "position": {
+      "lat": 16.0,
+      "lon": 130.0,
+      "uncertainty_km": 500
+    },
+    "depth_estimate_m": null,
+    "tonnage": 400,
+    "particulars": "Departed Cavite and vanished. Presumed lost in a typhoon. No wreckage or survivors ever found."
+  },
+  {
+    "wreck_id": "galleon_wreck:0021",
+    "archive": "galleon",
+    "voyage_id": null,
+    "ship_name": "Pilar de Zaragoza",
+    "loss_date": "1750-09-25",
+    "loss_cause": "typhoon",
+    "loss_location": "Ticao Island, Philippines",
+    "region": "western_pacific",
+    "status": "unfound",
+    "position": {
+      "lat": 12.5,
+      "lon": 123.7,
+      "uncertainty_km": 10
+    },
+    "depth_estimate_m": null,
+    "tonnage": 600,
+    "particulars": "Small galleon wrecked on Ticao Island near the Embocadero during a typhoon. The ship was deemed too damaged to repair."
+  },
+  {
+    "wreck_id": "galleon_wreck:0022",
+    "archive": "galleon",
+    "voyage_id": null,
+    "ship_name": "Rosario",
+    "loss_date": "1690-09-15",
+    "loss_cause": "typhoon",
+    "loss_location": "Catanduanes coast, Philippines",
+    "region": "western_pacific",
+    "status": "unfound",
+    "position": {
+      "lat": 13.85,
+      "lon": 124.4,
+      "uncertainty_km": 15
+    },
+    "depth_estimate_m": null,
+    "tonnage": 500,
+    "particulars": "Companion galleon wrecked in the same typhoon season as the Nuestra Senora del Pilar. Driven ashore on Catanduanes."
+  },
+  {
+    "wreck_id": "galleon_wreck:0023",
+    "archive": "galleon",
+    "voyage_id": null,
+    "ship_name": "San Isidro",
+    "loss_date": "1735-09-10",
+    "loss_cause": "typhoon",
+    "loss_location": "San Bernardino Strait, Philippines",
+    "region": "western_pacific",
+    "status": "unfound",
+    "position": {
+      "lat": 12.55,
+      "lon": 124.25,
+      "uncertainty_km": 20
+    },
+    "depth_estimate_m": null,
+    "tonnage": 700,
+    "particulars": "Wrecked in the San Bernardino Strait during the typhoon season. The Embocadero was one of the most dangerous stretches of the galleon route, where many ships were lost exiting the Philippines."
+  },
+  {
+    "wreck_id": "galleon_wreck:0024",
+    "archive": "galleon",
+    "voyage_id": null,
+    "ship_name": "San Cristobal",
+    "loss_date": "1600-08-01",
+    "loss_cause": "storm",
+    "loss_location": "Pacific Ocean, east of Philippines",
+    "region": "western_pacific",
+    "status": "unfound",
+    "position": {
+      "lat": 15.0,
+      "lon": 130.0,
+      "uncertainty_km": 300
+    },
+    "depth_estimate_m": null,
+    "tonnage": 400,
+    "particulars": "Lost in a storm shortly after entering the open Pacific from the San Bernardino Strait. No survivors found."
+  },
+  {
+    "wreck_id": "galleon_wreck:0025",
+    "archive": "galleon",
+    "voyage_id": null,
+    "ship_name": "San Antonio de Padua",
+    "loss_date": "1710-10-05",
+    "loss_cause": "typhoon",
+    "loss_location": "Samar coast, Philippines",
+    "region": "western_pacific",
+    "status": "unfound",
+    "position": {
+      "lat": 11.8,
+      "lon": 125.1,
+      "uncertainty_km": 25
+    },
+    "depth_estimate_m": null,
+    "tonnage": 500,
+    "particulars": "Wrecked on the coast of Samar during a late-season typhoon. The crew managed to reach shore but the ship and cargo were total losses."
+  }
+]

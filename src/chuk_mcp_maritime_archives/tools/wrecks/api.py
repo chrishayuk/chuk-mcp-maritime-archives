@@ -1,4 +1,4 @@
-"""MCP tools for searching and retrieving VOC shipwreck records."""
+"""MCP tools for searching and retrieving maritime shipwreck records."""
 
 import logging
 
@@ -32,25 +32,29 @@ def register_wreck_tools(mcp: object, manager: object) -> None:
         output_mode: str = "json",
     ) -> str:
         """
-        Search for VOC shipwreck records.
+        Search for maritime shipwreck records across all archives.
 
-        Queries the MAARER wreck database for known and suspected wreck
-        sites. All search parameters are optional and combined with AND logic.
+        Queries wreck databases for known and suspected wreck sites.
+        All search parameters are optional and combined with AND logic.
+
+        Archives with wreck data:
+            - maarer: MAARER VOC Wrecks, 1595-1795
+            - eic: English East India Company wrecks, 1600-1874
+            - carreira: Portuguese Carreira da India wrecks, 1497-1835
+            - galleon: Spanish Manila Galleon wrecks, 1565-1815
+            - soic: Swedish East India Company wrecks, 1731-1813
 
         Args:
             ship_name: Ship name or partial name (case-insensitive)
             date_range: Date range as "YYYY/YYYY" or "YYYY-MM-DD/YYYY-MM-DD"
-            region: Geographic region filter. Options: north_sea, atlantic_europe,
-                atlantic_crossing, cape, mozambique_channel, indian_ocean,
-                malabar, coromandel, ceylon, bengal, malacca, indonesia,
-                south_china_sea, japan, caribbean
+            region: Geographic region filter (e.g., cape, pacific, indian_ocean)
             cause: Loss cause filter - storm, reef, fire, battle, grounding,
                 scuttled, unknown
             status: Wreck discovery status - found, unfound, approximate
             min_depth_m: Minimum estimated depth in metres
             max_depth_m: Maximum estimated depth in metres
             min_cargo_value: Minimum cargo value in guilders
-            archive: Restrict to a specific archive (default: all)
+            archive: Restrict to specific archive - maarer, eic, carreira, galleon, soic (default: all)
             max_results: Maximum results to return (default: 100)
             output_mode: Response format - "json" (default) or "text"
 
@@ -58,13 +62,12 @@ def register_wreck_tools(mcp: object, manager: object) -> None:
             JSON or text with matching wreck records
 
         Tips for LLMs:
-            - Use region to focus on a geographic area (e.g., "cape" for
-              Cape of Good Hope wrecks)
+            - Use region to focus on a geographic area (e.g., "cape", "pacific")
             - Set status="unfound" to find wrecks that have not been located
-            - Combine cause="storm" with region to study weather-related losses
+            - Use archive="galleon" for Spanish Pacific wrecks
+            - Use archive="carreira" for Portuguese Indian Ocean wrecks
             - Follow up with maritime_get_wreck for full details including position
             - Use maritime_export_geojson to map wreck positions
-            - Use maritime_assess_position to evaluate position certainty
         """
         try:
             results = await manager.search_wrecks(  # type: ignore[union-attr]
@@ -95,6 +98,7 @@ def register_wreck_tools(mcp: object, manager: object) -> None:
                     region=w.get("region"),
                     status=w.get("status"),
                     position=w.get("position"),
+                    archive=w.get("archive"),
                 )
                 for w in results
             ]

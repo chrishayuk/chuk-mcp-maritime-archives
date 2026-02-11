@@ -1,0 +1,16 @@
+[
+  {
+    "wreck_id": "galleon_wreck:0001",
+    "voyage_id": "galleon:0002",
+    "ship_name": "San Diego",
+    "loss_date": "1600-12-14",
+    "loss_cause": "battle",
+    "loss_location": "Fortune Island, Philippines",
+    "region": "philippine_sea",
+    "status": "found",
+    "position": {"lat": 13.87, "lon": 120.52, "uncertainty_km": 0.5},
+    "depth_estimate_m": 52,
+    "tonnage": 300,
+    "archive": "galleon"
+  }
+]

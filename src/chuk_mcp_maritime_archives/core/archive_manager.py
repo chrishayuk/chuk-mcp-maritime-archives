@@ -3,7 +3,7 @@ Archive Manager — central orchestrator for maritime archive data.
 
 Manages:
 - Archive registry and metadata
-- Data source clients for each archive (DAS, VOC Crew, Cargo, Wrecks)
+- Data source clients for each archive (DAS, EIC, Carreira, Galleon, SOIC, etc.)
 - Hull profile lookups
 - Position uncertainty assessment
 - GeoJSON export
@@ -19,7 +19,16 @@ from ..constants import (
     ARCHIVE_METADATA,
     NAVIGATION_ERAS,
 )
-from .clients import CargoClient, CrewClient, DASClient, WreckClient
+from .clients import (
+    CargoClient,
+    CarreiraClient,
+    CrewClient,
+    DASClient,
+    EICClient,
+    GalleonClient,
+    SOICClient,
+    WreckClient,
+)
 from .cliwoc_tracks import (
     find_track_for_voyage,
     get_track,
@@ -32,6 +41,15 @@ logger = logging.getLogger(__name__)
 
 # Default data directory relative to the project root
 _DEFAULT_DATA_DIR = Path(__file__).resolve().parent.parent.parent.parent / "data"
+
+# Map archive IDs to CLIWOC nationality codes
+_ARCHIVE_NATIONALITY = {
+    "das": "NL",
+    "eic": "UK",
+    "carreira": "PT",
+    "galleon": "ES",
+    "soic": "SE",
+}
 
 
 class ArchiveManager:
@@ -53,6 +71,30 @@ class ArchiveManager:
         self._crew_client = CrewClient(data_dir=data_path)
         self._cargo_client = CargoClient(data_dir=data_path)
         self._wreck_client = WreckClient(data_dir=data_path)
+
+        # Additional archive clients
+        self._eic_client = EICClient(data_dir=data_path)
+        self._carreira_client = CarreiraClient(data_dir=data_path)
+        self._galleon_client = GalleonClient(data_dir=data_path)
+        self._soic_client = SOICClient(data_dir=data_path)
+
+        # Multi-archive dispatch: archive ID -> voyage client
+        self._voyage_clients: dict[str, Any] = {
+            "das": self._das_client,
+            "eic": self._eic_client,
+            "carreira": self._carreira_client,
+            "galleon": self._galleon_client,
+            "soic": self._soic_client,
+        }
+
+        # Multi-archive dispatch: archive ID -> wreck client
+        self._wreck_clients: dict[str, Any] = {
+            "maarer": self._wreck_client,
+            "eic": self._eic_client,
+            "carreira": self._carreira_client,
+            "galleon": self._galleon_client,
+            "soic": self._soic_client,
+        }
 
     # --- Archive Registry ---------------------------------------------------
 
@@ -88,8 +130,8 @@ class ArchiveManager:
         archive: str | None = None,
         max_results: int = 50,
     ) -> list[dict]:
-        """Search for voyages from local DAS data."""
-        results = await self._das_client.search(
+        """Search for voyages across all archives or a specific one."""
+        search_kwargs = dict(
             ship_name=ship_name,
             captain=captain,
             date_range=date_range,
@@ -100,14 +142,24 @@ class ArchiveManager:
             max_results=max_results,
         )
 
-        if archive:
-            results = [v for v in results if v.get("archive") == archive]
+        if archive and archive in self._voyage_clients:
+            results = await self._voyage_clients[archive].search(**search_kwargs)
+        elif archive:
+            return []
+        else:
+            # Query all voyage archives and merge results
+            all_results: list[dict] = []
+            for client in self._voyage_clients.values():
+                all_results.extend(await client.search(**search_kwargs))
+            results = all_results
 
         return results[:max_results]
 
     async def get_voyage(self, voyage_id: str) -> dict | None:
-        """Get full voyage details."""
-        return await self._das_client.get_by_id(voyage_id)
+        """Get full voyage details, routing to the correct archive client."""
+        prefix = voyage_id.split(":")[0] if ":" in voyage_id else "das"
+        client = self._voyage_clients.get(prefix, self._das_client)
+        return await client.get_by_id(voyage_id)
 
     # --- Cross-Archive Linking ----------------------------------------------
 
@@ -122,10 +174,10 @@ class ArchiveManager:
         if not voyage:
             return None
 
-        # Find linked wreck record (via voyage_id)
-        wreck = await self._wreck_client.get_by_voyage_id(voyage_id)
+        # Find linked wreck record (via voyage_id) -- check all wreck clients
+        wreck = await self._find_wreck_for_voyage(voyage_id)
 
-        # Find linked vessel record (via voyage_ids array)
+        # Find linked vessel record (via voyage_ids array, DAS only)
         vessel = self._das_client.get_vessel_for_voyage(voyage_id)
 
         # Find hull profile for ship type
@@ -156,8 +208,8 @@ class ArchiveManager:
         }
 
     def _find_cliwoc_track_for_voyage(self, voyage: dict) -> dict | None:
-        """Try to find a CLIWOC track linked to this DAS voyage."""
-        # Try DASnumber first (from CLIWOC 2.1 Full data)
+        """Try to find a CLIWOC track linked to this voyage."""
+        # Try DASnumber first (from CLIWOC 2.1 Full data, DAS only)
         voyage_number = voyage.get("voyage_number")
         if voyage_number:
             track = get_track_by_das_number(voyage_number)
@@ -165,14 +217,31 @@ class ArchiveManager:
                 # Return summary without full positions
                 return {k: v for k, v in track.items() if k != "positions"}
 
-        # Fall back to ship name + date matching
+        # Fall back to ship name + date + nationality matching
         ship_name = voyage.get("ship_name")
+        archive = voyage.get("archive", "das")
+        nationality = _ARCHIVE_NATIONALITY.get(archive, "NL")
         if ship_name:
             return find_track_for_voyage(
                 ship_name=ship_name,
                 departure_date=voyage.get("departure_date"),
-                nationality="NL",
+                nationality=nationality,
             )
+
+        return None
+
+    async def _find_wreck_for_voyage(self, voyage_id: str) -> dict | None:
+        """Find a wreck record linked to a voyage, checking the appropriate client."""
+        prefix = voyage_id.split(":")[0] if ":" in voyage_id else "das"
+
+        # For DAS voyages, check the MAARER wreck client
+        if prefix == "das":
+            return await self._wreck_client.get_by_voyage_id(voyage_id)
+
+        # For other archives, the archive client handles its own wrecks
+        client = self._voyage_clients.get(prefix)
+        if client and hasattr(client, "get_wreck_by_voyage_id"):
+            return await client.get_wreck_by_voyage_id(voyage_id)
 
         return None
 
@@ -299,7 +368,7 @@ class ArchiveManager:
                 data_sources.append("cliwoc")
 
         # --- Wreck / loss event ---
-        wreck = await self._wreck_client.get_by_voyage_id(voyage_id)
+        wreck = await self._find_wreck_for_voyage(voyage_id)
         if wreck:
             if "maarer" not in data_sources:
                 data_sources.append("maarer")
@@ -388,8 +457,8 @@ class ArchiveManager:
         archive: str | None = None,
         max_results: int = 100,
     ) -> list[dict]:
-        """Search wreck records from local data."""
-        results = await self._wreck_client.search(
+        """Search wreck records across all archives or a specific one."""
+        search_kwargs = dict(
             ship_name=ship_name,
             date_range=date_range,
             region=region,
@@ -401,13 +470,43 @@ class ArchiveManager:
             max_results=max_results,
         )
 
-        if archive:
-            results = [w for w in results if w.get("archive", "maarer") == archive]
+        if archive and archive in self._wreck_clients:
+            client = self._wreck_clients[archive]
+            if hasattr(client, "search_wrecks"):
+                results = await client.search_wrecks(**search_kwargs)
+            else:
+                results = await client.search(**search_kwargs)
+        elif archive:
+            return []
+        else:
+            # Query all wreck archives and merge results
+            all_results: list[dict] = []
+            for client in self._wreck_clients.values():
+                if hasattr(client, "search_wrecks"):
+                    all_results.extend(await client.search_wrecks(**search_kwargs))
+                else:
+                    all_results.extend(await client.search(**search_kwargs))
+            results = all_results
 
         return results[:max_results]
 
     async def get_wreck(self, wreck_id: str) -> dict | None:
-        """Get full wreck record."""
+        """Get full wreck record, routing to the correct archive client."""
+        # Determine which client handles this wreck ID
+        if wreck_id.startswith("maarer:"):
+            return await self._wreck_client.get_by_id(wreck_id)
+
+        # Check compound prefixes: eic_wreck:, carreira_wreck:, etc.
+        for prefix, client in [
+            ("eic_wreck:", self._eic_client),
+            ("carreira_wreck:", self._carreira_client),
+            ("galleon_wreck:", self._galleon_client),
+            ("soic_wreck:", self._soic_client),
+        ]:
+            if wreck_id.startswith(prefix):
+                return await client.get_wreck_by_id(wreck_id)
+
+        # Default to MAARER
         return await self._wreck_client.get_by_id(wreck_id)
 
     # --- Vessel Operations --------------------------------------------------
@@ -647,8 +746,8 @@ class ArchiveManager:
             total_cargo_value += w.get("cargo_value_guilders", 0) or 0
 
         return {
-            "archives_included": ["das", "maarer"] if not archive else [archive],
-            "date_range": date_range or "1595-1795",
+            "archives_included": [archive] if archive else list(self._wreck_clients.keys()),
+            "date_range": date_range or "all",
             "summary": {
                 "total_losses": len(wrecks),
                 "lives_lost_total": total_lives_lost,

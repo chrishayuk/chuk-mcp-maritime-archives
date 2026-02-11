@@ -2,12 +2,14 @@
 """
 Cross-Archive Linking Demo -- chuk-mcp-maritime-archives
 
-Demonstrates the maritime_get_voyage_full tool, which returns a unified
-view of a voyage with all linked records: wreck, vessel, hull profile,
-and CLIWOC ship track — in a single call.
+Demonstrates the maritime_get_voyage_full tool across multiple archives:
+DAS (Dutch), EIC (English), Carreira (Portuguese), Galleon (Spanish),
+and SOIC (Swedish). Returns a unified view of a voyage with all linked
+records: wreck, vessel, hull profile, and CLIWOC ship track -- in a
+single call.
 
-Compare this to batavia_case_study_demo.py, which calls 10+ tools
-individually to assemble the same information.
+The new archives (EIC, Carreira, Galleon, SOIC) work offline with
+local curated data. DAS requires network access.
 
 Usage:
     python examples/cross_archive_demo.py
@@ -32,134 +34,161 @@ def _wrap_print(text: str, width: int = 66, indent: str = "    ") -> None:
         print(line)
 
 
-async def main() -> None:
-    runner = ToolRunner()
-
-    print("=" * 70)
-    print("  CROSS-ARCHIVE LINKING DEMO")
-    print("  One tool call to rule them all")
-    print("=" * 70)
-
-    # ---- Step 1: Search for the Batavia voyage --------------------------
-    print("\n  Step 1: Finding the Batavia voyage...")
-    voyages = await runner.run("maritime_search_voyages", ship_name="Batavia")
-
-    if "error" in voyages:
-        print(f"\n  API unavailable: {voyages['error']}")
-        return
-
-    if voyages["voyage_count"] == 0:
-        print("\n  No Batavia voyages found.")
-        return
-
-    voyage_id = voyages["voyages"][0]["voyage_id"]
-    print(f"  Found: {voyage_id}")
-
-    # ---- Step 2: Get unified view with ALL linked records ---------------
-    print("\n  Step 2: Calling maritime_get_voyage_full (single call)...")
-    result = await runner.run("maritime_get_voyage_full", voyage_id=voyage_id)
-
-    if "error" in result:
-        print(f"\n  Error: {result['error']}")
-        return
-
-    print(f"\n  {result['message']}")
-
-    # ---- Voyage details -------------------------------------------------
+def _print_voyage_full(result: dict) -> None:
+    """Print a unified voyage_full result."""
     v = result["voyage"]
-    print("\n" + "-" * 70)
-    print("  VOYAGE")
-    print("-" * 70)
+    print(f"  Archive:   {v.get('archive', '?')}")
     print(f"  ID:        {v.get('voyage_id', '?')}")
     print(f"  Ship:      {v.get('ship_name', '?')}")
     print(f"  Captain:   {v.get('captain', 'Unknown')}")
-    print(f"  Type:      {v.get('ship_type', '?')}")
     print(f"  Route:     {v.get('departure_port', '?')} -> {v.get('destination_port', '?')}")
     print(f"  Departed:  {v.get('departure_date', '?')}")
     print(f"  Fate:      {v.get('fate', '?')}")
 
     if v.get("particulars"):
-        print("\n  Particulars:")
+        print("  Details:")
         _wrap_print(v["particulars"])
 
-    # ---- Wreck record (if linked) ---------------------------------------
     if result.get("wreck"):
         w = result["wreck"]
-        print("\n" + "-" * 70)
-        print("  LINKED WRECK RECORD")
-        print("-" * 70)
-        print(f"  Wreck ID:  {w.get('wreck_id', '?')}")
-        print(f"  Lost:      {w.get('loss_date', '?')}")
-        print(f"  Cause:     {w.get('loss_cause', '?')}")
-        print(f"  Region:    {w.get('region', '?')}")
-        print(f"  Location:  {w.get('loss_location', '?')}")
-        print(f"  Status:    {w.get('status', '?')}")
+        print(f"\n  LINKED WRECK:")
+        print(f"    Wreck ID:  {w.get('wreck_id', '?')}")
+        print(f"    Lost:      {w.get('loss_date', '?')}  Cause: {w.get('loss_cause', '?')}")
+        print(f"    Location:  {w.get('loss_location', '?')}")
+        print(f"    Status:    {w.get('status', '?')}")
         if w.get("position"):
             pos = w["position"]
-            print(f"  Position:  {pos.get('lat')}, {pos.get('lon')}")
+            print(f"    Position:  {pos.get('lat')}, {pos.get('lon')} (+/-{pos.get('uncertainty_km', '?')}km)")
         if w.get("depth_estimate_m"):
-            print(f"  Depth:     ~{w['depth_estimate_m']}m")
-        if w.get("cargo_value_guilders"):
-            print(f"  Cargo:     {w['cargo_value_guilders']:,.0f} guilders")
+            print(f"    Depth:     ~{w['depth_estimate_m']}m")
 
-    # ---- Vessel record (if linked) --------------------------------------
     if result.get("vessel"):
         vs = result["vessel"]
-        print("\n" + "-" * 70)
-        print("  LINKED VESSEL RECORD")
-        print("-" * 70)
-        print(f"  Vessel ID: {vs.get('vessel_id', '?')}")
-        print(f"  Name:      {vs.get('name', '?')}")
-        print(f"  Type:      {vs.get('type', '?')}")
-        print(f"  Tonnage:   {vs.get('tonnage', '?')} lasten")
-        print(f"  Built:     {vs.get('built_year', '?')}")
-        print(f"  Chamber:   {vs.get('chamber', '?')}")
-        n_voyages = len(vs.get("voyage_ids", []))
-        print(f"  Voyages:   {n_voyages}")
+        print(f"\n  LINKED VESSEL:")
+        print(f"    Name: {vs.get('name', '?')}  Type: {vs.get('type', '?')}  Built: {vs.get('built_year', '?')}")
 
-    # ---- Hull profile (if linked) ---------------------------------------
     if result.get("hull_profile"):
         hp = result["hull_profile"]
-        print("\n" + "-" * 70)
-        print("  LINKED HULL PROFILE")
-        print("-" * 70)
-        print(f"  Ship type: {hp.get('ship_type', '?')}")
-        if hp.get("description"):
-            _wrap_print(hp["description"])
-        dims = hp.get("dimensions_typical", {})
-        if dims:
-            length = dims.get("length_m", {}).get("typical", "?")
-            beam = dims.get("beam_m", {}).get("typical", "?")
-            draught = dims.get("draught_m", {}).get("typical", "?")
-            print(f"  Dimensions: {length}m x {beam}m, draught {draught}m")
+        print(f"\n  LINKED HULL PROFILE: {hp.get('ship_type', '?')}")
 
-    # ---- CLIWOC track (if linked) ---------------------------------------
     if result.get("cliwoc_track"):
         ct = result["cliwoc_track"]
-        print("\n" + "-" * 70)
-        print("  LINKED CLIWOC TRACK")
-        print("-" * 70)
-        print(f"  CLIWOC ID: {ct.get('voyage_id', '?')}")
-        print(f"  Nation:    {ct.get('nationality', '?')}")
-        print(f"  Ship:      {ct.get('ship_name', '?')}")
-        print(f"  Company:   {ct.get('company', '?')}")
-        print(f"  Period:    {ct.get('start_date', '?')} to {ct.get('end_date', '?')}")
-        print(f"  Positions: {ct.get('position_count', '?')}")
+        print(f"\n  LINKED CLIWOC TRACK:")
+        print(f"    Nation: {ct.get('nationality', '?')}  Ship: {ct.get('ship_name', '?')}")
+        print(f"    Period: {ct.get('start_date', '?')} to {ct.get('end_date', '?')}")
+        print(f"    Positions: {ct.get('position_count', '?')}")
 
-    # ---- Summary --------------------------------------------------------
     links = result.get("links_found", [])
+    print(f"\n  Links found: {', '.join(links) if links else 'none'}")
+
+
+async def main() -> None:
+    runner = ToolRunner()
+
+    print("=" * 70)
+    print("  CROSS-ARCHIVE LINKING DEMO")
+    print("  Unified voyage views across 8 maritime archives")
+    print("=" * 70)
+
+    # ---- 1: EIC - Earl of Abergavenny (offline) -------------------------
+    print("\n" + "-" * 70)
+    print("  1. EIC: Earl of Abergavenny (eic:0062)")
+    print("     Captain Wordsworth's tragic final voyage, 1805")
+    print("-" * 70)
+
+    result = await runner.run("maritime_get_voyage_full", voyage_id="eic:0062")
+    if "error" not in result:
+        _print_voyage_full(result)
+    else:
+        print(f"  Error: {result['error']}")
+
+    # ---- 2: Carreira - Vasco da Gama's first voyage (offline) -----------
+    print("\n" + "-" * 70)
+    print("  2. CARREIRA: Vasco da Gama's first voyage (carreira:0001)")
+    print("     The voyage that opened the sea route to India, 1497")
+    print("-" * 70)
+
+    result = await runner.run("maritime_get_voyage_full", voyage_id="carreira:0001")
+    if "error" not in result:
+        _print_voyage_full(result)
+    else:
+        print(f"  Error: {result['error']}")
+
+    # ---- 3: Galleon - San Diego (offline) --------------------------------
+    print("\n" + "-" * 70)
+    print("  3. GALLEON: San Diego (galleon:0009)")
+    print("     Sunk by the Dutch off Fortune Island, 1600")
+    print("-" * 70)
+
+    result = await runner.run("maritime_get_voyage_full", voyage_id="galleon:0009")
+    if "error" not in result:
+        _print_voyage_full(result)
+    else:
+        print(f"  Error: {result['error']}")
+
+    # ---- 4: SOIC - Gotheborg (offline) -----------------------------------
+    print("\n" + "-" * 70)
+    print("  4. SOIC: Gotheborg (soic:0002)")
+    print("     Sweden's most famous shipwreck, sank within sight of home, 1745")
+    print("-" * 70)
+
+    # Find the Gotheborg wreck voyage
+    search = await runner.run("maritime_search_voyages", archive="soic", ship_name="Gotheborg")
+    gotheborg_id = None
+    if "error" not in search and search["voyage_count"] > 0:
+        # Pick the wrecked voyage
+        for v in search["voyages"]:
+            if v.get("fate") == "wrecked":
+                gotheborg_id = v["voyage_id"]
+                break
+        if not gotheborg_id:
+            gotheborg_id = search["voyages"][0]["voyage_id"]
+
+    if gotheborg_id:
+        result = await runner.run("maritime_get_voyage_full", voyage_id=gotheborg_id)
+        if "error" not in result:
+            _print_voyage_full(result)
+        else:
+            print(f"  Error: {result['error']}")
+    else:
+        print("  Gotheborg not found in SOIC archive")
+
+    # ---- 5: DAS - Batavia (network-dependent) ----------------------------
+    print("\n" + "-" * 70)
+    print("  5. DAS: Batavia (network-dependent)")
+    print("     The most famous VOC shipwreck, 1629")
+    print("-" * 70)
+
+    voyages = await runner.run("maritime_search_voyages", ship_name="Batavia")
+    if "error" in voyages:
+        print(f"  DAS API unavailable: {voyages['error']}")
+        print("  (DAS requires network access -- skipping)")
+    elif voyages["voyage_count"] == 0:
+        print("  No Batavia voyages found.")
+    else:
+        voyage_id = voyages["voyages"][0]["voyage_id"]
+        result = await runner.run("maritime_get_voyage_full", voyage_id=voyage_id)
+        if "error" not in result:
+            _print_voyage_full(result)
+        else:
+            print(f"  Error: {result['error']}")
+
+    # ---- Summary ---------------------------------------------------------
     print("\n" + "=" * 70)
     print("  SUMMARY")
     print("=" * 70)
-    print(f"\n  Links found: {', '.join(links) if links else 'none'}")
-    print("\n  This unified view was assembled from a SINGLE tool call:")
-    print(f'    maritime_get_voyage_full(voyage_id="{voyage_id}")')
-    print("\n  It automatically followed links across:")
-    print("    - DAS voyage database")
-    print("    - MAARER wreck records (via voyage_id)")
-    print("    - DAS vessel registry (via voyage_ids)")
-    print("    - Hull profile data (via ship_type)")
-    print("    - CLIWOC 2.1 ship tracks (via DAS number or ship name)")
+    print()
+    print("  maritime_get_voyage_full assembles unified views from:")
+    print("    - 5 voyage archives (DAS, EIC, Carreira, Galleon, SOIC)")
+    print("    - 5 wreck archives  (MAARER, EIC, Carreira, Galleon, SOIC)")
+    print("    - DAS vessel registry + hull profiles")
+    print("    - CLIWOC 2.1 ship tracks (linked by nationality)")
+    print()
+    print("  Each call automatically follows cross-archive links:")
+    print("    voyage -> wreck (by voyage_id)")
+    print("    voyage -> vessel (by reverse index)")
+    print("    vessel -> hull profile (by ship_type)")
+    print("    voyage -> CLIWOC track (by ship name + nationality)")
     print()
     print("=" * 70)
 

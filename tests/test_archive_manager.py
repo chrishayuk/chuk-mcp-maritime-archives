@@ -71,7 +71,7 @@ class TestVoyageOperations:
     @pytest.mark.asyncio
     async def test_search_voyages_no_filters(self, manager: ArchiveManager):
         results = await manager.search_voyages()
-        assert len(results) == 3
+        assert len(results) == 12  # 3 DAS + 3 EIC + 2 carreira + 2 galleon + 2 SOIC
 
     @pytest.mark.asyncio
     async def test_search_voyages_by_name(self, manager: ArchiveManager):
@@ -83,7 +83,7 @@ class TestVoyageOperations:
     async def test_search_voyages_by_fate(self, manager: ArchiveManager):
         results = await manager.search_voyages(fate="wrecked")
         assert all(v["fate"] == "wrecked" for v in results)
-        assert len(results) == 2
+        assert len(results) == 7  # 2 DAS + 2 EIC + 1 carreira + 1 galleon + 1 SOIC
 
     @pytest.mark.asyncio
     async def test_search_voyages_by_archive(self, manager: ArchiveManager):
@@ -122,19 +122,19 @@ class TestWreckOperations:
     @pytest.mark.asyncio
     async def test_search_wrecks_no_filters(self, manager: ArchiveManager):
         results = await manager.search_wrecks()
-        assert len(results) == 3
+        assert len(results) == 8  # 3 MAARER + 2 EIC + 1 carreira + 1 galleon + 1 SOIC
 
     @pytest.mark.asyncio
     async def test_search_wrecks_by_status(self, manager: ArchiveManager):
         results = await manager.search_wrecks(status="found")
         assert all(w["status"] == "found" for w in results)
-        assert len(results) == 3
+        assert len(results) == 6  # 3 MAARER + 1 EIC + 1 galleon + 1 SOIC
 
     @pytest.mark.asyncio
     async def test_search_wrecks_by_region(self, manager: ArchiveManager):
         results = await manager.search_wrecks(region="cape")
         assert all(w["region"] == "cape" for w in results)
-        assert len(results) == 1
+        assert len(results) == 3  # 1 MAARER (Meermin) + 1 EIC (Grosvenor) + 1 carreira (Sao Joao)
 
     @pytest.mark.asyncio
     async def test_search_wrecks_by_archive(self, manager: ArchiveManager):
@@ -334,12 +334,12 @@ class TestStatistics:
         assert "summary" in stats
         assert "losses_by_region" in stats
         assert "losses_by_cause" in stats
-        assert stats["summary"]["total_losses"] == 3
+        assert stats["summary"]["total_losses"] == 8  # all wreck archives combined
 
     @pytest.mark.asyncio
     async def test_get_statistics_with_date_range(self, manager: ArchiveManager):
         stats = await manager.get_statistics(date_range="1600/1700")
-        assert stats["summary"]["total_losses"] == 2  # Batavia 1629, Vergulde Draeck 1656
+        assert stats["summary"]["total_losses"] == 3  # Batavia 1629, Vergulde Draeck 1656, San Diego 1600
 
     @pytest.mark.asyncio
     async def test_get_statistics_computes_breakdowns(self, manager: ArchiveManager):
@@ -363,7 +363,7 @@ class TestGeoJSONExport:
     async def test_export_geojson(self, manager: ArchiveManager):
         geojson = await manager.export_geojson()
         assert geojson["type"] == "FeatureCollection"
-        assert len(geojson["features"]) == 3
+        assert len(geojson["features"]) == 8  # all wreck archives combined
 
     @pytest.mark.asyncio
     async def test_export_geojson_by_status(self, manager: ArchiveManager):

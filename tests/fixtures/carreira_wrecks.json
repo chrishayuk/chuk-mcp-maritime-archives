@@ -1,0 +1,16 @@
+[
+  {
+    "wreck_id": "carreira_wreck:0001",
+    "voyage_id": "carreira:0002",
+    "ship_name": "Sao Joao",
+    "loss_date": "1552-06-11",
+    "loss_cause": "storm",
+    "loss_location": "Natal coast, South Africa",
+    "region": "cape",
+    "status": "unfound",
+    "position": {"lat": -31.0, "lon": 30.2, "uncertainty_km": 50},
+    "depth_estimate_m": null,
+    "tonnage": 400,
+    "archive": "carreira"
+  }
+]

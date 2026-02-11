@@ -2,13 +2,13 @@
 """
 Statistics Demo -- chuk-mcp-maritime-archives
 
-Compute aggregate statistics across the maritime archives. Shows
-total losses, lives lost, cargo value, and breakdowns by region,
-cause, status, and decade.
+Compute aggregate statistics across multiple maritime archives. Shows
+total losses, breakdowns by region, cause, status, and decade, plus
+per-archive wreck comparisons (EIC, Carreira, Galleon, SOIC).
 
 Demonstrates:
     maritime_get_statistics (aggregate analysis)
-    maritime_search_wrecks (underlying data)
+    maritime_search_wrecks (underlying data, multi-archive)
 
 Usage:
     python examples/statistics_demo.py
@@ -80,11 +80,35 @@ async def main() -> None:
             bar = "#" * (count * 3)
             print(f"     {decade}  {count:3d}  {bar}")
 
-    # ----- Underlying data ------------------------------------------
-    print("\n2. Underlying wreck data")
+    # ----- Per-archive wreck comparison (offline) --------------------
+    print("\n2. Per-archive wreck comparison")
     print("-" * 40)
 
-    wrecks = await runner.run("maritime_search_wrecks", max_results=10)
+    for archive in ["eic", "carreira", "galleon", "soic"]:
+        wrecks = await runner.run("maritime_search_wrecks", archive=archive, max_results=100)
+        if "error" not in wrecks:
+            count = wrecks["wreck_count"]
+            causes = {}
+            regions = {}
+            for w in wrecks["wrecks"]:
+                c = w.get("loss_cause", "unknown")
+                causes[c] = causes.get(c, 0) + 1
+                r = w.get("region", "unknown")
+                regions[r] = regions.get(r, 0) + 1
+
+            print(f"\n   {archive.upper()} ({count} wrecks):")
+            if causes:
+                cause_str = ", ".join(f"{k}: {v}" for k, v in sorted(causes.items(), key=lambda x: -x[1]))
+                print(f"     Causes:  {cause_str}")
+            if regions:
+                region_str = ", ".join(f"{k}: {v}" for k, v in sorted(regions.items(), key=lambda x: -x[1]))
+                print(f"     Regions: {region_str}")
+
+    # ----- Underlying data ------------------------------------------
+    print("\n3. Underlying wreck data (all archives)")
+    print("-" * 40)
+
+    wrecks = await runner.run("maritime_search_wrecks", max_results=15)
     if "error" not in wrecks:
         print(f"\n   Total wreck records: {wrecks['wreck_count']}")
         print("\n   Individual wrecks:")
@@ -92,15 +116,15 @@ async def main() -> None:
         for w in wrecks["wrecks"]:
             status = w.get("status", "?")
             cause = w.get("loss_cause", "?")
-            region = w.get("region", "?")
+            arch = w.get("archive", "?")
             print(
-                f"     {w['ship_name']:25s}  {w.get('loss_date', '?'):12s}  {region:15s}  {cause:10s}  [{status}]"
+                f"     {w['ship_name']:25s}  {w.get('loss_date', '?'):12s}  [{arch:10s}]  {cause:10s}  [{status}]"
             )
     else:
         print(f"   {wrecks['error']}")
 
     # ----- Text output mode -----------------------------------------
-    print("\n3. Text output mode")
+    print("\n4. Text output mode")
     print("-" * 40)
     text = await runner.run_text("maritime_get_statistics")
     print(text)

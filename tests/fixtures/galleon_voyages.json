@@ -1,0 +1,31 @@
+[
+  {
+    "voyage_id": "galleon:0001",
+    "ship_name": "San Pablo",
+    "captain": "Felipe de Salcedo",
+    "tonnage": 300,
+    "departure_date": "1565-06-01",
+    "departure_port": "Cebu",
+    "destination_port": "Acapulco",
+    "arrival_date": "1565-10-08",
+    "fate": "completed",
+    "particulars": "First successful westbound (Manila to Acapulco) Pacific crossing, establishing the return route via the Kuroshio Current and North Pacific.",
+    "archive": "galleon",
+    "trade_direction": "westbound",
+    "cargo_description": "cinnamon and spices"
+  },
+  {
+    "voyage_id": "galleon:0002",
+    "ship_name": "San Diego",
+    "captain": "Antonio de Morga",
+    "tonnage": 300,
+    "departure_date": "1600-12-12",
+    "departure_port": "Manila",
+    "destination_port": "Acapulco",
+    "fate": "wrecked",
+    "particulars": "Sunk in battle with the Dutch ship Mauritius off Fortune Island, Philippines. Wreck discovered and excavated 1991-1993.",
+    "archive": "galleon",
+    "trade_direction": "westbound",
+    "cargo_description": "silk and porcelain"
+  }
+]

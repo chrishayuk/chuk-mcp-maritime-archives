@@ -1,0 +1,41 @@
+[
+  {
+    "voyage_id": "eic:0001",
+    "ship_name": "Earl of Abergavenny",
+    "captain": "John Wordsworth",
+    "tonnage": 1200,
+    "departure_date": "1805-02-01",
+    "departure_port": "Portsmouth",
+    "destination_port": "Bengal",
+    "fate": "wrecked",
+    "particulars": "Wrecked off Portland Bill, Dorset. Captain John Wordsworth, brother of poet William Wordsworth, went down with the ship.",
+    "archive": "eic",
+    "company_division": "East India Trade"
+  },
+  {
+    "voyage_id": "eic:0002",
+    "ship_name": "Hindostan",
+    "captain": "James Hawkins",
+    "tonnage": 900,
+    "departure_date": "1803-04-15",
+    "departure_port": "London",
+    "destination_port": "Bombay",
+    "fate": "completed",
+    "particulars": "Arrived safely in Bombay after routine passage via the Cape.",
+    "archive": "eic",
+    "company_division": "East India Trade"
+  },
+  {
+    "voyage_id": "eic:0003",
+    "ship_name": "Grosvenor",
+    "captain": "John Coxon",
+    "tonnage": 729,
+    "departure_date": "1782-03-13",
+    "departure_port": "Madras",
+    "destination_port": "London",
+    "fate": "wrecked",
+    "particulars": "Wrecked on the Pondoland coast, South Africa, on homeward voyage. Rumoured to carry Peacock Throne jewels.",
+    "archive": "eic",
+    "company_division": "East India Trade"
+  }
+]

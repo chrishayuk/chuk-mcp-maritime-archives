@@ -40,6 +40,14 @@ DATA_FILES = [
     "gazetteer.json",
     "routes.json",
     "hull_profiles.json",
+    "eic_voyages.json",
+    "eic_wrecks.json",
+    "carreira_voyages.json",
+    "carreira_wrecks.json",
+    "galleon_voyages.json",
+    "galleon_wrecks.json",
+    "soic_voyages.json",
+    "soic_wrecks.json",
 ]
 
 logging.basicConfig(

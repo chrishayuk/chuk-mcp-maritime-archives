@@ -75,7 +75,7 @@ class ToolRunner:
     """
     Run chuk-mcp-maritime-archives MCP tools directly from Python.
 
-    All 29 tools are registered and callable via run(tool_name, **kwargs).
+    All MCP tools are registered and callable via run(tool_name, **kwargs).
     Returns parsed JSON (dict/list) by default. Use run_text() for
     human-readable output. An in-memory artifact store is initialized
     automatically.

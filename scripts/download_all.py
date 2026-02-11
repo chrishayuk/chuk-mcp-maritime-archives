@@ -33,7 +33,10 @@ def main() -> None:
     scripts = [
         "download_das.py",
         "download_cliwoc.py",
-        # Future: "download_crew.py", "download_cargo.py"
+        "generate_eic.py",
+        "generate_carreira.py",
+        "generate_galleon.py",
+        "generate_soic.py",
     ]
 
     results = {}

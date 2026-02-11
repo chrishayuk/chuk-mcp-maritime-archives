@@ -139,6 +139,33 @@ Wired up chuk-artifacts for GeoJSON storage and S3-backed reference data preload
 **Quality:**
 - 499 tests across 12 test modules, 97%+ branch coverage
 
+### v0.7.0 -- Additional Archives (EIC, Carreira, Galleon, SOIC)
+
+Expanded from 4 Dutch archives to 8 multi-nation archives. Multi-archive dispatch via existing tools.
+
+**New archives:**
+- **English East India Company (EIC)** -- ~150 voyages, ~35 wrecks (1600-1874). Curated from Hardy's Register of Ships and Farrington's Catalogue.
+- **Portuguese Carreira da India** -- ~120 voyages, ~40 wrecks (1497-1835). Curated from Guinote/Frutuoso/Lopes "As Armadas da India".
+- **Spanish Manila Galleon** -- ~100 voyages, ~25 wrecks (1565-1815). Curated from Schurz "The Manila Galleon".
+- **Swedish East India Company (SOIC)** -- ~80 voyages, ~12 wrecks (1731-1813). Curated from Koninckx "First and Second Charters of the SEIC".
+
+**Architecture:**
+- Multi-archive dispatch in `ArchiveManager` -- `_voyage_clients` and `_wreck_clients` dicts route queries by archive ID or ID prefix
+- `search_voyages(archive="eic")` queries a single archive; no archive filter queries all 5
+- `get_voyage("eic:0001")` routes by prefix to the correct client
+- 4 new client classes (`EICClient`, `CarreiraClient`, `GalleonClient`, `SOICClient`) following `BaseArchiveClient` pattern
+- Each client handles both voyages and wrecks in a single class
+- CLIWOC nationality cross-referencing: `eic`→UK, `carreira`→PT, `galleon`→ES, `soic`→SE
+- `archive` field added to `VoyageInfo` and `WreckInfo` response models
+
+**Data pipeline:**
+- `scripts/generate_eic.py`, `scripts/generate_carreira.py`, `scripts/generate_galleon.py`, `scripts/generate_soic.py`
+- Each script contains embedded curated data from published academic sources
+- `scripts/download_all.py` updated to run all 4 generation scripts
+
+**Quality:**
+- 585 tests across 13 test modules, 97%+ branch coverage
+
 ---
 
 ## Planned
@@ -150,16 +177,6 @@ Paginated search results for large result sets.
 - Cursor-based pagination for voyage, crew, and cargo searches
 - `next_cursor` field in search responses
 - Efficient for browsing the full 8,194-voyage or 774,200-crew datasets
-
-### Additional Archives
-
-Expand beyond Dutch maritime records.
-
-- **English East India Company (EIC)** -- British Library digitised records
-- **Portuguese Estado da India** -- Arquivo Nacional da Torre do Tombo
-- **Spanish Manila Galleon** -- Archivo General de Indias
-- **Swedish East India Company** -- Gothenburg city archives
-- Each archive gets its own download script and client
 
 ### WebSocket Transport
 

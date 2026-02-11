@@ -2,13 +2,13 @@
 """
 Wreck Investigation Demo -- chuk-mcp-maritime-archives
 
-Demonstrates a complete wreck investigation workflow: search for
-wrecks, examine individual wreck records, assess position quality,
-and export locations as GeoJSON. All IDs are discovered from search
-results -- no hardcoded identifiers.
+Demonstrates a complete wreck investigation workflow across multiple
+archives (MAARER, EIC, Carreira, Galleon, SOIC): search for wrecks,
+examine individual wreck records, assess position quality, and export
+locations as GeoJSON.
 
 Demonstrates:
-    maritime_search_wrecks (by region, status, cause)
+    maritime_search_wrecks (by region, status, cause, archive)
     maritime_get_wreck (full wreck detail)
     maritime_assess_position (position quality assessment)
     maritime_export_geojson (GeoJSON export)
@@ -30,54 +30,67 @@ async def main() -> None:
     print("chuk-mcp-maritime-archives -- Wreck Investigation Demo")
     print("=" * 60)
 
-    # ----- Step 1: Search for wrecks ---------------------------------
-    print("\n1. Search for wrecks")
+    # ----- Step 1: Search wrecks across all archives -------------------
+    print("\n1. Search for wrecks across ALL archives")
     print("-" * 40)
 
-    result = await runner.run("maritime_search_wrecks", max_results=10)
+    result = await runner.run("maritime_search_wrecks", max_results=15)
 
     if "error" in result:
         print(f"   API unavailable: {result['error']}")
-        print("   (This demo requires network access to the MAARER archive)")
-        print("\n   Continuing with position assessment (no network needed)...")
+        print("\n   Continuing with offline archives...")
     else:
         print(f"   Found {result['wreck_count']} wreck(s)")
+        archives_seen = set()
+        for w in result["wrecks"]:
+            arch = w.get("archive", "?")
+            archives_seen.add(arch)
+            print(f"   {w['wreck_id']:22s} {w['ship_name']:25s} [{arch:10s}] {w.get('loss_date', '?')}")
+        print(f"   Archives: {', '.join(sorted(archives_seen))}")
+
+    # ----- Step 1b: Per-archive wreck searches (offline) ---------------
+    print("\n1b. Per-archive wreck searches (offline)")
+    print("-" * 40)
+
+    for archive in ["eic", "carreira", "galleon", "soic"]:
+        wrecks = await runner.run("maritime_search_wrecks", archive=archive, max_results=3)
+        if "error" not in wrecks:
+            print(f"\n   {archive.upper()} ({wrecks['wreck_count']} wrecks):")
+            for w in wrecks["wrecks"]:
+                cause = w.get("loss_cause", "?")
+                status = w.get("status", "?")
+                print(f"     {w['ship_name']:25s} {w.get('loss_date', '?'):12s} {cause:10s} [{status}]")
 
     wreck_id = None
-    if "wrecks" in result:
-        for w in result["wrecks"]:
-            print(f"\n   {w['wreck_id']}: {w['ship_name']}")
-            print(f"     Lost: {w.get('loss_date', '?')}  Cause: {w.get('loss_cause', '?')}")
-            print(f"     Region: {w.get('region', '?')}  Status: {w.get('status', '?')}")
-            if w.get("position"):
-                pos = w["position"]
-                print(f"     Position: {pos.get('lat', '?')}N, {pos.get('lon', '?')}E")
-            if wreck_id is None:
-                wreck_id = w["wreck_id"]
+    if "wrecks" in result and result["wrecks"]:
+        wreck_id = result["wrecks"][0]["wreck_id"]
 
     # ----- Step 2: Get full wreck detail ----------------------------
-    if wreck_id:
-        print(f"\n2. Get full details for {wreck_id}")
-        print("-" * 40)
+    # Use an EIC wreck (offline) for the detail demo
+    demo_wreck_id = "eic_wreck:0010"
+    print(f"\n2. Get full details for {demo_wreck_id}")
+    print("-" * 40)
 
-        wreck = await runner.run("maritime_get_wreck", wreck_id=wreck_id)
-        if "error" not in wreck:
-            detail = wreck["wreck"]
-            print(f"   Wreck ID: {detail.get('wreck_id', wreck_id)}")
-            print(f"   Ship: {detail.get('ship_name', '?')} ({detail.get('ship_type', '?')})")
-            print(f"   Lost: {detail.get('loss_date', '?')}")
-            print(f"   Cause: {detail.get('loss_cause', '?')}")
-            print(f"   Status: {detail.get('status', '?')}")
-            if detail.get("position"):
-                pos = detail["position"]
-                print(f"   Position: {pos.get('lat')}N, {pos.get('lon')}E")
-                print(f"   Uncertainty: +/-{pos.get('uncertainty_km', '?')}km")
-            if detail.get("cargo_value_guilders"):
-                print(f"   Cargo value: {detail['cargo_value_guilders']:,.0f} guilders")
-        else:
-            print(f"   {wreck['error']}")
+    wreck = await runner.run("maritime_get_wreck", wreck_id=demo_wreck_id)
+    if "error" not in wreck:
+        detail = wreck["wreck"]
+        print(f"   Wreck ID: {detail.get('wreck_id')}")
+        print(f"   Ship: {detail.get('ship_name', '?')}")
+        print(f"   Archive: {detail.get('archive', '?')}")
+        print(f"   Lost: {detail.get('loss_date', '?')}")
+        print(f"   Cause: {detail.get('loss_cause', '?')}")
+        print(f"   Location: {detail.get('loss_location', '?')}")
+        print(f"   Status: {detail.get('status', '?')}")
+        if detail.get("position"):
+            pos = detail["position"]
+            print(f"   Position: {pos.get('lat')}N, {pos.get('lon')}E")
+            print(f"   Uncertainty: +/-{pos.get('uncertainty_km', '?')}km")
+        if detail.get("depth_estimate_m"):
+            print(f"   Depth: ~{detail['depth_estimate_m']}m")
+        if detail.get("particulars"):
+            print(f"   Details: {detail['particulars'][:120]}...")
     else:
-        print("\n2. (Skipped -- no wreck results)")
+        print(f"   {wreck['error']}")
 
     # ----- Step 3: Assess position quality --------------------------
     if wreck_id:

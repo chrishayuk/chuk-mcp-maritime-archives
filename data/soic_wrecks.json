@@ -1,0 +1,218 @@
+[
+  {
+    "wreck_id": "soic_wreck:0001",
+    "voyage_id": "soic:0012",
+    "ship_name": "Gotheborg",
+    "loss_date": "1745-09-12",
+    "loss_cause": "grounding",
+    "loss_location": "Hunnebadan rock, entrance to Gothenburg harbor",
+    "region": "kattegat",
+    "status": "excavated",
+    "position": {
+      "lat": 57.68,
+      "lon": 11.82,
+      "uncertainty_km": 0.5
+    },
+    "depth_estimate_m": 8,
+    "tonnage": 830,
+    "archive": "soic"
+  },
+  {
+    "wreck_id": "soic_wreck:0002",
+    "voyage_id": "soic:0042",
+    "ship_name": "Finland",
+    "loss_date": "1771-03-18",
+    "loss_cause": "storm",
+    "loss_location": "off the Faroe Islands",
+    "region": "north_atlantic",
+    "status": "unfound",
+    "position": {
+      "lat": 62.05,
+      "lon": -6.8,
+      "uncertainty_km": 25
+    },
+    "depth_estimate_m": null,
+    "tonnage": 560,
+    "archive": "soic"
+  },
+  {
+    "wreck_id": "soic_wreck:0003",
+    "voyage_id": "soic:0047",
+    "ship_name": "Enigheten",
+    "loss_date": "1773-12-08",
+    "loss_cause": "storm",
+    "loss_location": "coast of Jutland, Denmark",
+    "region": "north_sea",
+    "status": "unfound",
+    "position": {
+      "lat": 56.5,
+      "lon": 8.12,
+      "uncertainty_km": 20
+    },
+    "depth_estimate_m": null,
+    "tonnage": 550,
+    "archive": "soic"
+  },
+  {
+    "wreck_id": "soic_wreck:0004",
+    "voyage_id": "soic:0055",
+    "ship_name": "Cron-Prinsen Gustaf",
+    "loss_date": "1780-12-15",
+    "loss_cause": "storm",
+    "loss_location": "near Orkney Islands, Scotland",
+    "region": "north_atlantic",
+    "status": "unfound",
+    "position": {
+      "lat": 58.97,
+      "lon": -3.1,
+      "uncertainty_km": 15
+    },
+    "depth_estimate_m": null,
+    "tonnage": 660,
+    "archive": "soic"
+  },
+  {
+    "wreck_id": "soic_wreck:0005",
+    "voyage_id": "soic:0060",
+    "ship_name": "Prins Carl",
+    "loss_date": "1786-04-10",
+    "loss_cause": "grounding",
+    "loss_location": "reef off eastern coast of Madagascar",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -16.25,
+      "lon": 49.8,
+      "uncertainty_km": 30
+    },
+    "depth_estimate_m": null,
+    "tonnage": 700,
+    "archive": "soic"
+  },
+  {
+    "wreck_id": "soic_wreck:0006",
+    "voyage_id": "soic:0068",
+    "ship_name": "Norrkoeping",
+    "loss_date": "1794-02-20",
+    "loss_cause": "storm",
+    "loss_location": "Table Bay, Cape of Good Hope",
+    "region": "south_africa",
+    "status": "unfound",
+    "position": {
+      "lat": -33.9,
+      "lon": 18.42,
+      "uncertainty_km": 5
+    },
+    "depth_estimate_m": 12,
+    "tonnage": 530,
+    "archive": "soic"
+  },
+  {
+    "wreck_id": "soic_wreck:0007",
+    "voyage_id": "soic:0077",
+    "ship_name": "Norrkoeping",
+    "loss_date": "1805-09-05",
+    "loss_cause": "typhoon",
+    "loss_location": "South China Sea",
+    "region": "south_china_sea",
+    "status": "unfound",
+    "position": {
+      "lat": 16.5,
+      "lon": 114.0,
+      "uncertainty_km": 100
+    },
+    "depth_estimate_m": null,
+    "tonnage": 530,
+    "archive": "soic"
+  },
+  {
+    "wreck_id": "soic_wreck:0008",
+    "voyage_id": "soic:0028",
+    "ship_name": "Lovisa Ulrica",
+    "loss_date": "1756-03-22",
+    "loss_cause": "captured_and_wrecked",
+    "loss_location": "English Channel",
+    "region": "english_channel",
+    "status": "unfound",
+    "position": {
+      "lat": 50.2,
+      "lon": -1.5,
+      "uncertainty_km": 30
+    },
+    "depth_estimate_m": null,
+    "tonnage": 680,
+    "archive": "soic"
+  },
+  {
+    "wreck_id": "soic_wreck:0009",
+    "voyage_id": "soic:0015",
+    "ship_name": "Fredericus Rex Sueciae",
+    "loss_date": "1747-11-05",
+    "loss_cause": "foundered",
+    "loss_location": "Bay of Biscay",
+    "region": "atlantic",
+    "status": "unfound",
+    "position": {
+      "lat": 45.5,
+      "lon": -5.2,
+      "uncertainty_km": 50
+    },
+    "depth_estimate_m": null,
+    "tonnage": 600,
+    "archive": "soic"
+  },
+  {
+    "wreck_id": "soic_wreck:0010",
+    "voyage_id": "soic:0017",
+    "ship_name": "Calmar",
+    "loss_date": "1750-01-28",
+    "loss_cause": "storm",
+    "loss_location": "off the coast of Norway",
+    "region": "north_sea",
+    "status": "unfound",
+    "position": {
+      "lat": 60.2,
+      "lon": 4.5,
+      "uncertainty_km": 40
+    },
+    "depth_estimate_m": null,
+    "tonnage": 520,
+    "archive": "soic"
+  },
+  {
+    "wreck_id": "soic_wreck:0011",
+    "voyage_id": "soic:0021",
+    "ship_name": "Riddaren",
+    "loss_date": "1752-06-15",
+    "loss_cause": "fire",
+    "loss_location": "mid-Atlantic, west of Cape Verde Islands",
+    "region": "atlantic",
+    "status": "unfound",
+    "position": {
+      "lat": 14.8,
+      "lon": -28.5,
+      "uncertainty_km": 80
+    },
+    "depth_estimate_m": null,
+    "tonnage": 500,
+    "archive": "soic"
+  },
+  {
+    "wreck_id": "soic_wreck:0012",
+    "voyage_id": "soic:0072",
+    "ship_name": "Gustaf III",
+    "loss_date": "1798-04-18",
+    "loss_cause": "captured_and_scuttled",
+    "loss_location": "near Canary Islands",
+    "region": "atlantic",
+    "status": "unfound",
+    "position": {
+      "lat": 28.1,
+      "lon": -15.4,
+      "uncertainty_km": 20
+    },
+    "depth_estimate_m": null,
+    "tonnage": 780,
+    "archive": "soic"
+  }
+]

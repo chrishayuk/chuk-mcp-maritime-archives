@@ -61,13 +61,15 @@ async def main() -> None:
         print(f"  {code:25s} {desc}")
 
     # Single archive detail
-    # Single archive detail
-    print("\n--- Single archive detail (maritime_get_archive) ---")
-    das = await runner.run("maritime_get_archive", archive_id="das")
-    print(f"  Archive: {das['archive']['name']}")
-    print(f"  Org:     {das['archive']['organisation']}")
-    print(f"  Period:  {das['archive']['coverage_start']}-{das['archive']['coverage_end']}")
-    print(f"  Records: {das['archive'].get('total_records', '?')}")
+    print("\n--- Archive details (maritime_get_archive) ---")
+    for aid in ["das", "eic", "carreira", "galleon", "soic"]:
+        arch = await runner.run("maritime_get_archive", archive_id=aid)
+        a = arch["archive"]
+        print(f"  {aid:10s}  {a['name']}")
+        print(f"             Org:    {a['organisation']}")
+        print(f"             Period: {a['coverage_start']}-{a['coverage_end']}")
+        print(f"             Records: {a.get('total_records', '?')}")
+        print()
 
     # Hull profiles
     profiles = await runner.run("maritime_list_hull_profiles")

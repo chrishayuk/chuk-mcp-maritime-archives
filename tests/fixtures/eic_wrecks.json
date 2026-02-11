@@ -1,0 +1,30 @@
+[
+  {
+    "wreck_id": "eic_wreck:0001",
+    "voyage_id": "eic:0001",
+    "ship_name": "Earl of Abergavenny",
+    "loss_date": "1805-02-05",
+    "loss_cause": "grounding",
+    "loss_location": "Portland Bill, Dorset",
+    "region": "english_channel",
+    "status": "found",
+    "position": {"lat": 50.52, "lon": -2.44, "uncertainty_km": 0.5},
+    "depth_estimate_m": 12,
+    "tonnage": 1200,
+    "archive": "eic"
+  },
+  {
+    "wreck_id": "eic_wreck:0002",
+    "voyage_id": "eic:0003",
+    "ship_name": "Grosvenor",
+    "loss_date": "1782-08-04",
+    "loss_cause": "grounding",
+    "loss_location": "Pondoland coast, South Africa",
+    "region": "cape",
+    "status": "approximate",
+    "position": {"lat": -31.42, "lon": 29.92, "uncertainty_km": 10},
+    "depth_estimate_m": 5,
+    "tonnage": 729,
+    "archive": "eic"
+  }
+]

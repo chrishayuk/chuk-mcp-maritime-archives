@@ -1,0 +1,29 @@
+[
+  {
+    "voyage_id": "soic:0001",
+    "ship_name": "Fredericus Rex Sueciae",
+    "captain": "Carl Henrik Anckarhielm",
+    "tonnage": 400,
+    "departure_date": "1732-02-09",
+    "departure_port": "Gothenburg",
+    "destination_port": "Canton",
+    "arrival_date": "1733-08-27",
+    "fate": "completed",
+    "particulars": "First Swedish East India Company voyage. Successfully completed the round trip Gothenburg-Canton-Gothenburg.",
+    "archive": "soic",
+    "cargo_description": "tea and porcelain"
+  },
+  {
+    "voyage_id": "soic:0002",
+    "ship_name": "Gotheborg",
+    "captain": "Erland Ekeblad",
+    "tonnage": 830,
+    "departure_date": "1743-03-14",
+    "departure_port": "Gothenburg",
+    "destination_port": "Canton",
+    "fate": "wrecked",
+    "particulars": "Wrecked at the entrance to Gothenburg harbour on return from Canton, 12 September 1745. Most cargo salvaged. Most famous Swedish shipwreck.",
+    "archive": "soic",
+    "cargo_description": "tea, porcelain, silk"
+  }
+]

@@ -1,0 +1,16 @@
+[
+  {
+    "wreck_id": "soic_wreck:0001",
+    "voyage_id": "soic:0002",
+    "ship_name": "Gotheborg",
+    "loss_date": "1745-09-12",
+    "loss_cause": "grounding",
+    "loss_location": "Entrance to Gothenburg harbour",
+    "region": "north_sea",
+    "status": "found",
+    "position": {"lat": 57.67, "lon": 11.78, "uncertainty_km": 0.1},
+    "depth_estimate_m": 8,
+    "tonnage": 830,
+    "archive": "soic"
+  }
+]
