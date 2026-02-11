@@ -45,7 +45,9 @@ async def main() -> None:
         for w in result["wrecks"]:
             arch = w.get("archive", "?")
             archives_seen.add(arch)
-            print(f"   {w['wreck_id']:22s} {w['ship_name']:25s} [{arch:10s}] {w.get('loss_date', '?')}")
+            print(
+                f"   {w['wreck_id']:22s} {w['ship_name']:25s} [{arch:10s}] {w.get('loss_date', '?')}"
+            )
         print(f"   Archives: {', '.join(sorted(archives_seen))}")
 
     # ----- Step 1b: Per-archive wreck searches (offline) ---------------
@@ -59,7 +61,9 @@ async def main() -> None:
             for w in wrecks["wrecks"]:
                 cause = w.get("loss_cause", "?")
                 status = w.get("status", "?")
-                print(f"     {w['ship_name']:25s} {w.get('loss_date', '?'):12s} {cause:10s} [{status}]")
+                print(
+                    f"     {w['ship_name']:25s} {w.get('loss_date', '?'):12s} {cause:10s} [{status}]"
+                )
 
     wreck_id = None
     if "wrecks" in result and result["wrecks"]:

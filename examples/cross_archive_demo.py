@@ -51,21 +51,25 @@ def _print_voyage_full(result: dict) -> None:
 
     if result.get("wreck"):
         w = result["wreck"]
-        print(f"\n  LINKED WRECK:")
+        print("\n  LINKED WRECK:")
         print(f"    Wreck ID:  {w.get('wreck_id', '?')}")
         print(f"    Lost:      {w.get('loss_date', '?')}  Cause: {w.get('loss_cause', '?')}")
         print(f"    Location:  {w.get('loss_location', '?')}")
         print(f"    Status:    {w.get('status', '?')}")
         if w.get("position"):
             pos = w["position"]
-            print(f"    Position:  {pos.get('lat')}, {pos.get('lon')} (+/-{pos.get('uncertainty_km', '?')}km)")
+            print(
+                f"    Position:  {pos.get('lat')}, {pos.get('lon')} (+/-{pos.get('uncertainty_km', '?')}km)"
+            )
         if w.get("depth_estimate_m"):
             print(f"    Depth:     ~{w['depth_estimate_m']}m")
 
     if result.get("vessel"):
         vs = result["vessel"]
-        print(f"\n  LINKED VESSEL:")
-        print(f"    Name: {vs.get('name', '?')}  Type: {vs.get('type', '?')}  Built: {vs.get('built_year', '?')}")
+        print("\n  LINKED VESSEL:")
+        print(
+            f"    Name: {vs.get('name', '?')}  Type: {vs.get('type', '?')}  Built: {vs.get('built_year', '?')}"
+        )
 
     if result.get("hull_profile"):
         hp = result["hull_profile"]
@@ -73,7 +77,7 @@ def _print_voyage_full(result: dict) -> None:
 
     if result.get("cliwoc_track"):
         ct = result["cliwoc_track"]
-        print(f"\n  LINKED CLIWOC TRACK:")
+        print("\n  LINKED CLIWOC TRACK:")
         print(f"    Nation: {ct.get('nationality', '?')}  Ship: {ct.get('ship_name', '?')}")
         print(f"    Period: {ct.get('start_date', '?')} to {ct.get('end_date', '?')}")
         print(f"    Positions: {ct.get('position_count', '?')}")

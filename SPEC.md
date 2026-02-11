@@ -1,13 +1,14 @@
 # chuk-mcp-maritime-archives Specification
 
-Version 0.5.0
+Version 0.7.0
 
 ## Overview
 
 chuk-mcp-maritime-archives is an MCP (Model Context Protocol) server that provides
 structured access to historical maritime shipping records, vessel specifications,
-crew muster rolls, cargo manifests, and shipwreck databases from the Dutch East India
-Company (VOC) era, 1595-1795.
+crew muster rolls, cargo manifests, and shipwreck databases from the Age of Exploration
+through the colonial era, 1497-1874. Covers Dutch (VOC), English (EIC), Portuguese
+(Carreira da India), Spanish (Manila Galleon), and Swedish (SOIC) maritime archives.
 
 - **29 tools** for searching, retrieving, analysing, and exporting maritime archival data
 - **Dual output mode** -- all tools return JSON (default) or human-readable text via `output_mode` parameter
@@ -22,6 +23,10 @@ Company (VOC) era, 1595-1795.
 | `voc_crew` | VOC Opvarenden | Nationaal Archief | 774,200 records | 1633-1794 | crew muster rolls |
 | `voc_cargo` | Boekhouder-Generaal Batavia | Nationaal Archief | ~50,000 records | 1700-1795 | cargo manifests |
 | `maarer` | MAARER VOC Wrecks | Maritime Archaeological Research | 734 wrecks | 1595-1795 | wreck positions, incidents |
+| `eic` | English East India Company | Curated from Hardy/Farrington | ~150 voyages, ~35 wrecks | 1600-1874 | voyages, wrecks |
+| `carreira` | Portuguese Carreira da India | Curated from Guinote/Frutuoso/Lopes | ~120 voyages, ~40 wrecks | 1497-1835 | voyages, wrecks |
+| `galleon` | Spanish Manila Galleon | Curated from Schurz | ~100 voyages, ~25 wrecks | 1565-1815 | voyages, wrecks |
+| `soic` | Swedish East India Company | Curated from Koninckx | ~80 voyages, ~12 wrecks | 1731-1813 | voyages, wrecks |
 
 ### Archive Sources
 
@@ -31,9 +36,14 @@ Company (VOC) era, 1595-1795.
 | VOC Crew | `https://www.nationaalarchief.nl/onderzoeken/index/nt00444` | REST API |
 | BGB Cargo | `https://bgb.huygens.knaw.nl` | REST API |
 | MAARER | `https://resources.huygens.knaw.nl/das` | Compiled data endpoint |
+| EIC | Curated reference data | Local JSON (chuk-artifacts) |
+| Carreira | Curated reference data | Local JSON (chuk-artifacts) |
+| Galleon | Curated reference data | Local JSON (chuk-artifacts) |
+| SOIC | Curated reference data | Local JSON (chuk-artifacts) |
 
 If an archive API is unavailable, the client returns an empty result set and tools
-return a structured error response.
+return a structured error response. The EIC, Carreira, Galleon, and SOIC archives
+work entirely offline with curated local data.
 
 ---
 
@@ -75,7 +85,7 @@ Get detailed metadata for a specific archive.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `archive_id` | `str` | *required* | Archive identifier: `das`, `voc_crew`, `voc_cargo`, `maarer` |
+| `archive_id` | `str` | *required* | Archive identifier: `das`, `voc_crew`, `voc_cargo`, `maarer`, `eic`, `carreira`, `galleon`, `soic` |
 
 **Response:** `ArchiveDetailResponse`
 
@@ -90,7 +100,7 @@ Get detailed metadata for a specific archive.
 
 #### `maritime_search_voyages`
 
-Search VOC voyage records with multiple filter criteria.
+Search voyage records across all archives with multiple filter criteria.
 
 **Parameters:**
 
@@ -125,7 +135,7 @@ Get full details for a specific voyage by ID.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `voyage_id` | `str` | *required* | Voyage identifier (e.g., `das:7892`) |
+| `voyage_id` | `str` | *required* | Voyage identifier (e.g., `das:7892`, `eic:0001`, `carreira:0001`, `galleon:0009`, `soic:0002`) |
 
 **Response:** `VoyageDetailResponse`
 
@@ -140,7 +150,7 @@ Get full details for a specific voyage by ID.
 
 #### `maritime_search_wrecks`
 
-Search shipwreck and loss records.
+Search shipwreck and loss records across all archives.
 
 **Parameters:**
 
@@ -176,7 +186,7 @@ Get full details for a specific wreck by ID.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `wreck_id` | `str` | *required* | Wreck identifier (e.g., `maarer:VOC-0789`) |
+| `wreck_id` | `str` | *required* | Wreck identifier (e.g., `maarer:VOC-0789`, `eic_wreck:0010`, `carreira_wreck:0001`, `galleon_wreck:0001`, `soic_wreck:0001`) |
 
 **Response:** `WreckDetailResponse`
 
@@ -571,15 +581,15 @@ for seasonal variation.
 
 #### `maritime_get_timeline`
 
-Build a chronological timeline of events for a DAS voyage, combining data from the
-voyage database, route estimates, CLIWOC ship tracks, and wreck records. Useful for
-understanding the full sequence of events in a voyage.
+Build a chronological timeline of events for a voyage from any archive, combining data
+from the voyage database, route estimates, CLIWOC ship tracks, and wreck records. Useful
+for understanding the full sequence of events in a voyage.
 
 **Parameters:**
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `voyage_id` | `str` | *required* | DAS voyage identifier (e.g., `"das:0372.1"`) |
+| `voyage_id` | `str` | *required* | Voyage identifier from any archive (e.g., `"das:0372.1"`, `"eic:0062"`, `"carreira:0001"`) |
 | `include_positions` | `bool` | `false` | Include sampled CLIWOC daily positions as events |
 | `max_positions` | `int` | `20` | Maximum CLIWOC positions to include (when `include_positions=True`) |
 
@@ -721,24 +731,24 @@ positions and returns tracks with positions within the search radius.
 
 Get a unified view of a voyage with all linked records: wreck, vessel,
 hull profile, and CLIWOC track. This is the primary tool for cross-archive
-investigation — it follows all links between the DAS voyage database,
-wreck records, vessel registry, hull profiles, and CLIWOC ship tracks
-automatically in a single call.
+investigation — it follows all links between voyage databases (DAS, EIC,
+Carreira, Galleon, SOIC), wreck records, vessel registry, hull profiles,
+and CLIWOC ship tracks automatically in a single call.
 
 **Parameters:**
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `voyage_id` | `str` | required | DAS voyage identifier (e.g. `"das:0372.1"` or `"0372.1"`) |
+| `voyage_id` | `str` | required | Voyage identifier from any archive (e.g. `"das:0372.1"`, `"eic:0062"`, `"carreira:0001"`, `"galleon:0009"`, `"soic:0002"`) |
 | `output_mode` | `str` | `"json"` | `"json"` or `"text"` |
 
 **Response: `VoyageFullResponse`**
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `voyage` | `dict` | The DAS voyage record |
+| `voyage` | `dict` | The voyage record (from any archive) |
 | `wreck` | `dict?` | Linked wreck record (if ship was lost) |
-| `vessel` | `dict?` | Linked vessel record (from DAS vessel registry) |
+| `vessel` | `dict?` | Linked vessel record (from DAS vessel registry, DAS voyages only) |
 | `hull_profile` | `dict?` | Hull profile for the ship type |
 | `cliwoc_track` | `dict?` | Linked CLIWOC track summary (without positions) |
 | `links_found` | `str[]` | Names of linked records found (e.g. `["wreck", "vessel"]`) |
@@ -749,7 +759,7 @@ automatically in a single call.
 1. **Wreck**: Found by matching `voyage_id` in wreck records
 2. **Vessel**: Found by reverse lookup in vessel `voyage_ids` arrays
 3. **Hull profile**: Found by matching voyage `ship_type` to hull profile data
-4. **CLIWOC track**: Found by DAS number (exact match) or ship name + date overlap (fuzzy match)
+4. **CLIWOC track**: Found by DAS number (exact match), or ship name + nationality + date overlap (fuzzy match). Nationality mapped from archive: `das`/`eic`→NL/UK, `carreira`→PT, `galleon`→ES, `soic`→SE
 
 ---
 
@@ -908,11 +918,15 @@ Each ship type includes full hydrodynamic profiles for drift modelling:
 | Region Code | Description |
 |------------|-------------|
 | `north_sea` | North Sea, English Channel |
+| `english_channel` | English Channel approaches |
 | `atlantic_europe` | Bay of Biscay to Canaries |
+| `west_africa` | West African coast |
 | `atlantic_crossing` | Mid-Atlantic |
+| `south_atlantic` | South Atlantic Ocean |
 | `cape` | Cape of Good Hope region |
 | `mozambique_channel` | East African coast |
 | `indian_ocean` | Open Indian Ocean |
+| `arabian_sea` | Arabian Sea and Gulf of Aden |
 | `malabar` | Indian west coast |
 | `coromandel` | Indian east coast |
 | `ceylon` | Sri Lanka waters |
@@ -920,6 +934,9 @@ Each ship type includes full hydrodynamic profiles for drift modelling:
 | `malacca` | Straits of Malacca |
 | `indonesia` | Indonesian archipelago |
 | `south_china_sea` | Vietnam, Philippines, South China |
+| `south_china_coast` | South China coast |
+| `philippine_sea` | Philippine Sea |
+| `pacific` | Pacific Ocean |
 | `japan` | Japanese waters |
 | `caribbean` | Caribbean Sea |
 
@@ -927,10 +944,13 @@ Each ship type includes full hydrodynamic profiles for drift modelling:
 
 | Period | Technology | Typical Accuracy | Notes |
 |--------|-----------|-----------------|-------|
+| 1497-1595 | Dead reckoning with astrolabe | 35 km | Pre-VOC era. Portuguese and Spanish exploration. |
 | 1595-1650 | Dead reckoning with cross-staff | 30 km | Early VOC era. No reliable longitude method. |
 | 1650-1700 | Dead reckoning with backstaff | 25 km | Improved latitude measurements. |
 | 1700-1760 | Dead reckoning with octant | 20 km | Hadley's octant from 1731. Better latitude. |
 | 1760-1795 | Chronometer era | 10 km | Harrison's chronometer. Longitude measurable but instruments rare on VOC ships. |
+| 1795-1840 | Chronometer widespread | 5 km | Marine chronometers standard equipment on major trading vessels. |
+| 1840-1874 | Steam era navigation | 3 km | Steam power + chronometers. Late EIC period. |
 
 ### Position Uncertainty Types
 
@@ -991,7 +1011,7 @@ All tools return `ErrorResponse` on failure:
 
 ```json
 {
-  "error": "Archive 'invalid' not found. Available: das, voc_crew, voc_cargo, maarer",
+  "error": "Archive 'invalid' not found. Available: das, voc_crew, voc_cargo, maarer, eic, carreira, galleon, soic",
   "message": ""
 }
 ```

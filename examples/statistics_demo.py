@@ -98,10 +98,14 @@ async def main() -> None:
 
             print(f"\n   {archive.upper()} ({count} wrecks):")
             if causes:
-                cause_str = ", ".join(f"{k}: {v}" for k, v in sorted(causes.items(), key=lambda x: -x[1]))
+                cause_str = ", ".join(
+                    f"{k}: {v}" for k, v in sorted(causes.items(), key=lambda x: -x[1])
+                )
                 print(f"     Causes:  {cause_str}")
             if regions:
-                region_str = ", ".join(f"{k}: {v}" for k, v in sorted(regions.items(), key=lambda x: -x[1]))
+                region_str = ", ".join(
+                    f"{k}: {v}" for k, v in sorted(regions.items(), key=lambda x: -x[1])
+                )
                 print(f"     Regions: {region_str}")
 
     # ----- Underlying data ------------------------------------------

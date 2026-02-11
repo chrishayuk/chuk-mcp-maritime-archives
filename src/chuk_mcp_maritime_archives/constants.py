@@ -195,10 +195,7 @@ ARCHIVE_METADATA: dict[str, dict] = {
             "and Manila carrying silver eastbound and silk, spices, "
             "and porcelain westbound."
         ),
-        "citation": (
-            "Schurz, William Lytle. The Manila Galleon. New York: "
-            "E.P. Dutton, 1939."
-        ),
+        "citation": ("Schurz, William Lytle. The Manila Galleon. New York: E.P. Dutton, 1939."),
         "license": "Curated from published academic sources",
     },
     "soic": {
@@ -376,7 +373,9 @@ DEFAULT_ARCHIVE: str = "das"
 # --- Type Literals ---------------------------------------------------------
 
 
-ArchiveName = Literal["das", "voc_crew", "voc_cargo", "maarer", "eic", "carreira", "galleon", "soic"]
+ArchiveName = Literal[
+    "das", "voc_crew", "voc_cargo", "maarer", "eic", "carreira", "galleon", "soic"
+]
 RegionName = Literal[
     "north_sea",
     "atlantic_europe",

@@ -101,9 +101,7 @@ class GalleonClient(BaseArchiveClient):
         index = self._get_voyage_index()
         if record_id in index:
             return index[record_id]
-        prefixed = (
-            f"galleon:{record_id}" if not record_id.startswith("galleon:") else record_id
-        )
+        prefixed = f"galleon:{record_id}" if not record_id.startswith("galleon:") else record_id
         return index.get(prefixed)
 
     async def search_wrecks(
@@ -154,9 +152,7 @@ class GalleonClient(BaseArchiveClient):
         if wreck_id in index:
             return index[wreck_id]
         prefixed = (
-            f"galleon_wreck:{wreck_id}"
-            if not wreck_id.startswith("galleon_wreck:")
-            else wreck_id
+            f"galleon_wreck:{wreck_id}" if not wreck_id.startswith("galleon_wreck:") else wreck_id
         )
         return index.get(prefixed)
 

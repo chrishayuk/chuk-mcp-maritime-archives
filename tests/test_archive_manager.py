@@ -339,7 +339,9 @@ class TestStatistics:
     @pytest.mark.asyncio
     async def test_get_statistics_with_date_range(self, manager: ArchiveManager):
         stats = await manager.get_statistics(date_range="1600/1700")
-        assert stats["summary"]["total_losses"] == 3  # Batavia 1629, Vergulde Draeck 1656, San Diego 1600
+        assert (
+            stats["summary"]["total_losses"] == 3
+        )  # Batavia 1629, Vergulde Draeck 1656, San Diego 1600
 
     @pytest.mark.asyncio
     async def test_get_statistics_computes_breakdowns(self, manager: ArchiveManager):

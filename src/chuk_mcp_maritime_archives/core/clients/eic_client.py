@@ -92,9 +92,7 @@ class EICClient(BaseArchiveClient):
             ]
         if company_division:
             results = [
-                v
-                for v in results
-                if self._contains(v.get("company_division"), company_division)
+                v for v in results if self._contains(v.get("company_division"), company_division)
             ]
         if date_range:
             results = self._filter_by_date_range(results, date_range, "departure_date")
@@ -156,9 +154,7 @@ class EICClient(BaseArchiveClient):
         index = self._get_wreck_index()
         if wreck_id in index:
             return index[wreck_id]
-        prefixed = (
-            f"eic_wreck:{wreck_id}" if not wreck_id.startswith("eic_wreck:") else wreck_id
-        )
+        prefixed = f"eic_wreck:{wreck_id}" if not wreck_id.startswith("eic_wreck:") else wreck_id
         return index.get(prefixed)
 
     async def get_wreck_by_voyage_id(self, voyage_id: str) -> dict | None:

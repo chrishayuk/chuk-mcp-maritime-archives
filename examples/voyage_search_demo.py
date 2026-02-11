@@ -62,7 +62,9 @@ async def main() -> None:
         for v in result["voyages"]:
             arch = v.get("archive", "?")
             archives_seen.add(arch)
-            print(f"   {v['voyage_id']:16s} {v['ship_name']:30s} [{arch}]  {v.get('departure_date', '?')}")
+            print(
+                f"   {v['voyage_id']:16s} {v['ship_name']:30s} [{arch}]  {v.get('departure_date', '?')}"
+            )
         print(f"   Archives represented: {', '.join(sorted(archives_seen))}")
 
     # ----- Search 3: EIC-specific search (offline) --------------------
@@ -132,7 +134,9 @@ async def main() -> None:
         print(f"   Found {result['voyage_count']} voyage(s) in 1497-1510")
         for v in result["voyages"]:
             arch = v.get("archive", "?")
-            print(f"   {v['voyage_id']:16s} {v['ship_name']:30s} [{arch}]  {v.get('departure_date', '?')}")
+            print(
+                f"   {v['voyage_id']:16s} {v['ship_name']:30s} [{arch}]  {v.get('departure_date', '?')}"
+            )
 
     # ----- Search 9: Text output mode --------------------------------
     print("\n9. Text output mode (EIC archive)")

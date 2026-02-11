@@ -215,6 +215,10 @@ Current and potential data sources for the project.
 | VOC Routes | 8 routes | `data/routes.json` | Curated |
 | Hull Profiles | 6 types | `data/hull_profiles.json` | Curated |
 | Speed Profiles | 215 profiles, 6 routes | `data/speed_profiles.json` | Generated from CLIWOC |
+| EIC Archives | ~150 voyages, ~35 wrecks | `generate_eic.py` | Curated from Hardy/Farrington |
+| Carreira da India | ~120 voyages, ~40 wrecks | `generate_carreira.py` | Curated from Guinote/Frutuoso/Lopes |
+| Manila Galleon | ~100 voyages, ~25 wrecks | `generate_galleon.py` | Curated from Schurz |
+| SOIC Archives | ~80 voyages, ~12 wrecks | `generate_soic.py` | Curated from Koninckx |
 
 ### Potential
 
@@ -231,8 +235,8 @@ Current and potential data sources for the project.
 
 See [README.md](README.md#contributing) for contribution guidelines. Key areas where help is welcome:
 
-- **New archive download scripts** -- especially for EIC, Portuguese, and Spanish records
-- **Gazetteer expansion** -- adding more historical place names with coordinates
+- **Archive data enrichment** -- expanding voyage/wreck records with additional details from published sources
+- **Gazetteer expansion** -- adding more historical place names with coordinates (especially for non-Dutch ports)
 - **Route accuracy** -- improving waypoint positions and sailing time estimates
-- **CLIWOC analysis** -- statistical speed profiles from actual ship track data
-- **Test coverage** -- edge cases in position estimation and date handling
+- **Additional sailing routes** -- EIC, Carreira, Galleon, and SOIC standard routes
+- **Test coverage** -- edge cases in position estimation, date handling, and multi-archive dispatch

@@ -95,9 +95,7 @@ class CarreiraClient(BaseArchiveClient):
             results = [v for v in results if v.get("armada_year") == armada_year]
         if fleet_commander:
             results = [
-                v
-                for v in results
-                if self._contains(v.get("fleet_commander"), fleet_commander)
+                v for v in results if self._contains(v.get("fleet_commander"), fleet_commander)
             ]
         if date_range:
             results = self._filter_by_date_range(results, date_range, "departure_date")
@@ -109,9 +107,7 @@ class CarreiraClient(BaseArchiveClient):
         index = self._get_voyage_index()
         if record_id in index:
             return index[record_id]
-        prefixed = (
-            f"carreira:{record_id}" if not record_id.startswith("carreira:") else record_id
-        )
+        prefixed = f"carreira:{record_id}" if not record_id.startswith("carreira:") else record_id
         return index.get(prefixed)
 
     async def search_wrecks(
@@ -162,9 +158,7 @@ class CarreiraClient(BaseArchiveClient):
         if wreck_id in index:
             return index[wreck_id]
         prefixed = (
-            f"carreira_wreck:{wreck_id}"
-            if not wreck_id.startswith("carreira_wreck:")
-            else wreck_id
+            f"carreira_wreck:{wreck_id}" if not wreck_id.startswith("carreira_wreck:") else wreck_id
         )
         return index.get(prefixed)
 
