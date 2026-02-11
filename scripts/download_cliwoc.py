@@ -29,6 +29,8 @@ import tempfile
 import urllib.request
 from pathlib import Path
 
+from download_utils import is_cached, parse_args
+
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 logger = logging.getLogger(__name__)
 
@@ -326,10 +328,17 @@ def group_slim_positions_into_tracks(
 
 
 def main() -> None:
+    args = parse_args("Download CLIWOC ship track data")
+
     logger.info("=" * 60)
     logger.info("CLIWOC Ship Track Download — chuk-mcp-maritime-archives")
     logger.info("=" * 60)
     logger.info("")
+
+    output_path = DATA_DIR / "cliwoc_tracks.json"
+    if not args.force and is_cached(output_path, args.cache_max_age):
+        logger.info("Using cached %s (use --force to re-download)", output_path.name)
+        return
 
     DATA_DIR.mkdir(parents=True, exist_ok=True)
 

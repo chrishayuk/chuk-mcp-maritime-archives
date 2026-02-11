@@ -419,7 +419,7 @@ class CargoInfo(BaseModel):
     voyage_id: str | None = None
     ship_name: str | None = None
     commodity: str
-    quantity: float | None = None
+    quantity: str | float | None = None
     unit: str | None = None
     value_guilders: float | None = None
 

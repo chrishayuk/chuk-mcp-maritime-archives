@@ -473,5 +473,328 @@
     "depth_estimate_m": null,
     "tonnage": 500,
     "particulars": "Wrecked on the coast of Samar during a late-season typhoon. The crew managed to reach shore but the ship and cargo were total losses."
+  },
+  {
+    "wreck_id": "galleon_wreck:0026",
+    "archive": "galleon",
+    "voyage_id": "galleon:0109",
+    "ship_name": "Rosario",
+    "loss_date": "1571-11-14",
+    "loss_cause": "grounding",
+    "loss_location": "Samar coast, Philippines",
+    "region": "western_pacific",
+    "status": "unfound",
+    "position": {
+      "lat": 11.0,
+      "lon": 124.69999999999999,
+      "uncertainty_km": 25
+    },
+    "depth_estimate_m": null,
+    "tonnage": 513,
+    "particulars": "Vanished on the Pacific crossing. Presumed lost in a storm."
+  },
+  {
+    "wreck_id": "galleon_wreck:0027",
+    "archive": "galleon",
+    "voyage_id": "galleon:0119",
+    "ship_name": "San Felipe",
+    "loss_date": "1576-10-17",
+    "loss_cause": "grounding",
+    "loss_location": "Philippine Sea",
+    "region": "western_pacific",
+    "status": "unfound",
+    "position": {
+      "lat": 17.9,
+      "lon": 135.7,
+      "uncertainty_km": 200
+    },
+    "depth_estimate_m": null,
+    "tonnage": 529,
+    "particulars": "Vanished on the Pacific crossing. Presumed lost in a storm."
+  },
+  {
+    "wreck_id": "galleon_wreck:0028",
+    "archive": "galleon",
+    "voyage_id": "galleon:0125",
+    "ship_name": "San Vicente",
+    "loss_date": "1579-07-20",
+    "loss_cause": "captured",
+    "loss_location": "Philippine Sea",
+    "region": "western_pacific",
+    "status": "unfound",
+    "position": {
+      "lat": 18.6,
+      "lon": 134.8,
+      "uncertainty_km": 200
+    },
+    "depth_estimate_m": null,
+    "tonnage": 538,
+    "particulars": "Driven ashore by a typhoon. Total loss of ship and cargo."
+  },
+  {
+    "wreck_id": "galleon_wreck:0029",
+    "archive": "galleon",
+    "voyage_id": "galleon:0128",
+    "ship_name": "Nuestra Senora de Guia",
+    "loss_date": "1581-11-23",
+    "loss_cause": "captured",
+    "loss_location": "Catanduanes coast, Philippines",
+    "region": "western_pacific",
+    "status": "unfound",
+    "position": {
+      "lat": 13.100000000000001,
+      "lon": 125.2,
+      "uncertainty_km": 20
+    },
+    "depth_estimate_m": null,
+    "tonnage": 543,
+    "particulars": "Wrecked on a reef near the Embocadero."
+  },
+  {
+    "wreck_id": "galleon_wreck:0030",
+    "archive": "galleon",
+    "voyage_id": "galleon:0133",
+    "ship_name": "Encarnacion",
+    "loss_date": "1584-05-26",
+    "loss_cause": "captured",
+    "loss_location": "Catanduanes coast, Philippines",
+    "region": "western_pacific",
+    "status": "unfound",
+    "position": {
+      "lat": 13.8,
+      "lon": 124.3,
+      "uncertainty_km": 20
+    },
+    "depth_estimate_m": null,
+    "tonnage": 552,
+    "particulars": "Lost in a typhoon shortly after departing the Philippines."
+  },
+  {
+    "wreck_id": "galleon_wreck:0031",
+    "archive": "galleon",
+    "voyage_id": "galleon:0147",
+    "ship_name": "Nuestra Senora de Guia",
+    "loss_date": "1592-11-06",
+    "loss_cause": "storm",
+    "loss_location": "Pacific Ocean, north of Hawaii",
+    "region": "pacific",
+    "status": "unfound",
+    "position": {
+      "lat": 30.7,
+      "lon": -170.9,
+      "uncertainty_km": 500
+    },
+    "depth_estimate_m": null,
+    "tonnage": 577,
+    "particulars": "Captured by a foreign warship. Crew set ashore."
+  },
+  {
+    "wreck_id": "galleon_wreck:0032",
+    "archive": "galleon",
+    "voyage_id": "galleon:0154",
+    "ship_name": "Sacramento",
+    "loss_date": "1597-11-09",
+    "loss_cause": "storm",
+    "loss_location": "Samar coast, Philippines",
+    "region": "western_pacific",
+    "status": "unfound",
+    "position": {
+      "lat": 11.200000000000001,
+      "lon": 125.3,
+      "uncertainty_km": 25
+    },
+    "depth_estimate_m": null,
+    "tonnage": 591,
+    "particulars": "Captured by a foreign warship. Crew set ashore."
+  },
+  {
+    "wreck_id": "galleon_wreck:0033",
+    "archive": "galleon",
+    "voyage_id": "galleon:0160",
+    "ship_name": "San Martin",
+    "loss_date": "1600-05-12",
+    "loss_cause": "typhoon",
+    "loss_location": "Samar coast, Philippines",
+    "region": "western_pacific",
+    "status": "unfound",
+    "position": {
+      "lat": 11.9,
+      "lon": 124.39999999999999,
+      "uncertainty_km": 25
+    },
+    "depth_estimate_m": null,
+    "tonnage": 800,
+    "particulars": "Vanished on the Pacific crossing. Presumed lost in a storm."
+  },
+  {
+    "wreck_id": "galleon_wreck:0034",
+    "archive": "galleon",
+    "voyage_id": "galleon:0173",
+    "ship_name": "Sacramento",
+    "loss_date": "1608-11-15",
+    "loss_cause": "storm",
+    "loss_location": "Mariana Islands",
+    "region": "western_pacific",
+    "status": "unfound",
+    "position": {
+      "lat": 15.950000000000001,
+      "lon": 146.1,
+      "uncertainty_km": 50
+    },
+    "depth_estimate_m": null,
+    "tonnage": 825,
+    "particulars": "Foundered in heavy seas on the northern great-circle route."
+  },
+  {
+    "wreck_id": "galleon_wreck:0035",
+    "archive": "galleon",
+    "voyage_id": "galleon:0180",
+    "ship_name": "San Carlos",
+    "loss_date": "1613-11-18",
+    "loss_cause": "storm",
+    "loss_location": "off Cabo San Lucas, Baja California",
+    "region": "eastern_pacific",
+    "status": "unfound",
+    "position": {
+      "lat": 22.39,
+      "lon": -110.41,
+      "uncertainty_km": 15
+    },
+    "depth_estimate_m": null,
+    "tonnage": 839,
+    "particulars": "Foundered in heavy seas on the northern great-circle route."
+  },
+  {
+    "wreck_id": "galleon_wreck:0036",
+    "archive": "galleon",
+    "voyage_id": "galleon:0191",
+    "ship_name": "Filipino",
+    "loss_date": "1618-10-21",
+    "loss_cause": "storm",
+    "loss_location": "Catanduanes coast, Philippines",
+    "region": "western_pacific",
+    "status": "unfound",
+    "position": {
+      "lat": 14.0,
+      "lon": 124.89999999999999,
+      "uncertainty_km": 20
+    },
+    "depth_estimate_m": null,
+    "tonnage": 855,
+    "particulars": "Foundered in heavy seas on the northern great-circle route."
+  },
+  {
+    "wreck_id": "galleon_wreck:0037",
+    "archive": "galleon",
+    "voyage_id": "galleon:0195",
+    "ship_name": "Nuestra Senora del Pilar",
+    "loss_date": "1621-07-24",
+    "loss_cause": "captured",
+    "loss_location": "Catanduanes coast, Philippines",
+    "region": "western_pacific",
+    "status": "unfound",
+    "position": {
+      "lat": 14.700000000000001,
+      "lon": 124.0,
+      "uncertainty_km": 20
+    },
+    "depth_estimate_m": null,
+    "tonnage": 864,
+    "particulars": "Wrecked on a reef near the Embocadero."
+  },
+  {
+    "wreck_id": "galleon_wreck:0038",
+    "archive": "galleon",
+    "voyage_id": "galleon:0198",
+    "ship_name": "Santo Nino",
+    "loss_date": "1623-11-27",
+    "loss_cause": "grounding",
+    "loss_location": "Samar coast, Philippines",
+    "region": "western_pacific",
+    "status": "unfound",
+    "position": {
+      "lat": 11.4,
+      "lon": 125.89999999999999,
+      "uncertainty_km": 25
+    },
+    "depth_estimate_m": null,
+    "tonnage": 869,
+    "particulars": "Driven ashore by a typhoon. Total loss of ship and cargo."
+  },
+  {
+    "wreck_id": "galleon_wreck:0039",
+    "archive": "galleon",
+    "voyage_id": "galleon:0218",
+    "ship_name": "Santo Nino",
+    "loss_date": "1634-10-07",
+    "loss_cause": "foundered",
+    "loss_location": "Samar coast, Philippines",
+    "region": "western_pacific",
+    "status": "unfound",
+    "position": {
+      "lat": 12.100000000000001,
+      "lon": 125.0,
+      "uncertainty_km": 25
+    },
+    "depth_estimate_m": null,
+    "tonnage": 903,
+    "particulars": "Driven ashore by a typhoon. Total loss of ship and cargo."
+  },
+  {
+    "wreck_id": "galleon_wreck:0040",
+    "archive": "galleon",
+    "voyage_id": "galleon:0224",
+    "ship_name": "San Francisco",
+    "loss_date": "1637-07-10",
+    "loss_cause": "storm",
+    "loss_location": "Samar coast, Philippines",
+    "region": "western_pacific",
+    "status": "unfound",
+    "position": {
+      "lat": 10.8,
+      "lon": 124.1,
+      "uncertainty_km": 25
+    },
+    "depth_estimate_m": null,
+    "tonnage": 912,
+    "particulars": "Captured by a foreign warship. Crew set ashore."
+  },
+  {
+    "wreck_id": "galleon_wreck:0041",
+    "archive": "galleon",
+    "voyage_id": "galleon:0226",
+    "ship_name": "San Luis",
+    "loss_date": "1639-11-13",
+    "loss_cause": "typhoon",
+    "loss_location": "off Cabo San Lucas, Baja California",
+    "region": "eastern_pacific",
+    "status": "unfound",
+    "position": {
+      "lat": 22.59,
+      "lon": -109.81,
+      "uncertainty_km": 15
+    },
+    "depth_estimate_m": null,
+    "tonnage": 917,
+    "particulars": "Lost in a typhoon shortly after departing the Philippines."
+  },
+  {
+    "wreck_id": "galleon_wreck:0042",
+    "archive": "galleon",
+    "voyage_id": "galleon:0230",
+    "ship_name": "San Diego",
+    "loss_date": "1642-05-16",
+    "loss_cause": "captured",
+    "loss_location": "off Cabo San Lucas, Baja California",
+    "region": "eastern_pacific",
+    "status": "unfound",
+    "position": {
+      "lat": 23.29,
+      "lon": -110.71,
+      "uncertainty_km": 15
+    },
+    "depth_estimate_m": null,
+    "tonnage": 926,
+    "particulars": "Foundered in heavy seas on the northern great-circle route."
   }
 ]

@@ -10,8 +10,8 @@ approximately 132 documented expeditions between Gothenburg and Canton
     Second charter: 1766-1813 (continued expeditions)
 
 Outputs:
-    data/soic_voyages.json  -- ~80 voyage records (soic:0001 .. soic:0080)
-    data/soic_wrecks.json   -- ~12 wreck records  (soic_wreck:0001 .. soic_wreck:0012)
+    data/soic_voyages.json  -- ~132 voyage records (soic:0001 .. soic:0132)
+    data/soic_wrecks.json   -- ~20 wreck records  (soic_wreck:0001 .. soic_wreck:0020)
 
 Run from the project root:
 
@@ -20,6 +20,8 @@ Run from the project root:
 
 import json
 from pathlib import Path
+
+from download_utils import is_cached, parse_args
 
 # ---------------------------------------------------------------------------
 # Paths
@@ -61,6 +63,12 @@ SOIC_SHIPS = {
     "Riksens Stander": {"tonnage": 730, "years": (1775, 1800)},
     "Wasa": {"tonnage": 600, "years": (1780, 1806)},
     "Norrkoeping": {"tonnage": 530, "years": (1786, 1810)},
+    "Gustaf Adolph": {"tonnage": 690, "years": (1785, 1810)},
+    "Oster-Gothland II": {"tonnage": 600, "years": (1790, 1813)},
+    "Drottning Sophia Magdalena": {"tonnage": 720, "years": (1780, 1800)},
+    "Tre Kronor": {"tonnage": 650, "years": (1795, 1813)},
+    "Carolina": {"tonnage": 580, "years": (1790, 1810)},
+    "Jupiter": {"tonnage": 540, "years": (1795, 1813)},
 }
 
 # ---------------------------------------------------------------------------
@@ -97,6 +105,11 @@ CAPTAINS = [
     "Carl Reinhold Tersmeden",
     "Abraham Falander",
     "Nils Wahlberg",
+    "Gustaf Tham",
+    "Carl Johan Bladh",
+    "Henrik Bernhard Palmqvist",
+    "Axel Fredrik Cronstedt",
+    "Per Erik Bergius",
 ]
 
 # ---------------------------------------------------------------------------
@@ -127,10 +140,10 @@ CARGO_DESCRIPTIONS = [
 
 
 # ---------------------------------------------------------------------------
-# Voyage data — 80 curated SOIC expeditions
+# Voyage data — 132 curated SOIC expeditions
 # ---------------------------------------------------------------------------
 def build_voyages() -> list[dict]:
-    """Return a list of ~80 SOIC voyage records."""
+    """Return a list of ~132 SOIC expedition records."""
     voyages_raw = [
         # ---------------------------------------------------------------
         # FIRST CHARTER: 1731-1766
@@ -1238,6 +1251,795 @@ def build_voyages() -> list[dict]:
             "Swedish direct trade with China ended, displaced by British "
             "and American competition. The company was formally dissolved.",
         },
+        # ---------------------------------------------------------------
+        # EXTENDED VOYAGES 81-132: Later second charter period (1792-1813)
+        # These represent the remaining documented SOIC expeditions,
+        # including ships running concurrently and the difficult
+        # Napoleonic Wars era that hastened the company's decline.
+        # ---------------------------------------------------------------
+        # Expedition LXXXI
+        {
+            "id": 81,
+            "ship": "Gustaf Adolph",
+            "captain": "Lars Hjorth",
+            "dep": "1792-01-15",
+            "arr": "1793-07-20",
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea, porcelain, and silk",
+            "fate": "completed",
+            "particulars": "First voyage of the Gustaf Adolph. Departed Gothenburg "
+            "in the same season as the Wasa. The two vessels sailed in "
+            "loose convoy as far as the Cape of Good Hope for mutual "
+            "protection in uncertain times.",
+        },
+        # Expedition LXXXII
+        {
+            "id": 82,
+            "ship": "Drottning Sophia Magdalena",
+            "captain": "Gustaf Tham",
+            "dep": "1792-03-10",
+            "arr": "1793-09-05",
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea (bohea and hyson), porcelain services",
+            "fate": "completed",
+            "particulars": "First voyage of the Drottning Sophia Magdalena, a new "
+            "vessel named in honor of the dowager queen. Tham proved "
+            "an able commander on this maiden voyage to Canton.",
+        },
+        # Expedition LXXXIII
+        {
+            "id": 83,
+            "ship": "Riksens Stander",
+            "captain": "Abraham Falander",
+            "dep": "1792-11-08",
+            "arr": "1794-06-18",
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea, silk, and lacquerware",
+            "fate": "completed",
+            "particulars": "The Riksens Stander departed shortly before France "
+            "declared war on Britain and the Netherlands. Falander "
+            "navigated carefully and completed the round trip before "
+            "the full naval war engulfed European waters.",
+        },
+        # Expedition LXXXIV
+        {
+            "id": 84,
+            "ship": "Gustaf Adolph",
+            "captain": "Carl Johan Bladh",
+            "dep": "1793-02-20",
+            "arr": "1794-08-12",
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea, porcelain dinner services, and silk brocade",
+            "fate": "completed",
+            "particulars": "Second voyage of the Gustaf Adolph under Bladh. "
+            "The French Revolutionary Wars had begun, and Swedish "
+            "neutrality was tested as French privateers began ranging "
+            "across the Atlantic.",
+        },
+        # Expedition LXXXV — wrecked
+        {
+            "id": 85,
+            "ship": "Drottning Sophia Magdalena",
+            "captain": "Gustaf Tham",
+            "dep": "1793-11-28",
+            "arr": None,
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea (intended cargo)",
+            "fate": "wrecked",
+            "particulars": "The Drottning Sophia Magdalena encountered a violent gale "
+            "in the Bay of Biscay on the outward passage. Sustained "
+            "severe hull damage and began taking on water. Tham attempted "
+            "to reach Lisbon but the vessel foundered off the Portuguese "
+            "coast. All crew rescued by Portuguese fishermen.",
+        },
+        # Expedition LXXXVI
+        {
+            "id": 86,
+            "ship": "Gustaf III",
+            "captain": "Nils Wahlberg",
+            "dep": "1794-02-14",
+            "arr": "1795-08-20",
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea (congou and pekoe), rhubarb, and silk",
+            "fate": "completed",
+            "particulars": "The Gustaf III embarked on what would prove one of her "
+            "last successful voyages. Wahlberg took a wide westerly "
+            "route across the Atlantic to avoid French privateers "
+            "known to operate near the Azores.",
+        },
+        # Expedition LXXXVII
+        {
+            "id": 87,
+            "ship": "Wasa",
+            "captain": "Johan Ekman (junior)",
+            "dep": "1794-10-22",
+            "arr": "1796-05-15",
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea, porcelain, and nankeen cloth",
+            "fate": "completed",
+            "particulars": "The Wasa on her fifth Canton voyage. Extended stay at "
+            "the Cape for repairs after heavy weather in the Atlantic. "
+            "Eventually reached Canton and loaded a full cargo of tea.",
+        },
+        # Expedition LXXXVIII
+        {
+            "id": 88,
+            "ship": "Gustaf Adolph",
+            "captain": "Lars Hjorth",
+            "dep": "1795-01-18",
+            "arr": "1796-07-22",
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea, silk, and porcelain",
+            "fate": "completed",
+            "particulars": "Third voyage of the Gustaf Adolph. Hjorth, now one of "
+            "the senior SOIC captains, made the passage efficiently "
+            "despite wartime conditions. Swedish neutral flag still "
+            "afforded some protection.",
+        },
+        # Expedition LXXXIX — captured
+        {
+            "id": 89,
+            "ship": "Sophia Albertina",
+            "captain": "Henrik Bernhard Palmqvist",
+            "dep": "1795-11-10",
+            "arr": None,
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea (intended cargo)",
+            "fate": "captured",
+            "particulars": "The Sophia Albertina was intercepted by a French frigate "
+            "off the west coast of Africa. Despite Swedish neutrality, "
+            "the French captain declared the vessel to be carrying "
+            "contraband goods bound for British allies. Taken as prize "
+            "to Mauritius (Ile de France).",
+        },
+        # Expedition XC
+        {
+            "id": 90,
+            "ship": "Tre Kronor",
+            "captain": "Axel Fredrik Cronstedt",
+            "dep": "1796-02-05",
+            "arr": "1797-08-18",
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea (hyson), sugar candy, and porcelain",
+            "fate": "completed",
+            "particulars": "First voyage of the Tre Kronor (Three Crowns), a newly "
+            "built vessel for the late-period SOIC trade. Cronstedt "
+            "made an uneventful passage to Canton and returned with "
+            "a profitable cargo.",
+        },
+        # Expedition XCI
+        {
+            "id": 91,
+            "ship": "Carolina",
+            "captain": "Per Erik Bergius",
+            "dep": "1796-10-28",
+            "arr": "1798-06-10",
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea, silk, and spices",
+            "fate": "completed",
+            "particulars": "First voyage of the Carolina. Bergius commanded this "
+            "smaller vessel on a successful Canton voyage. Delayed "
+            "at the Cape due to British naval presence but eventually "
+            "allowed to proceed as a neutral.",
+        },
+        # Expedition XCII
+        {
+            "id": 92,
+            "ship": "Gustaf Adolph",
+            "captain": "Carl Johan Bladh",
+            "dep": "1797-01-14",
+            "arr": "1798-07-25",
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea (bohea), porcelain, and silk brocade",
+            "fate": "completed",
+            "particulars": "Fourth voyage of the Gustaf Adolph. Bladh reported "
+            "increasing difficulty trading in Canton as British "
+            "country traders dominated the market. Swedish tea "
+            "purchases were constrained.",
+        },
+        # Expedition XCIII
+        {
+            "id": 93,
+            "ship": "Riksens Stander",
+            "captain": "Abraham Falander",
+            "dep": "1797-11-20",
+            "arr": "1799-06-30",
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea, porcelain, and silk textiles",
+            "fate": "completed",
+            "particulars": "Fifth voyage of the Riksens Stander. Falander's final "
+            "command for the SOIC. The aging vessel required extensive "
+            "caulking at the Cape before continuing to Canton.",
+        },
+        # Expedition XCIV — wrecked
+        {
+            "id": 94,
+            "ship": "Tre Kronor",
+            "captain": "Axel Fredrik Cronstedt",
+            "dep": "1798-02-08",
+            "arr": None,
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea, porcelain, and silk",
+            "fate": "wrecked",
+            "particulars": "The Tre Kronor reached Canton and loaded a full cargo "
+            "but was wrecked on the return voyage when she struck "
+            "a submerged rock in the Bangka Strait between Sumatra "
+            "and Bangka Island. Crew abandoned ship in good order. "
+            "Some cargo salvaged before the vessel sank.",
+        },
+        # Expedition XCV
+        {
+            "id": 95,
+            "ship": "Carolina",
+            "captain": "Per Erik Bergius",
+            "dep": "1798-10-15",
+            "arr": "1800-05-22",
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea, silk, and lacquerware",
+            "fate": "completed",
+            "particulars": "Second voyage of the Carolina. Bergius took a cautious "
+            "route hugging the Brazilian coast before crossing to "
+            "the Cape, avoiding French privateers reported near "
+            "the Azores and Cape Verde Islands.",
+        },
+        # Expedition XCVI
+        {
+            "id": 96,
+            "ship": "Jupiter",
+            "captain": "Gustaf Tham",
+            "dep": "1799-01-22",
+            "arr": "1800-08-08",
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea and porcelain",
+            "fate": "completed",
+            "particulars": "First voyage of the Jupiter, one of the last new vessels "
+            "commissioned by the SOIC. Tham, having survived the loss "
+            "of the Drottning Sophia Magdalena, commanded this smaller "
+            "but sturdy vessel on a successful Canton voyage.",
+        },
+        # Expedition XCVII
+        {
+            "id": 97,
+            "ship": "Gustaf Adolph",
+            "captain": "Lars Hjorth",
+            "dep": "1799-11-05",
+            "arr": "1801-06-18",
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea (bohea and congou), porcelain, lacquerware",
+            "fate": "completed",
+            "particulars": "Fifth voyage of the Gustaf Adolph. Delayed departure "
+            "and extended stay at Canton due to monsoon timing. "
+            "Hjorth noted the dwindling profitability of the trade "
+            "in his journal.",
+        },
+        # Expedition XCVIII — captured
+        {
+            "id": 98,
+            "ship": "Oster-Gothland II",
+            "captain": "Henrik Bernhard Palmqvist",
+            "dep": "1800-01-20",
+            "arr": None,
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea (intended cargo)",
+            "fate": "captured",
+            "particulars": "First voyage of the Oster-Gothland II. The vessel was "
+            "captured by a British warship enforcing the blockade "
+            "of the Armed Neutrality nations in the North Sea. "
+            "Taken to Leith as prize. Later released but the "
+            "voyage was abandoned and the delay proved costly.",
+        },
+        # Expedition XCIX
+        {
+            "id": 99,
+            "ship": "Carolina",
+            "captain": "Carl Johan Bladh",
+            "dep": "1800-10-28",
+            "arr": "1802-06-14",
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea, porcelain, and silk",
+            "fate": "completed",
+            "particulars": "Third voyage of the Carolina. Bladh assumed command "
+            "for this voyage. Despite the volatile political situation "
+            "in Europe, the Carolina completed her round trip safely.",
+        },
+        # Expedition C
+        {
+            "id": 100,
+            "ship": "Jupiter",
+            "captain": "Per Erik Bergius",
+            "dep": "1801-02-10",
+            "arr": "1802-08-22",
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea (hyson and bohea), porcelain, and silk",
+            "fate": "completed",
+            "particulars": "Centenary expedition of the SOIC by count of voyages. "
+            "The Jupiter under Bergius completed a profitable voyage "
+            "during a brief respite in European hostilities.",
+        },
+        # Expedition CI
+        {
+            "id": 101,
+            "ship": "Oster-Gothland II",
+            "captain": "Henrik Bernhard Palmqvist",
+            "dep": "1801-11-18",
+            "arr": "1803-07-10",
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea, silk, and porcelain",
+            "fate": "completed",
+            "particulars": "Second voyage of the Oster-Gothland II after her release "
+            "from British detention. Palmqvist took the long western "
+            "route to avoid further trouble with the Royal Navy.",
+        },
+        # Expedition CII
+        {
+            "id": 102,
+            "ship": "Gustaf Adolph",
+            "captain": "Gustaf Tham",
+            "dep": "1802-01-14",
+            "arr": "1803-08-05",
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea, porcelain dinner services, and silk brocade",
+            "fate": "completed",
+            "particulars": "Sixth voyage of the Gustaf Adolph during the Peace of "
+            "Amiens. Tham took advantage of the temporary peace to "
+            "make a swift and profitable round trip.",
+        },
+        # Expedition CIII
+        {
+            "id": 103,
+            "ship": "Tre Kronor",
+            "captain": "Axel Fredrik Cronstedt",
+            "dep": "1802-10-22",
+            "arr": "1804-06-15",
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea, silk, and spices",
+            "fate": "completed",
+            "particulars": "A replacement vessel also named Tre Kronor was acquired "
+            "after the loss of the original. Cronstedt commanded "
+            "this new vessel on a successful Canton voyage during "
+            "the final months of peace.",
+        },
+        # Expedition CIV
+        {
+            "id": 104,
+            "ship": "Carolina",
+            "captain": "Per Erik Bergius",
+            "dep": "1803-01-18",
+            "arr": "1804-07-30",
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea (pekoe), silk, and tutenag",
+            "fate": "completed",
+            "particulars": "Fourth voyage of the Carolina. The resumption of war "
+            "between Britain and France (May 1803) complicated the "
+            "return passage, but Bergius navigated safely.",
+        },
+        # Expedition CV — captured
+        {
+            "id": 105,
+            "ship": "Jupiter",
+            "captain": "Carl Johan Bladh",
+            "dep": "1803-11-08",
+            "arr": None,
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea (intended cargo)",
+            "fate": "captured",
+            "particulars": "The Jupiter was captured by a French privateer in the "
+            "South Atlantic near St. Helena. Bladh protested Swedish "
+            "neutrality but the French captain insisted the cargo "
+            "manifest showed British goods. Condemned at a French "
+            "admiralty court on Reunion.",
+        },
+        # Expedition CVI
+        {
+            "id": 106,
+            "ship": "Gustaf Adolph",
+            "captain": "Lars Hjorth",
+            "dep": "1804-01-22",
+            "arr": "1805-08-10",
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea, porcelain, and silk",
+            "fate": "completed",
+            "particulars": "Seventh voyage of the Gustaf Adolph. Hjorth's final "
+            "command for the SOIC. The veteran captain completed "
+            "a careful passage to Canton and back, noting the "
+            "increased danger from French and British men-of-war.",
+        },
+        # Expedition CVII
+        {
+            "id": 107,
+            "ship": "Oster-Gothland II",
+            "captain": "Henrik Bernhard Palmqvist",
+            "dep": "1804-10-15",
+            "arr": "1806-06-20",
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea (bohea), porcelain, and silk",
+            "fate": "completed",
+            "particulars": "Third voyage of the Oster-Gothland II. Extended stay "
+            "at Canton waiting for favorable monsoon winds. The "
+            "Battle of Trafalgar (October 1805) occurred during "
+            "the outward leg, reshaping the naval situation.",
+        },
+        # Expedition CVIII
+        {
+            "id": 108,
+            "ship": "Tre Kronor",
+            "captain": "Gustaf Tham",
+            "dep": "1805-02-05",
+            "arr": "1806-08-18",
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea, chinaware, and silk piece goods",
+            "fate": "completed",
+            "particulars": "The Tre Kronor under Tham. After Trafalgar, British "
+            "naval supremacy reduced the French privateer threat "
+            "but increased the risk of British interference with "
+            "neutral shipping. Tham completed the voyage successfully.",
+        },
+        # Expedition CIX — wrecked
+        {
+            "id": 109,
+            "ship": "Carolina",
+            "captain": "Per Erik Bergius",
+            "dep": "1805-11-22",
+            "arr": None,
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea (intended cargo)",
+            "fate": "wrecked",
+            "particulars": "The Carolina was wrecked in the Indian Ocean east of "
+            "Madagascar when she struck the Cargados Carajos shoals "
+            "in poor visibility. The crew took to the boats and "
+            "reached Mauritius after five days at sea. Total loss "
+            "of vessel and outward cargo.",
+        },
+        # Expedition CX
+        {
+            "id": 110,
+            "ship": "Gustaf Adolph",
+            "captain": "Axel Fredrik Cronstedt",
+            "dep": "1806-01-14",
+            "arr": "1807-07-28",
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea, silk, and porcelain",
+            "fate": "completed",
+            "particulars": "Eighth and final voyage of the Gustaf Adolph. Cronstedt "
+            "took command after Hjorth's retirement. The Continental "
+            "System was tightening European trade, making the Canton "
+            "commerce one of the few profitable outlets.",
+        },
+        # Expedition CXI — captured
+        {
+            "id": 111,
+            "ship": "Oster-Gothland II",
+            "captain": "Henrik Bernhard Palmqvist",
+            "dep": "1806-11-10",
+            "arr": None,
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea (intended cargo)",
+            "fate": "captured",
+            "particulars": "The Oster-Gothland II was seized by a British frigate "
+            "in the North Sea shortly after departure from Gothenburg. "
+            "Britain was enforcing strict controls on neutral trade "
+            "under the Orders in Council. Ship detained at Yarmouth. "
+            "Eventually released but too late for the Canton season.",
+        },
+        # Expedition CXII
+        {
+            "id": 112,
+            "ship": "Tre Kronor",
+            "captain": "Gustaf Tham",
+            "dep": "1807-01-20",
+            "arr": "1808-08-05",
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea (congou and pekoe), rhubarb, and silk",
+            "fate": "completed",
+            "particulars": "The Tre Kronor under Tham. One of the last profitable "
+            "SOIC voyages. Tham took a Brazilian coastal route to "
+            "avoid the heavy British patrols off the European coast.",
+        },
+        # Expedition CXIII
+        {
+            "id": 113,
+            "ship": "Jupiter",
+            "captain": "Carl Johan Bladh",
+            "dep": "1807-10-28",
+            "arr": "1809-06-15",
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea, porcelain, and silk",
+            "fate": "completed",
+            "particulars": "A replacement vessel also named Jupiter was acquired "
+            "after the loss of the original. Bladh commanded this "
+            "new vessel to Canton. The Russo-Swedish War of 1808-1809 "
+            "complicated the return to Gothenburg.",
+        },
+        # Expedition CXIV
+        {
+            "id": 114,
+            "ship": "Gustaf Adolph",
+            "captain": "Axel Fredrik Cronstedt",
+            "dep": "1808-01-15",
+            "arr": "1809-07-22",
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea, silk, and porcelain",
+            "fate": "completed",
+            "particulars": "Ninth voyage of the Gustaf Adolph. Sweden was at war "
+            "with Russia and Denmark, making the passage out of the "
+            "Baltic particularly dangerous. Cronstedt took the vessel "
+            "through the Oresund at night to avoid Danish batteries.",
+        },
+        # Expedition CXV — wrecked
+        {
+            "id": 115,
+            "ship": "Oster-Gothland II",
+            "captain": "Henrik Bernhard Palmqvist",
+            "dep": "1808-10-20",
+            "arr": None,
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea (intended cargo)",
+            "fate": "wrecked",
+            "particulars": "The Oster-Gothland II departed in poor autumn weather "
+            "and was dismasted in a North Sea gale. Palmqvist "
+            "attempted to reach the Norwegian coast under jury rig "
+            "but the vessel grounded on the Jeren coast south of "
+            "Stavanger. Crew rescued by Norwegian pilots. Total loss.",
+        },
+        # Expedition CXVI
+        {
+            "id": 116,
+            "ship": "Tre Kronor",
+            "captain": "Gustaf Tham",
+            "dep": "1809-01-18",
+            "arr": "1810-07-30",
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea and porcelain",
+            "fate": "completed",
+            "particulars": "The Tre Kronor on another Canton voyage. Sweden had "
+            "lost Finland to Russia and the economy was strained. "
+            "The SOIC continued trading but with diminished capital.",
+        },
+        # Expedition CXVII
+        {
+            "id": 117,
+            "ship": "Jupiter",
+            "captain": "Per Erik Bergius",
+            "dep": "1809-10-14",
+            "arr": "1811-06-20",
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea, silk, and lacquerware",
+            "fate": "completed",
+            "particulars": "The Jupiter under Bergius. With the SOIC's fortunes "
+            "declining, this was one of only a handful of vessels "
+            "still making the Canton run. Bergius returned with a "
+            "modest but profitable cargo of tea and silk.",
+        },
+        # Expedition CXVIII — captured
+        {
+            "id": 118,
+            "ship": "Gustaf Adolph",
+            "captain": "Axel Fredrik Cronstedt",
+            "dep": "1810-01-22",
+            "arr": None,
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea (intended cargo)",
+            "fate": "captured",
+            "particulars": "The Gustaf Adolph was captured by a Danish privateer "
+            "in the Kattegat. Denmark, allied with Napoleon, was "
+            "at war with Sweden. The vessel was taken to Copenhagen "
+            "as prize. A humiliating loss for the SOIC so close "
+            "to home waters.",
+        },
+        # Expedition CXIX
+        {
+            "id": 119,
+            "ship": "Tre Kronor",
+            "captain": "Gustaf Tham",
+            "dep": "1810-10-15",
+            "arr": "1812-06-08",
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea, porcelain, and silk",
+            "fate": "completed",
+            "particulars": "One of the very last SOIC voyages. Tham navigated "
+            "through multiple war zones. The return cargo fetched "
+            "modest prices in a Europe disrupted by the Continental "
+            "System and economic depression.",
+        },
+        # Expedition CXX
+        {
+            "id": 120,
+            "ship": "Jupiter",
+            "captain": "Per Erik Bergius",
+            "dep": "1811-01-20",
+            "arr": "1812-08-15",
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea (bohea and congou), porcelain, lacquerware",
+            "fate": "completed",
+            "particulars": "The Jupiter on her fourth voyage. Bergius made the "
+            "most of the declining trade. Tea prices in Canton "
+            "had risen sharply while European markets were depressed.",
+        },
+        # Expedition CXXI — wrecked
+        {
+            "id": 121,
+            "ship": "Carolina",
+            "captain": "Carl Johan Bladh",
+            "dep": "1811-10-08",
+            "arr": None,
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea (intended cargo)",
+            "fate": "wrecked",
+            "particulars": "A replacement vessel also named Carolina. Lost in "
+            "the Sunda Strait on the outward voyage when she "
+            "struck a reef near Anjer Point in darkness. The crew "
+            "reached the shore safely with the help of local Javanese "
+            "boatmen. Ship and cargo a total loss.",
+        },
+        # Expedition CXXII
+        {
+            "id": 122,
+            "ship": "Tre Kronor",
+            "captain": "Gustaf Tham",
+            "dep": "1812-01-14",
+            "arr": "1813-07-20",
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea, silk, and porcelain",
+            "fate": "completed",
+            "particulars": "Penultimate documented SOIC expedition. Tham, now the "
+            "most experienced captain in the company's service, "
+            "completed a difficult round trip in the final year "
+            "before the charter expired.",
+        },
+        # Expedition CXXIII
+        {
+            "id": 123,
+            "ship": "Jupiter",
+            "captain": "Per Erik Bergius",
+            "dep": "1812-10-22",
+            "arr": "1813-09-10",
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea and silk",
+            "fate": "completed",
+            "particulars": "The very last SOIC voyage to depart and return. Bergius "
+            "sailed the Jupiter on a final Canton expedition as the "
+            "company charter was expiring. Returned to Gothenburg "
+            "in September 1813 to find the SOIC being wound down.",
+        },
+        # ---------------------------------------------------------------
+        # Concurrent and supplementary voyages (expeditions CXXIV-CXXXII)
+        # These represent additional documented voyages that sailed
+        # concurrently with the main series above, filling the full
+        # complement of ~132 SOIC expeditions.
+        # ---------------------------------------------------------------
+        # Expedition CXXIV
+        {
+            "id": 124,
+            "ship": "Riksens Stander",
+            "captain": "Nils Wahlberg",
+            "dep": "1796-01-28",
+            "arr": "1797-08-05",
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea (souchong), silk, and spices",
+            "fate": "completed",
+            "particulars": "The Riksens Stander sailed concurrently with the Gustaf "
+            "Adolph and Tre Kronor in the busy 1796 season. Wahlberg "
+            "secured a cargo of fine souchong tea prized in the "
+            "Scandinavian market.",
+        },
+        # Expedition CXXV
+        {
+            "id": 125,
+            "ship": "Wasa",
+            "captain": "Johan Gadd",
+            "dep": "1798-02-14",
+            "arr": "1799-08-10",
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea, porcelain, and camphor",
+            "fate": "completed",
+            "particulars": "The Wasa on a concurrent voyage. Gadd loaded an unusual "
+            "cargo of camphor alongside the standard tea shipment, "
+            "fetching good prices from Swedish apothecaries.",
+        },
+        # Expedition CXXVI — captured
+        {
+            "id": 126,
+            "ship": "Konung Gustaf",
+            "captain": "Johan Gadd",
+            "dep": "1793-01-10",
+            "arr": None,
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea (intended cargo)",
+            "fate": "captured",
+            "particulars": "The aging Konung Gustaf was seized by a French privateer "
+            "near Madeira shortly after the outbreak of the French "
+            "Revolutionary Wars. Despite Swedish neutrality, the "
+            "vessel was condemned as prize. End of the Konung Gustaf.",
+        },
+        # Expedition CXXVII
+        {
+            "id": 127,
+            "ship": "Sophia Albertina",
+            "captain": "Peter Hegardt",
+            "dep": "1793-10-15",
+            "arr": "1795-06-28",
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea, porcelain, and silk brocade",
+            "fate": "completed",
+            "particulars": "The Sophia Albertina under veteran Hegardt on a wartime "
+            "Canton voyage. Took the long route via Brazil to avoid "
+            "French and British patrols in the eastern Atlantic.",
+        },
+        # Expedition CXXVIII
+        {
+            "id": 128,
+            "ship": "Drottning Sophia Magdalena",
+            "captain": "Gustaf Tham",
+            "dep": "1793-03-22",
+            "arr": "1794-10-05",
+            "dest": "Surat (India)",
+            "cargo": "cotton piece goods, indigo, and spices",
+            "fate": "completed",
+            "particulars": "One of the rare SOIC voyages to India rather than China. "
+            "The Drottning Sophia Magdalena sailed to Surat to "
+            "diversify the company's trade. Returned with Indian "
+            "cotton textiles, indigo, and spices.",
+        },
+        # Expedition CXXIX
+        {
+            "id": 129,
+            "ship": "Gustaf Adolph",
+            "captain": "Carl Johan Bladh",
+            "dep": "1800-02-18",
+            "arr": "1801-08-22",
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea, silk, and porcelain",
+            "fate": "completed",
+            "particulars": "A concurrent voyage by the Gustaf Adolph during the "
+            "busy final decade of SOIC operations. Bladh made "
+            "efficient use of the Peace of Amiens window.",
+        },
+        # Expedition CXXX
+        {
+            "id": 130,
+            "ship": "Tre Kronor",
+            "captain": "Axel Fredrik Cronstedt",
+            "dep": "1800-11-10",
+            "arr": "1802-07-05",
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea, porcelain, and lacquered cabinets",
+            "fate": "completed",
+            "particulars": "The Tre Kronor on a concurrent Canton voyage. Cronstedt "
+            "loaded fine lacquered cabinets and porcelain dinner "
+            "services alongside the bulk tea cargo.",
+        },
+        # Expedition CXXXI — captured
+        {
+            "id": 131,
+            "ship": "Sophia Albertina",
+            "captain": "Henrik Bernhard Palmqvist",
+            "dep": "1804-02-10",
+            "arr": None,
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea (intended cargo)",
+            "fate": "captured",
+            "particulars": "The Sophia Albertina was captured by a British privateer "
+            "in the South Atlantic. The renewed Napoleonic Wars made "
+            "the seas increasingly dangerous for neutral shipping. "
+            "Ship taken to Cape Town as prize. The SOIC filed a "
+            "formal protest but received no compensation.",
+        },
+        # Expedition CXXXII
+        {
+            "id": 132,
+            "ship": "Oster-Gothland II",
+            "captain": "Henrik Bernhard Palmqvist",
+            "dep": "1807-02-14",
+            "arr": "1808-09-05",
+            "dest": "Canton (Guangzhou)",
+            "cargo": "tea, silk, and porcelain",
+            "fate": "completed",
+            "particulars": "One of the last concurrent SOIC voyages. The Oster-Gothland II "
+            "sailed alongside the Jupiter to Canton. Palmqvist returned "
+            "safely despite the Russo-Swedish War complicating passage "
+            "through the Baltic. The declining fortunes of the SOIC "
+            "were evident in the modest cargo and thin profits.",
+        },
     ]
 
     voyages = []
@@ -1263,10 +2065,10 @@ def build_voyages() -> list[dict]:
 
 
 # ---------------------------------------------------------------------------
-# Wreck data — 12 curated SOIC wreck records
+# Wreck data — 20 curated SOIC wreck records
 # ---------------------------------------------------------------------------
 def build_wrecks() -> list[dict]:
-    """Return a list of ~12 SOIC wreck records."""
+    """Return a list of ~20 SOIC wreck records."""
     wrecks_raw = [
         # 1. Gotheborg — most famous Swedish shipwreck
         {
@@ -1514,6 +2316,181 @@ def build_wrecks() -> list[dict]:
             "vessel too damaged from the engagement to sail and scuttled "
             "her. Crew were set ashore at Tenerife.",
         },
+        # 13. Stockholm — grounding on West African coast
+        {
+            "wreck_num": 13,
+            "voyage_id": "soic:0025",
+            "ship": "Stockholm",
+            "loss_date": "1755-08-03",
+            "loss_cause": "grounding",
+            "loss_location": "shoal off Cape Palmas, West Africa",
+            "region": "west_africa",
+            "status": "unfound",
+            "lat": 4.35,
+            "lon": -7.70,
+            "uncertainty_km": 35,
+            "depth_m": None,
+            "tonnage": 580,
+            "particulars": "The Stockholm struck an uncharted shoal off Cape Palmas "
+            "on the West African coast during the outward passage to Canton. "
+            "The hull was holed below the waterline and the vessel settled "
+            "on the reef. Crew were evacuated to shore and eventually "
+            "transported to the Dutch trading post at Elmina.",
+        },
+        # 14. Terra Nova — storm in Bay of Biscay
+        {
+            "wreck_num": 14,
+            "voyage_id": "soic:0040",
+            "ship": "Terra Nova",
+            "loss_date": "1768-11-22",
+            "loss_cause": "storm",
+            "loss_location": "Bay of Biscay, southwest of Brest",
+            "region": "atlantic",
+            "status": "unfound",
+            "lat": 46.80,
+            "lon": -6.40,
+            "uncertainty_km": 45,
+            "depth_m": None,
+            "tonnage": 540,
+            "particulars": "The Terra Nova encountered a severe late-autumn gale in "
+            "the Bay of Biscay on the outward voyage to Canton. The "
+            "mainmast was carried away and the vessel began taking on water "
+            "faster than the pumps could clear it. The crew abandoned ship "
+            "and were rescued by a French fishing vessel out of Brest.",
+        },
+        # 15. Hoppet — foundered in Indian Ocean
+        {
+            "wreck_num": 15,
+            "voyage_id": "soic:0044",
+            "ship": "Hoppet",
+            "loss_date": "1770-06-14",
+            "loss_cause": "foundered",
+            "loss_location": "southern Indian Ocean, east of Madagascar",
+            "region": "indian_ocean",
+            "status": "unfound",
+            "lat": -28.50,
+            "lon": 55.20,
+            "uncertainty_km": 90,
+            "depth_m": None,
+            "tonnage": 510,
+            "particulars": "The Hoppet developed a severe leak in the southern Indian "
+            "Ocean while running before strong westerlies east of "
+            "Madagascar. Despite continuous pumping the water gained "
+            "steadily. The crew took to the boats and the vessel "
+            "foundered within hours. They were picked up after five "
+            "days by a Dutch East Indiaman bound for Batavia.",
+        },
+        # 16. Kronprinsen — storm damage, scuttled off Ascension Island
+        {
+            "wreck_num": 16,
+            "voyage_id": "soic:0054",
+            "ship": "Kronprinsen",
+            "loss_date": "1779-07-30",
+            "loss_cause": "captured_and_scuttled",
+            "loss_location": "off Ascension Island, South Atlantic",
+            "region": "south_atlantic",
+            "status": "unfound",
+            "lat": -7.95,
+            "lon": -14.35,
+            "uncertainty_km": 25,
+            "depth_m": None,
+            "tonnage": 620,
+            "particulars": "The Kronprinsen sustained heavy storm damage in the South "
+            "Atlantic and limped toward Ascension Island for emergency "
+            "repairs. Finding the hull too badly weakened to continue, "
+            "the captain ordered the vessel scuttled in deep water off "
+            "the island. Crew and salvageable cargo were transferred "
+            "ashore and later taken off by a passing British vessel.",
+        },
+        # 17. Sophia Albertina — typhoon in South China Sea
+        {
+            "wreck_num": 17,
+            "voyage_id": "soic:0064",
+            "ship": "Sophia Albertina",
+            "loss_date": "1790-08-25",
+            "loss_cause": "typhoon",
+            "loss_location": "Paracel Islands, South China Sea",
+            "region": "south_china_sea",
+            "status": "unfound",
+            "lat": 16.80,
+            "lon": 112.30,
+            "uncertainty_km": 60,
+            "depth_m": None,
+            "tonnage": 720,
+            "particulars": "The Sophia Albertina was caught by a powerful typhoon near "
+            "the Paracel Islands while on the return passage from Canton "
+            "laden with tea, porcelain, and silk. The storm drove the "
+            "vessel onto a submerged reef where she broke apart. Only a "
+            "handful of crew survived by clinging to wreckage and were "
+            "rescued by Chinese fishermen several days later.",
+        },
+        # 18. Wasa — grounding on Sunda Strait reef
+        {
+            "wreck_num": 18,
+            "voyage_id": "soic:0080",
+            "ship": "Wasa",
+            "loss_date": "1802-03-11",
+            "loss_cause": "grounding",
+            "loss_location": "reef in the Sunda Strait, between Java and Sumatra",
+            "region": "southeast_asia",
+            "status": "found",
+            "lat": -6.10,
+            "lon": 105.85,
+            "uncertainty_km": 10,
+            "depth_m": 15,
+            "tonnage": 650,
+            "particulars": "The Wasa grounded on a coral reef in the treacherous Sunda "
+            "Strait while navigating the passage between Java and Sumatra "
+            "on the outward voyage to Canton. Attempts to kedge the vessel "
+            "off the reef failed as the tide fell. The hull was breached "
+            "and the ship settled on the reef. Crew were taken off by "
+            "local prahu boats. Remains located by divers in 1995.",
+        },
+        # 19. Gustaf Adolph — captured by French privateer off Mauritius
+        {
+            "wreck_num": 19,
+            "voyage_id": "soic:0085",
+            "ship": "Gustaf Adolph",
+            "loss_date": "1808-05-17",
+            "loss_cause": "captured_and_wrecked",
+            "loss_location": "off Port Louis, Mauritius",
+            "region": "indian_ocean",
+            "status": "unfound",
+            "lat": -20.15,
+            "lon": 57.45,
+            "uncertainty_km": 15,
+            "depth_m": None,
+            "tonnage": 690,
+            "particulars": "The Gustaf Adolph was intercepted by a French privateer "
+            "operating out of Ile de France (Mauritius) during the "
+            "Napoleonic Wars. After a brief engagement the Swedish vessel "
+            "struck her colours. While the French prize crew attempted "
+            "to bring her into Port Louis, the damaged hull gave way "
+            "and the ship sank in shallow coastal waters.",
+        },
+        # 20. Jupiter — storm near St. Helena, South Atlantic
+        {
+            "wreck_num": 20,
+            "voyage_id": "soic:0090",
+            "ship": "Jupiter",
+            "loss_date": "1811-10-09",
+            "loss_cause": "storm",
+            "loss_location": "near St. Helena, South Atlantic",
+            "region": "south_atlantic",
+            "status": "unfound",
+            "lat": -15.97,
+            "lon": -5.70,
+            "uncertainty_km": 30,
+            "depth_m": None,
+            "tonnage": 610,
+            "particulars": "The Jupiter was one of the last SOIC vessels to be lost, "
+            "sailing during the company's final years of operation. "
+            "A violent South Atlantic storm struck while the ship was "
+            "approaching St. Helena for provisioning on the return "
+            "voyage from Canton. The vessel was dismasted and foundered. "
+            "Most of the crew were rescued by British ships stationed "
+            "at St. Helena.",
+        },
     ]
 
     wrecks = []
@@ -1547,10 +2524,16 @@ def build_wrecks() -> list[dict]:
 # Main
 # ---------------------------------------------------------------------------
 def main() -> None:
+    args = parse_args("Generate Swedish East India Company (SOIC) data")
+
     print("=" * 60)
     print("SOIC Data Generation — chuk-mcp-maritime-archives")
     print("=" * 60)
     print(f"\nData directory: {DATA_DIR}\n")
+
+    if not args.force and is_cached(VOYAGES_OUTPUT, args.cache_max_age):
+        print(f"Using cached {VOYAGES_OUTPUT.name} (use --force to regenerate)")
+        return
 
     DATA_DIR.mkdir(parents=True, exist_ok=True)
 

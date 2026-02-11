@@ -13,7 +13,7 @@ from typing import Literal
 
 class ServerConfig(str, Enum):
     NAME = "chuk-mcp-maritime-archives"
-    VERSION = "0.7.0"
+    VERSION = "0.8.0"
     DESCRIPTION = "Historical Maritime Archives"
 
 
@@ -100,26 +100,33 @@ ARCHIVE_METADATA: dict[str, dict] = {
         "coverage_end": "1794",
         "record_types": ["crew"],
         "total_records": 774200,
-        "access_method": "api",
+        "access_method": "bulk_download",
         "documentation_url": "https://www.nationaalarchief.nl/onderzoeken/index/nt00444",
         "description": (
             "Crew muster rolls for VOC vessels. Contains personnel records "
-            "including name, origin, rank, pay, and fate for 774,200 individuals."
+            "including name, origin, rank, pay, and fate for 774,200 individuals. "
+            "Downloaded from Zenodo enriched dataset (DOI: 10.5281/zenodo.10599528)."
+        ),
+        "citation": (
+            "Ribeira d'Almeida, L. et al. Charting Lives and Careers: Enriched "
+            "Data About the Dutch East India Company's Eighteenth-Century European "
+            "Workforce. Journal of Open Humanities Data 10(44), 2024."
         ),
         "license": "Open access for research",
     },
     "voc_cargo": {
         "name": "Boekhouder-Generaal Batavia",
-        "organisation": "Nationaal Archief",
+        "organisation": "Huygens Institute",
         "coverage_start": "1700",
         "coverage_end": "1795",
         "record_types": ["cargo"],
         "total_records": 50000,
-        "access_method": "api",
+        "access_method": "bulk_download",
         "documentation_url": "https://bgb.huygens.knaw.nl/",
         "description": (
             "Cargo manifests from the VOC bookkeeper-general in Batavia. "
-            "Records of goods shipped between Asia and the Netherlands."
+            "Records of goods shipped between Asia and the Netherlands. "
+            "Over 3,000 distinct commodities across 18,000+ voyages."
         ),
         "license": "Open access for research",
     },
@@ -166,8 +173,8 @@ ARCHIVE_METADATA: dict[str, dict] = {
         "coverage_start": "1497",
         "coverage_end": "1835",
         "record_types": ["voyages", "wrecks"],
-        "total_voyages": 120,
-        "total_losses": 40,
+        "total_voyages": 500,
+        "total_losses": 100,
         "access_method": "curated",
         "description": (
             "Curated voyage records from the Portuguese India Run "
@@ -186,8 +193,8 @@ ARCHIVE_METADATA: dict[str, dict] = {
         "coverage_start": "1565",
         "coverage_end": "1815",
         "record_types": ["voyages", "wrecks"],
-        "total_voyages": 100,
-        "total_losses": 25,
+        "total_voyages": 250,
+        "total_losses": 42,
         "access_method": "curated",
         "description": (
             "Curated voyage records from the Manila Galleon trade, "
@@ -204,8 +211,8 @@ ARCHIVE_METADATA: dict[str, dict] = {
         "coverage_start": "1731",
         "coverage_end": "1813",
         "record_types": ["voyages", "wrecks"],
-        "total_voyages": 80,
-        "total_losses": 12,
+        "total_voyages": 132,
+        "total_losses": 20,
         "access_method": "curated",
         "description": (
             "Curated voyage records from the Swedish East India Company "

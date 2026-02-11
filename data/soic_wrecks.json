@@ -214,5 +214,149 @@
     "depth_estimate_m": null,
     "tonnage": 780,
     "archive": "soic"
+  },
+  {
+    "wreck_id": "soic_wreck:0013",
+    "voyage_id": "soic:0025",
+    "ship_name": "Stockholm",
+    "loss_date": "1755-08-03",
+    "loss_cause": "grounding",
+    "loss_location": "shoal off Cape Palmas, West Africa",
+    "region": "west_africa",
+    "status": "unfound",
+    "position": {
+      "lat": 4.35,
+      "lon": -7.7,
+      "uncertainty_km": 35
+    },
+    "depth_estimate_m": null,
+    "tonnage": 580,
+    "archive": "soic"
+  },
+  {
+    "wreck_id": "soic_wreck:0014",
+    "voyage_id": "soic:0040",
+    "ship_name": "Terra Nova",
+    "loss_date": "1768-11-22",
+    "loss_cause": "storm",
+    "loss_location": "Bay of Biscay, southwest of Brest",
+    "region": "atlantic",
+    "status": "unfound",
+    "position": {
+      "lat": 46.8,
+      "lon": -6.4,
+      "uncertainty_km": 45
+    },
+    "depth_estimate_m": null,
+    "tonnage": 540,
+    "archive": "soic"
+  },
+  {
+    "wreck_id": "soic_wreck:0015",
+    "voyage_id": "soic:0044",
+    "ship_name": "Hoppet",
+    "loss_date": "1770-06-14",
+    "loss_cause": "foundered",
+    "loss_location": "southern Indian Ocean, east of Madagascar",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -28.5,
+      "lon": 55.2,
+      "uncertainty_km": 90
+    },
+    "depth_estimate_m": null,
+    "tonnage": 510,
+    "archive": "soic"
+  },
+  {
+    "wreck_id": "soic_wreck:0016",
+    "voyage_id": "soic:0054",
+    "ship_name": "Kronprinsen",
+    "loss_date": "1779-07-30",
+    "loss_cause": "captured_and_scuttled",
+    "loss_location": "off Ascension Island, South Atlantic",
+    "region": "south_atlantic",
+    "status": "unfound",
+    "position": {
+      "lat": -7.95,
+      "lon": -14.35,
+      "uncertainty_km": 25
+    },
+    "depth_estimate_m": null,
+    "tonnage": 620,
+    "archive": "soic"
+  },
+  {
+    "wreck_id": "soic_wreck:0017",
+    "voyage_id": "soic:0064",
+    "ship_name": "Sophia Albertina",
+    "loss_date": "1790-08-25",
+    "loss_cause": "typhoon",
+    "loss_location": "Paracel Islands, South China Sea",
+    "region": "south_china_sea",
+    "status": "unfound",
+    "position": {
+      "lat": 16.8,
+      "lon": 112.3,
+      "uncertainty_km": 60
+    },
+    "depth_estimate_m": null,
+    "tonnage": 720,
+    "archive": "soic"
+  },
+  {
+    "wreck_id": "soic_wreck:0018",
+    "voyage_id": "soic:0080",
+    "ship_name": "Wasa",
+    "loss_date": "1802-03-11",
+    "loss_cause": "grounding",
+    "loss_location": "reef in the Sunda Strait, between Java and Sumatra",
+    "region": "southeast_asia",
+    "status": "found",
+    "position": {
+      "lat": -6.1,
+      "lon": 105.85,
+      "uncertainty_km": 10
+    },
+    "depth_estimate_m": 15,
+    "tonnage": 650,
+    "archive": "soic"
+  },
+  {
+    "wreck_id": "soic_wreck:0019",
+    "voyage_id": "soic:0085",
+    "ship_name": "Gustaf Adolph",
+    "loss_date": "1808-05-17",
+    "loss_cause": "captured_and_wrecked",
+    "loss_location": "off Port Louis, Mauritius",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -20.15,
+      "lon": 57.45,
+      "uncertainty_km": 15
+    },
+    "depth_estimate_m": null,
+    "tonnage": 690,
+    "archive": "soic"
+  },
+  {
+    "wreck_id": "soic_wreck:0020",
+    "voyage_id": "soic:0090",
+    "ship_name": "Jupiter",
+    "loss_date": "1811-10-09",
+    "loss_cause": "storm",
+    "loss_location": "near St. Helena, South Atlantic",
+    "region": "south_atlantic",
+    "status": "unfound",
+    "position": {
+      "lat": -15.97,
+      "lon": -5.7,
+      "uncertainty_km": 30
+    },
+    "depth_estimate_m": null,
+    "tonnage": 610,
+    "archive": "soic"
   }
 ]

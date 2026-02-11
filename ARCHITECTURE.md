@@ -7,18 +7,17 @@ used in chuk-mcp-maritime-archives.
 
 ### 1. Async-First
 
-All tool entry points are `async`. Synchronous HTTP I/O (urllib.request) is wrapped
-in `asyncio.to_thread()` so the event loop is never blocked. The `BaseArchiveClient`
-provides `_http_get()` and `_http_get_with_params()` helpers that handle this
-transparently for archive clients. Reference data modules (gazetteer, routes,
-hull profiles) load from local JSON files on first access.
+All tool entry points are `async`. Archive clients extend `BaseArchiveClient` which
+loads JSON data files from `data/` via `_load_json()` on first access, caching them
+in memory. Reference data modules (gazetteer, routes, hull profiles, speed profiles,
+CLIWOC tracks) also load from local JSON files on first access.
 
 ### 2. Single Responsibility
 
 Each module has one job. Tool functions validate inputs, call `ArchiveManager`, and
-format responses. `ArchiveManager` orchestrates caching and client delegation.
-Individual archive clients own HTTP communication. Models define data shapes.
-Constants define identifiers and messages.
+format responses. `ArchiveManager` orchestrates caching and multi-archive dispatch.
+Individual archive clients own data loading and search filtering. Models define
+data shapes. Constants define identifiers and messages.
 
 ### 3. Pydantic v2 Native -- No Dict Goop
 
@@ -39,11 +38,22 @@ message templates are all constants -- never inline strings.
 
 ### 5. Data Source Clients
 
-Each archive has a dedicated client that extends `BaseArchiveClient`:
-- `DASClient` -- Dutch Asiatic Shipping voyages and vessels (local JSON)
-- `CrewClient` -- VOC Opvarenden crew muster rolls
-- `CargoClient` -- Boekhouder-Generaal Batavia cargo manifests
-- `WreckClient` -- MAARER wreck database (local JSON)
+Eight archive clients extend `BaseArchiveClient`, each loading from local JSON:
+
+**Core archives (Dutch):**
+- `DASClient` -- Dutch Asiatic Shipping voyages and vessels (8,194 voyages)
+- `CrewClient` -- VOC Opvarenden crew muster rolls (774K records, lazy-built indexes)
+- `CargoClient` -- Boekhouder-Generaal Batavia cargo manifests (200 curated records)
+- `WreckClient` -- MAARER wreck database (734 wrecks)
+
+**Additional archives (multi-nation):**
+- `EICClient` -- English East India Company voyages and wrecks (~150 voyages, ~35 wrecks)
+- `CarreiraClient` -- Portuguese Carreira da India (~500 voyages, ~100 wrecks)
+- `GalleonClient` -- Spanish Manila Galleon (~250 voyages, ~42 wrecks)
+- `SOICClient` -- Swedish East India Company (~132 voyages, ~20 wrecks)
+
+Each multi-nation client handles both voyages and wrecks in a single class, with
+`search()`, `get_by_id()`, `search_wrecks()`, and `get_wreck_by_id()` methods.
 
 Reference data modules load from JSON files in `data/`:
 - `voc_gazetteer` -- ~160 historical place names from `data/gazetteer.json`
@@ -51,8 +61,8 @@ Reference data modules load from JSON files in `data/`:
 - `hull_profiles` -- 6 ship type profiles from `data/hull_profiles.json`
 - `speed_profiles` -- 215 speed profiles across 6 routes from `data/speed_profiles.json`
 
-`ArchiveManager` instantiates all clients at startup and orchestrates lookups
-across them.
+`ArchiveManager` instantiates all 8 clients at startup and uses `_voyage_clients`
+and `_wreck_clients` dispatch dicts to route queries by archive ID.
 
 ### 6. LRU Caching
 
@@ -74,24 +84,50 @@ accessible across sessions. If the artifact store is unavailable (e.g., memory p
 with no S3 configured), tools degrade gracefully -- `artifact_ref` is `None` but all
 data is still returned in the response.
 
-Reference data (~34 MB across 8 JSON files) can optionally be preloaded from the artifact
+Reference data (~35 MB across 18 JSON files) can optionally be preloaded from the artifact
 store at server startup. Set `MARITIME_REFERENCE_MANIFEST` to a manifest artifact ID
 (produced by `scripts/upload_reference_data.py`) and the server will download any missing
 data files before importing the data loaders. This eliminates the need to run download
 scripts on each new server deployment.
 
-### 8. API-Only Clients
+### 8. Local-First Data
 
-Every archive client calls the remote API directly. If the HTTP request fails (timeout,
-network error, invalid JSON), `_http_get` returns `None` and the client returns an empty
-list or `None`. Tool functions catch these cases and return structured JSON
-(`{"error": "..."}`) -- never unhandled exceptions or stack traces. There are no
-sample data fallbacks.
+All archive clients read from local JSON data files produced by download/generate scripts.
+If a data file is missing (e.g. crew.json not yet downloaded), the client returns empty
+results gracefully. Tool functions catch these cases and return structured JSON
+(`{"error": "..."}`) -- never unhandled exceptions or stack traces.
 
-### 9. Test Coverage -- 98%+
+The `CrewClient` is notable for its lazy-built in-memory indexes: `_voyage_index`
+(dict[str, list[dict]]) for O(1) voyage-based lookups and `_id_index` (dict[str, dict])
+for instant crew member retrieval across 774K records.
 
-All modules maintain 97%+ branch coverage (499 tests across 12 test modules). Tests use
-`pytest-asyncio` and mock at the client HTTP boundary (`_http_get`), not at the manager
+### 9. Multi-Archive Dispatch
+
+`ArchiveManager` routes queries to the correct client via dispatch dicts:
+- `_voyage_clients`: maps archive IDs (das, eic, carreira, galleon, soic) to voyage clients
+- `_wreck_clients`: maps archive IDs (maarer, eic, carreira, galleon, soic) to wreck clients
+
+When `archive` is specified, the query goes to a single client. When omitted, all clients
+are queried and results are aggregated. Prefixed IDs (e.g. `eic:0062`) are parsed to route
+`get_by_id()` calls to the correct client. CLIWOC nationality cross-referencing maps
+archive IDs to nationality codes (das→NL, eic→UK, carreira→PT, galleon→ES, soic→SE).
+
+### 10. Reproducible Data Pipeline
+
+All data files in `data/` are produced by scripts in `scripts/`:
+- Download scripts (`download_das.py`, `download_cliwoc.py`, `download_crew.py`,
+  `download_cargo.py`, `download_eic.py`) fetch data from external sources
+- Generate scripts (`generate_eic.py`, `generate_carreira.py`, `generate_galleon.py`,
+  `generate_soic.py`, `generate_cargo.py`, `generate_reference.py`,
+  `generate_speed_profiles.py`) produce curated or computed datasets
+- All scripts support `--force` to regenerate and use a cache-check-download pattern
+  via shared utilities in `scripts/download_utils.py`
+- `scripts/download_all.py` orchestrates all scripts with `--force` passthrough
+
+### 11. Test Coverage -- 97%+
+
+All modules maintain 97%+ branch coverage (585 tests across 13 test modules). Tests use
+`pytest-asyncio` and mock at the client data boundary (`_load_json`), not at the manager
 level, to exercise the full data flow from tool to client.
 
 ---
@@ -119,26 +155,35 @@ level, to exercise the full data flow from tool to client.
                                     v
           +-----------+  +---------------------+
           | LRU Cache |--| ArchiveManager      |
-          | (voyages, |  | (central            |
-          |  wrecks,  |  |  orchestrator)      |
-          |  vessels) |  +---------------------+
-          +-----------+     |    |    |    |
-                            |    |    |    |
-                +-----------+    |    |    +----------+
-                |                |    |               |
-                v                v    v               v
-         +-----------+   +--------+ +--------+  +-----------+
-         | DASClient |   | Crew   | | Cargo  |  | Wreck     |
-         | (voyages, |   | Client | | Client |  | Client    |
-         |  vessels) |   +--------+ +--------+  +-----------+
-         +-----------+       |          |             |
-                |            |          |             |
-                v            v          v             v
-         +-----------+  +--------+  +--------+  +-----------+
-         | DAS API   |  | NA API |  | BGB API|  | MAARER    |
-         | Huygens   |  | Nat.   |  | Huygens|  | Data      |
-         | Institute |  | Archief|  |        |  |           |
-         +-----------+  +--------+  +--------+  +-----------+
+          | (voyages, |  | (multi-archive      |
+          |  wrecks,  |  |  dispatch +         |
+          |  vessels) |  |  orchestration)     |
+          +-----------+  +---------------------+
+                             |            |
+            _voyage_clients  |            | _wreck_clients
+            +----------------+            +----------------+
+            |    |    |    |    |         |    |    |    |
+            v    v    v    v    v         v    v    v    v
+         +-----+ +---+ +---+ +---+ +---+ +------+ (+ EIC, Carreira,
+         | DAS | |EIC| |Car| |Gal| |SOI| |Wreck |  Galleon, SOIC
+         +-----+ +---+ +---+ +---+ +---+ |Client|  also serve
+            |      |     |     |     |    +------+  wrecks)
+            v      v     v     v     v       v
+         +------+ +------+ +------+ +------+ +------+
+         | Local JSON data files in data/            |
+         | voyages.json, vessels.json, wrecks.json,  |
+         | eic_voyages.json, eic_wrecks.json,        |
+         | carreira_voyages.json, galleon_voyages.json|
+         | soic_voyages.json, crew.json, cargo.json  |
+         +-------------------------------------------+
+
+         +------+ +------+ +------+ +------+ +------+
+         | Crew | | Cargo|   Reference Data Modules
+         |Client| |Client|   gazetteer, routes, hull
+         +------+ +------+   profiles, speed profiles,
+            |        |       cliwoc_tracks
+            v        v
+         crew.json  cargo.json
 ```
 
 ---
@@ -167,16 +212,20 @@ server.py                           # CLI entry point (sync)
   |     +-- tools/position/api.py         # maritime_assess_position
   |     +-- tools/export/api.py           # maritime_export_geojson, maritime_get_statistics
   |     +-- tools/discovery/api.py        # maritime_capabilities
-  |     +-- core/archive_manager.py       # Central orchestrator, LRU caches
-  |           +-- core/clients/das_client.py     # DAS data client (local JSON)
-  |           +-- core/clients/crew_client.py    # VOC Crew HTTP client
-  |           +-- core/clients/cargo_client.py   # BGB Cargo HTTP client
-  |           +-- core/clients/wreck_client.py   # MAARER data client (local JSON)
-  |           +-- core/hull_profiles.py          # Hull profiles (from data/hull_profiles.json)
-  |           +-- core/voc_gazetteer.py          # VOC gazetteer (from data/gazetteer.json)
-  |           +-- core/voc_routes.py             # VOC routes (from data/routes.json)
-  |           +-- core/speed_profiles.py        # Speed profiles (from data/speed_profiles.json)
-  |           +-- core/cliwoc_tracks.py          # CLIWOC tracks (from data/cliwoc_tracks.json)
+  |     +-- core/archive_manager.py       # Central orchestrator, multi-archive dispatch
+  |           +-- core/clients/das_client.py       # DAS voyages + vessels (local JSON)
+  |           +-- core/clients/crew_client.py      # VOC Crew (local JSON, indexed)
+  |           +-- core/clients/cargo_client.py     # BGB Cargo (local JSON)
+  |           +-- core/clients/wreck_client.py     # MAARER wrecks (local JSON)
+  |           +-- core/clients/eic_client.py       # EIC voyages + wrecks (local JSON)
+  |           +-- core/clients/carreira_client.py  # Carreira voyages + wrecks (local JSON)
+  |           +-- core/clients/galleon_client.py   # Galleon voyages + wrecks (local JSON)
+  |           +-- core/clients/soic_client.py      # SOIC voyages + wrecks (local JSON)
+  |           +-- core/hull_profiles.py            # Hull profiles (data/hull_profiles.json)
+  |           +-- core/voc_gazetteer.py            # VOC gazetteer (data/gazetteer.json)
+  |           +-- core/voc_routes.py               # VOC routes (data/routes.json)
+  |           +-- core/speed_profiles.py           # Speed profiles (data/speed_profiles.json)
+  |           +-- core/cliwoc_tracks.py            # CLIWOC tracks (data/cliwoc_tracks.json)
 
 models/maritime.py              # Domain models (extra="allow")
 models/responses.py             # Response envelopes (extra="forbid")
@@ -195,7 +244,7 @@ src/chuk_mcp_maritime_archives/
 +-- constants.py       # Enums, constants, messages
 +-- core/
 |   +-- __init__.py
-|   +-- archive_manager.py     # Central orchestrator with LRU caches
+|   +-- archive_manager.py     # Central orchestrator, multi-archive dispatch, LRU caches
 |   +-- reference_preload.py   # Preload reference data from artifact store
 |   +-- hull_profiles.py       # Hull profiles (loaded from data/hull_profiles.json)
 |   +-- voc_gazetteer.py       # VOC gazetteer (loaded from data/gazetteer.json)
@@ -204,11 +253,15 @@ src/chuk_mcp_maritime_archives/
 |   +-- cliwoc_tracks.py       # CLIWOC tracks (loaded from data/cliwoc_tracks.json)
 |   +-- clients/
 |       +-- __init__.py
-|       +-- base.py           # BaseArchiveClient ABC
-|       +-- das_client.py     # DAS data client (local JSON)
-|       +-- crew_client.py    # VOC Opvarenden crew client
-|       +-- cargo_client.py   # BGB cargo manifest client
-|       +-- wreck_client.py   # MAARER data client (local JSON)
+|       +-- base.py              # BaseArchiveClient ABC
+|       +-- das_client.py        # DAS voyages + vessels (local JSON)
+|       +-- crew_client.py       # VOC Crew (local JSON, indexed lookups)
+|       +-- cargo_client.py      # BGB Cargo (local JSON)
+|       +-- wreck_client.py      # MAARER wrecks (local JSON)
+|       +-- eic_client.py        # EIC voyages + wrecks (local JSON)
+|       +-- carreira_client.py   # Carreira voyages + wrecks (local JSON)
+|       +-- galleon_client.py    # Galleon voyages + wrecks (local JSON)
+|       +-- soic_client.py       # SOIC voyages + wrecks (local JSON)
 +-- models/
 |   +-- __init__.py
 |   +-- maritime.py    # Domain models (extra="allow")
@@ -262,14 +315,15 @@ Falls back silently if the store is unavailable or any download fails.
 ### `async_server.py`
 
 Creates the `ChukMCPServer` MCP instance, instantiates `ArchiveManager`, and registers
-all fifteen tool groups. Each tool module receives the MCP instance and the shared
-`ArchiveManager`.
+all tool groups (15 categories, 29 tools). Each tool module receives the MCP instance
+and the shared `ArchiveManager`.
 
 ### `core/archive_manager.py`
 
 The central orchestrator. Manages:
-- **Archive registry**: static metadata for all four archives
-- **Data source clients**: DASClient, CrewClient, CargoClient, WreckClient
+- **Archive registry**: static metadata for all 8 archives
+- **Data source clients**: 8 clients (DAS, Crew, Cargo, Wreck, EIC, Carreira, Galleon, SOIC)
+- **Multi-archive dispatch**: `_voyage_clients` and `_wreck_clients` dicts route by archive ID
 - **LRU caches**: OrderedDict caches for voyages, wrecks, and vessels
 - **Hull profile lookups**: static reference data for 6 VOC ship types
 - **Cross-archive linking**: unified voyage view with wreck, vessel, hull profile, CLIWOC track
@@ -281,30 +335,57 @@ The central orchestrator. Manages:
 ### `core/clients/base.py`
 
 Abstract base class for all archive clients. Provides:
-- `_http_get()`: async HTTP GET via `asyncio.to_thread(urllib.request.urlopen)`
-- `_http_get_with_params()`: query parameter encoding
+- `_load_json()`: loads a JSON data file from `data/`, caching in memory
 - `_filter_by_date_range()`: date range filtering for YYYY/YYYY format
+- `_contains()`: case-insensitive substring matching
 - Abstract methods: `search()`, `get_by_id()`
 
 ### `core/clients/das_client.py`
 
-HTTP client for the Dutch Asiatic Shipping database. Provides voyage search,
-voyage detail retrieval, and vessel search against the Huygens Institute API.
+Client for the Dutch Asiatic Shipping database. Loads voyages and vessels from
+`data/voyages.json` and `data/vessels.json`. Provides voyage search with ship name,
+date range, and fate filters, plus vessel search.
 
 ### `core/clients/crew_client.py`
 
-HTTP client for the VOC Opvarenden crew database at the Nationaal Archief.
-Provides crew search and detail retrieval.
+Client for the VOC Opvarenden crew database (774K records from `data/crew.json`,
+downloaded via `scripts/download_crew.py`). Builds lazy in-memory indexes on first
+access: `_voyage_index` (dict[str, list[dict]]) for O(1) voyage-based lookups and
+`_id_index` (dict[str, dict]) for instant crew member retrieval.
 
 ### `core/clients/cargo_client.py`
 
-HTTP client for the Boekhouder-Generaal Batavia cargo database. Provides cargo
-search and voyage manifest retrieval.
+Client for the Boekhouder-Generaal Batavia cargo database. Loads 200 curated records
+from `data/cargo.json`. Provides cargo search by voyage, commodity, origin, destination.
 
 ### `core/clients/wreck_client.py`
 
-Client for the MAARER compiled wreck database. Provides wreck search and detail
-retrieval.
+Client for the MAARER compiled wreck database. Loads 734 wrecks from `data/wrecks.json`.
+Provides wreck search with region, cause, status, depth, and cargo value filters.
+
+### `core/clients/eic_client.py`
+
+Client for the English East India Company (~150 voyages, ~35 wrecks). Loads from
+`data/eic_voyages.json` and `data/eic_wrecks.json`. Handles both voyages and wrecks
+in a single class with lazy-built ID indexes for fast lookups.
+
+### `core/clients/carreira_client.py`
+
+Client for the Portuguese Carreira da India (~500 voyages, ~100 wrecks). Loads from
+`data/carreira_voyages.json` and `data/carreira_wrecks.json`. Curated from
+Guinote/Frutuoso/Lopes with era-based fleet expansion.
+
+### `core/clients/galleon_client.py`
+
+Client for the Spanish Manila Galleon (~250 voyages, ~42 wrecks). Loads from
+`data/galleon_voyages.json` and `data/galleon_wrecks.json`. Pacific crossing
+routes between Acapulco and Manila.
+
+### `core/clients/soic_client.py`
+
+Client for the Swedish East India Company (~132 voyages, ~20 wrecks). Loads from
+`data/soic_voyages.json` and `data/soic_wrecks.json`. Gothenburg-Canton route
+via the Cape of Good Hope.
 
 ### `core/hull_profiles.py`
 
@@ -385,19 +466,30 @@ All magic strings, identifiers, and configuration values. Includes:
 1. maritime_search_voyages(ship_name="Batavia", ...)
    +-- tool validates params
    +-- manager.search_voyages()
+       +-- resolve archive -> _voyage_clients["das"]
        +-- das_client.search(ship_name="Batavia")
-       |   +-- _http_get_with_params(DAS_URL/searchVoyage, {ship: "Batavia"})
-       |   +-- asyncio.to_thread(urllib.request.urlopen)
-       |   +-- _unwrap_results() -> list[dict] (or [] on failure)
-       |   +-- _apply_voyage_filters() client-side filtering
+       |   +-- _load_json("voyages.json")   <-- cached in memory after first load
+       |   +-- filter: ship_name substring match
+       |   +-- filter: date_range, fate, etc.
+       |   +-- truncate to max_results
        +-- cache results: _cache_put(voyage_cache, id, data, 500)
    +-- tool formats VoyageSearchResponse
 
-2. maritime_get_voyage(voyage_id="das:3456")
+2. maritime_search_voyages(ship_name="Trade", archive="eic")
+   +-- resolve archive -> _voyage_clients["eic"]
+   +-- eic_client.search(ship_name="Trade")
+   +-- (only EIC voyages searched)
+
+3. maritime_search_voyages(ship_name="Batavia")  [no archive filter]
+   +-- queries ALL _voyage_clients (das, eic, carreira, galleon, soic)
+   +-- aggregates results across archives
+
+4. maritime_get_voyage(voyage_id="das:3456")
    +-- tool validates params
    +-- manager.get_voyage("das:3456")
        +-- _cache_get(voyage_cache, "das:3456")    <-- cache hit
-       +-- if cache miss: das_client.get_by_id("das:3456")
+       +-- if cache miss: parse prefix "das" -> _voyage_clients["das"]
+       +-- das_client.get_by_id("das:3456")
        +-- _cache_put(voyage_cache, ..., 500)
    +-- tool formats VoyageDetailResponse
 ```
@@ -440,16 +532,19 @@ method calls `move_to_end(key)` for existing entries and `popitem(last=False)` t
 evict the oldest entry when the cache exceeds its limit. `_cache_get()` moves accessed
 entries to the end to maintain LRU order.
 
-### API-Only Client Pattern
+### Local JSON Client Pattern
 
 Every client follows the same pattern:
-1. Build API query parameters from search kwargs
-2. Call `_http_get_with_params()` against the remote API
-3. If result is a list, use it directly
-4. If result is a dict, unwrap from `results` or domain-specific key via `_unwrap_results()`
-5. If result is None or empty, return `[]` (no fallbacks)
-6. Apply client-side filters to the returned dataset
-7. Truncate to `max_results`
+1. Call `_load_json(filename)` to load data (cached in memory after first call)
+2. If data file is missing, return `[]` (graceful degradation)
+3. Apply keyword filters via `_contains()` (case-insensitive substring matching)
+4. Apply date range filters via `_filter_by_date_range()`
+5. Truncate to `max_results`
+
+Multi-nation clients (EIC, Carreira, Galleon, SOIC) extend this with:
+- Separate voyage and wreck JSON files
+- Lazy-built ID indexes for O(1) detail lookups
+- `search_wrecks()` and `get_wreck_by_id()` alongside voyage methods
 
 ### Dual Output Mode
 
@@ -460,11 +555,9 @@ In text mode, each response model's `to_text()` returns a human-readable summary
 
 ### Client-Side Filtering
 
-Because external APIs may not support all filter parameters, every client applies
-filters locally after receiving results. This ensures consistent behaviour whether
-data comes from the live API or from sample data fallback. Filters use
-case-insensitive substring matching for text fields and exact matching for enumerated
-fields.
+All data is local, so filtering is always client-side. Filters use case-insensitive
+substring matching for text fields (via `_contains()`) and exact matching for
+enumerated fields (fate, cause, status, region).
 
 ### JSON Data Loading
 
@@ -482,6 +575,7 @@ of truth in version-controlled JSON files that can be regenerated or edited dire
 ### Navigation Era Detection
 
 Position assessment uses `NAVIGATION_ERAS` from constants to determine the navigation
-technology available in a given year. The era determines the baseline position
-uncertainty (30km for 1595-1650 down to 10km for 1760-1795), which is then adjusted
-based on the source description keywords.
+technology available in a given year. Six eras span 1595-1880, covering the full range
+of all 8 archives. The era determines the baseline position uncertainty (30km for
+1595-1650 down to 2km for 1840-1880), which is then adjusted based on the source
+description keywords.

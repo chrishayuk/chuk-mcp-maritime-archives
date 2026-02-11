@@ -1,11 +1,12 @@
 """
-BGB (Boekhouder-Generaal Batavia) cargo client stub.
+BGB (Boekhouder-Generaal Batavia) cargo client.
 
-The BGB cargo database requires a separate download script.
-This stub returns empty results until the cargo data download
-is implemented.
+Reads locally stored JSON data from ``data/cargo.json``, produced by
+``scripts/download_cargo.py`` (Zenodo RDF) or ``scripts/generate_cargo.py``
+(curated fallback). Contains ~200 curated cargo records covering VOC trade
+goods shipped between Asia and the Netherlands, 1700-1795.
 
-Future: https://bgb.huygens.knaw.nl/
+Source: https://bgb.huygens.knaw.nl/
 """
 
 import logging
@@ -19,9 +20,10 @@ logger = logging.getLogger(__name__)
 
 class CargoClient(BaseArchiveClient):
     """
-    Stub client for the Boekhouder-Generaal Batavia (BGB) cargo database.
+    Client for the Boekhouder-Generaal Batavia (BGB) cargo database.
 
-    Returns empty results until cargo data download is implemented.
+    Searches and retrieves records from locally cached JSON files
+    containing curated VOC cargo manifests, 1700-1795.
     """
 
     CARGO_FILE = "cargo.json"
@@ -41,7 +43,7 @@ class CargoClient(BaseArchiveClient):
         max_results: int = 100,
         **kwargs: Any,
     ) -> list[dict]:
-        """Search cargo records. Returns empty until cargo download is implemented."""
+        """Search cargo records from local data."""
         records = self._load_json(self.CARGO_FILE)
         if not records:
             return []

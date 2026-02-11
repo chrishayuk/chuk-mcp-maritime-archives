@@ -1,6 +1,6 @@
 # chuk-mcp-maritime-archives Specification
 
-Version 0.7.0
+Version 0.8.0
 
 ## Overview
 
@@ -20,32 +20,32 @@ through the colonial era, 1497-1874. Covers Dutch (VOC), English (EIC), Portugue
 | Archive ID | Name | Organisation | Records | Period | Data Types |
 |-----------|------|-------------|---------|--------|------------|
 | `das` | Dutch Asiatic Shipping | Huygens Institute | 8,194 voyages | 1595-1795 | voyages, vessels, incidents |
-| `voc_crew` | VOC Opvarenden | Nationaal Archief | 774,200 records | 1633-1794 | crew muster rolls |
-| `voc_cargo` | Boekhouder-Generaal Batavia | Nationaal Archief | ~50,000 records | 1700-1795 | cargo manifests |
+| `voc_crew` | VOC Opvarenden | Nationaal Archief | up to 774,200 records | 1633-1794 | crew muster rolls |
+| `voc_cargo` | Boekhouder-Generaal Batavia | Huygens Institute | 200 curated records | 1700-1795 | cargo manifests |
 | `maarer` | MAARER VOC Wrecks | Maritime Archaeological Research | 734 wrecks | 1595-1795 | wreck positions, incidents |
-| `eic` | English East India Company | Curated seed dataset from Hardy/Farrington | ~150 voyages, ~35 wrecks | 1600-1874 | voyages, wrecks |
-| `carreira` | Portuguese Carreira da India | Curated seed dataset from Guinote/Frutuoso/Lopes | ~120 voyages, ~40 wrecks | 1497-1835 | voyages, wrecks |
-| `galleon` | Spanish Manila Galleon | Curated seed dataset from Schurz | ~100 voyages, ~25 wrecks | 1565-1815 | voyages, wrecks |
-| `soic` | Swedish East India Company | Curated seed dataset from Koninckx | ~80 voyages, ~12 wrecks | 1731-1813 | voyages, wrecks |
+| `eic` | English East India Company | Curated from Hardy/Farrington | ~150 voyages, ~35 wrecks | 1600-1874 | voyages, wrecks |
+| `carreira` | Portuguese Carreira da India | Curated + expanded from Guinote/Frutuoso/Lopes | ~500 voyages, ~100 wrecks | 1497-1835 | voyages, wrecks |
+| `galleon` | Spanish Manila Galleon | Curated + expanded from Schurz | ~250 voyages, ~42 wrecks | 1565-1815 | voyages, wrecks |
+| `soic` | Swedish East India Company | Curated + expanded from Koninckx | ~132 voyages, ~20 wrecks | 1731-1813 | voyages, wrecks |
 
-> **Note on data completeness:** The EIC, Carreira, Galleon, and SOIC archives are curated selections of historically notable voyages and famous wrecks, compiled from published academic sources. They are not exhaustive inventories of all voyages conducted by these trading companies. The VOC Crew (`voc_crew`) and Cargo (`voc_cargo`) clients are stub implementations that depend on external REST APIs which may be intermittently unavailable.
+> **Note on data completeness:** The EIC, Carreira, Galleon, and SOIC archives are curated datasets compiled from published academic sources. Carreira, Galleon, and SOIC include programmatically expanded records covering the full historical period. VOC Crew data requires running `scripts/download_crew.py` to download from the Nationaal Archief (774K records, ~80 MB). Cargo and EIC have download scripts for future expansion from external sources.
 
 ### Archive Sources
 
 | Archive | Base URL | Access Method |
 |---------|----------|---------------|
-| DAS | `https://resources.huygens.knaw.nl/das` | REST API |
-| VOC Crew | `https://www.nationaalarchief.nl/onderzoeken/index/nt00444` | REST API |
-| BGB Cargo | `https://bgb.huygens.knaw.nl` | REST API |
+| DAS | `https://resources.huygens.knaw.nl/das` | REST API via `download_das.py` |
+| VOC Crew | `https://www.nationaalarchief.nl/onderzoeken/index/nt00444` | Bulk download via `download_crew.py` |
+| BGB Cargo | `https://bgb.huygens.knaw.nl` | Curated local JSON + `download_cargo.py` |
 | MAARER | `https://resources.huygens.knaw.nl/das` | Compiled data endpoint |
-| EIC | Curated reference data | Local JSON (chuk-artifacts) |
-| Carreira | Curated reference data | Local JSON (chuk-artifacts) |
-| Galleon | Curated reference data | Local JSON (chuk-artifacts) |
-| SOIC | Curated reference data | Local JSON (chuk-artifacts) |
+| EIC | Hardy/Farrington published sources | Local JSON via `generate_eic.py` + `download_eic.py` |
+| Carreira | Guinote/Frutuoso/Lopes published sources | Local JSON via `generate_carreira.py` |
+| Galleon | Schurz published sources | Local JSON via `generate_galleon.py` |
+| SOIC | Koninckx published sources | Local JSON via `generate_soic.py` |
 
-If an archive API is unavailable, the client returns an empty result set and tools
-return a structured error response. The EIC, Carreira, Galleon, and SOIC archives
-work entirely offline with curated local data.
+All archives except DAS work entirely offline with local JSON data. DAS data is
+cached locally after first download. VOC Crew requires running `download_crew.py`
+to fetch the 774K-record dataset. All scripts support `--force` for re-download.
 
 ---
 

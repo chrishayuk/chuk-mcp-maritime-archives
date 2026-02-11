@@ -52,6 +52,12 @@ Thumbs.db
 .ruff_cache/
 .uv/
 
+# Download cache (large raw files not committed)
+data/cache/
+
+# Large data files distributed via chuk-artifacts, not git
+data/crew.json
+
 # Build
 *.log
 *.tmp

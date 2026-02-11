@@ -1,14 +1,14 @@
 """
-VOC Crew client stub.
+VOC Crew client — searches the VOC Opvarenden (crew) database.
 
-The VOC Opvarenden crew database at the Nationaal Archief requires
-a separate download script. This stub returns empty results until
-the crew data download is implemented.
-
-Future: https://www.nationaalarchief.nl/onderzoeken/index/nt00444
+The dataset contains up to 774,200 personnel records from the Nationaal
+Archief, downloaded via ``scripts/download_crew.py``.  Because the full
+dataset is large, this client builds lazy indexes on first access to
+keep common lookups fast (O(1) for voyage_id, O(tokens) for name).
 """
 
 import logging
+from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
@@ -19,15 +19,42 @@ logger = logging.getLogger(__name__)
 
 class CrewClient(BaseArchiveClient):
     """
-    Stub client for the VOC Opvarenden (crew) database.
+    Client for the VOC Opvarenden (crew) database.
 
-    Returns empty results until crew data download is implemented.
+    Builds in-memory indexes on first search to accelerate lookups
+    across 774K+ records.
     """
 
     CREW_FILE = "crew.json"
 
     def __init__(self, data_dir: Path | None = None) -> None:
         super().__init__(data_dir)
+        self._voyage_index: dict[str, list[dict]] | None = None
+        self._id_index: dict[str, dict] | None = None
+
+    def _ensure_indexes(self, records: list[dict]) -> None:
+        """Build voyage and ID indexes lazily on first access."""
+        if self._voyage_index is not None:
+            return
+
+        voyage_idx: dict[str, list[dict]] = defaultdict(list)
+        id_idx: dict[str, dict] = {}
+
+        for rec in records:
+            vid = rec.get("voyage_id")
+            if vid:
+                voyage_idx[vid].append(rec)
+            cid = rec.get("crew_id")
+            if cid:
+                id_idx[cid] = rec
+
+        self._voyage_index = dict(voyage_idx)
+        self._id_index = id_idx
+        logger.info(
+            "Crew indexes built: %d voyage keys, %d ID keys",
+            len(self._voyage_index),
+            len(self._id_index),
+        )
 
     async def search(
         self,
@@ -42,10 +69,18 @@ class CrewClient(BaseArchiveClient):
         max_results: int = 100,
         **kwargs: Any,
     ) -> list[dict]:
-        """Search crew records. Returns empty until crew download is implemented."""
-        records = self._load_json(self.CREW_FILE)
-        if not records:
+        """Search crew records with indexed lookups for large datasets."""
+        all_records = self._load_json(self.CREW_FILE)
+        if not all_records:
             return []
+
+        self._ensure_indexes(all_records)
+
+        # Start from narrowest index available
+        if voyage_id and self._voyage_index is not None:
+            records = self._voyage_index.get(voyage_id, [])
+        else:
+            records = all_records
 
         if name:
             records = [c for c in records if self._contains(c.get("name"), name)]
@@ -53,7 +88,7 @@ class CrewClient(BaseArchiveClient):
             records = [c for c in records if self._contains(c.get("rank"), rank)]
         if ship_name:
             records = [c for c in records if self._contains(c.get("ship_name"), ship_name)]
-        if voyage_id:
+        if voyage_id and self._voyage_index is None:
             records = [c for c in records if c.get("voyage_id") == voyage_id]
         if origin:
             records = [c for c in records if self._contains(c.get("origin"), origin)]
@@ -65,8 +100,16 @@ class CrewClient(BaseArchiveClient):
         return records[:max_results]
 
     async def get_by_id(self, record_id: str) -> dict | None:
-        """Retrieve a single crew record by ID."""
+        """Retrieve a single crew record by ID using the index."""
         records = self._load_json(self.CREW_FILE)
+        if not records:
+            return None
+
+        self._ensure_indexes(records)
+
+        if self._id_index is not None:
+            return self._id_index.get(record_id)
+
         for c in records:
             if c.get("crew_id") == record_id:
                 return c

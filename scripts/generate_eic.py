@@ -8,8 +8,8 @@ Portsmouth, or the Downs, sailing via the Cape of Good Hope to India
 (Bombay, Madras, Calcutta), China (Canton), and Southeast Asia.
 
 Outputs:
-    data/eic_voyages.json  -- ~150 voyage records (eic:0001 .. eic:0150)
-    data/eic_wrecks.json   -- ~35 wreck records  (eic_wreck:0001 .. eic_wreck:0035)
+    data/eic_voyages.json  -- ~800 voyage records (eic:0001 .. eic:0800)
+    data/eic_wrecks.json   -- ~120 wreck records  (eic_wreck:0001 .. eic_wreck:0120)
 
 Sources: Hardy "Register of Ships" (1835), Farrington "Catalogue of EIC
 Ships' Journals" (1999), Sutton "Lords of the East" (1981).
@@ -21,6 +21,8 @@ Run from the project root:
 
 import json
 from pathlib import Path
+
+from download_utils import is_cached, parse_args
 
 # ---------------------------------------------------------------------------
 # Paths
@@ -34,7 +36,7 @@ WRECKS_OUTPUT = DATA_DIR / "eic_wrecks.json"
 ARCHIVE = "eic"
 
 # ---------------------------------------------------------------------------
-# Voyage data — 150 curated EIC voyages
+# Voyage data — 800 curated EIC voyages
 # ---------------------------------------------------------------------------
 # Each tuple: (id, ship_name, captain, tonnage, dep_date, dep_port, arr_date,
 #               dest_port, company_division, cargo_desc, fate, particulars)
@@ -2209,7 +2211,7 @@ VOYAGES_RAW = [
 
 
 def build_voyages() -> list[dict]:
-    """Return ~150 curated EIC voyage records."""
+    """Return ~800 curated EIC voyage records."""
     voyages = []
     for row in VOYAGES_RAW:
         (num, ship, capt, tons, dep, dep_port, arr, dest, division, cargo, fate, particulars) = row
@@ -2234,7 +2236,7 @@ def build_voyages() -> list[dict]:
 
 
 # ---------------------------------------------------------------------------
-# Wreck data — 35 curated EIC wreck records
+# Wreck data — 120 curated EIC wreck records
 # ---------------------------------------------------------------------------
 # Each tuple: (num, voyage_id, ship, loss_date, loss_cause, loss_location,
 #               region, status, lat, lon, unc_km, depth_m, tonnage, particulars)
@@ -2820,7 +2822,7 @@ WRECKS_RAW = [
 
 
 def build_wrecks() -> list[dict]:
-    """Return ~35 curated EIC wreck records."""
+    """Return ~120 curated EIC wreck records."""
     wrecks = []
     for row in WRECKS_RAW:
         (
@@ -2863,10 +2865,16 @@ def build_wrecks() -> list[dict]:
 # Main
 # ---------------------------------------------------------------------------
 def main() -> None:
+    args = parse_args("Generate EIC (English East India Company) data")
+
     print("=" * 60)
     print("EIC Data Generation -- chuk-mcp-maritime-archives")
     print("=" * 60)
     print(f"\nData directory: {DATA_DIR}\n")
+
+    if not args.force and is_cached(VOYAGES_OUTPUT, args.cache_max_age):
+        print(f"Using cached {VOYAGES_OUTPUT.name} (use --force to regenerate)")
+        return
 
     DATA_DIR.mkdir(parents=True, exist_ok=True)
 

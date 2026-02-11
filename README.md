@@ -15,15 +15,15 @@ This MCP server provides structured access to historical maritime archives and r
 ### 1. Archive Discovery (`maritime_list_archives`, `maritime_get_archive`)
 Browse 8 maritime archives across 5 nations:
 - Dutch Asiatic Shipping (DAS) -- 8,194 voyages (1595-1795)
-- VOC Opvarenden -- 774,200 crew records (1633-1794) *(stub client, requires network)*
-- Boekhouder-Generaal Batavia -- ~50,000 cargo records (1700-1795) *(stub client, requires network)*
+- VOC Opvarenden -- up to 774,200 crew records (1633-1794)
+- Boekhouder-Generaal Batavia -- 200 curated cargo records (1700-1795)
 - MAARER Wreck Database -- 734 wreck positions (1595-1795)
 - English East India Company (EIC) -- ~150 curated voyages, ~35 wrecks (1600-1874)
-- Portuguese Carreira da India -- ~120 curated voyages, ~40 wrecks (1497-1835)
-- Spanish Manila Galleon -- ~100 curated voyages, ~25 wrecks (1565-1815)
-- Swedish East India Company (SOIC) -- ~80 curated voyages, ~12 wrecks (1731-1813)
+- Portuguese Carreira da India -- ~500 voyages, ~100 wrecks (1497-1835)
+- Spanish Manila Galleon -- ~250 voyages, ~42 wrecks (1565-1815)
+- Swedish East India Company (SOIC) -- ~132 voyages, ~20 wrecks (1731-1813)
 
-> **Note:** The EIC, Carreira, Galleon, and SOIC archives are curated seed datasets of notable voyages and famous wrecks compiled from published academic sources -- not exhaustive inventories. The EIC alone conducted thousands of voyages; our ~150 represent a selection of historically significant records. The VOC Crew and Cargo clients are stub implementations that depend on external APIs which may be unavailable.
+> **Note:** The EIC, Carreira, Galleon, and SOIC archives are curated datasets compiled from published academic sources. Carreira, Galleon, and SOIC include programmatically expanded records covering the full historical period. VOC Crew data requires running `scripts/download_crew.py` to download from the Nationaal Archief (774K records, ~80 MB). Cargo and EIC have download scripts (`download_cargo.py`, `download_eic.py`) for future expansion from external sources.
 
 ### 2. Voyage Search (`maritime_search_voyages`, `maritime_get_voyage`)
 Search voyage records across all 5 voyage archives (DAS, EIC, Carreira, Galleon, SOIC):
@@ -52,13 +52,14 @@ Hydrodynamic hull data for drift modelling:
 - Reference wrecks and LLM guidance notes
 
 ### 6. Crew Search (`maritime_search_crew`, `maritime_get_crew_member`)
-Search VOC crew muster rolls *(stub client -- depends on Nationaal Archief API availability)*:
+Search VOC crew muster rolls (up to 774,200 records from Nationaal Archief):
 - Filter by name, rank, ship, origin, fate
 - Personnel records: rank, pay, embarkation/service dates
+- Indexed lookups for fast search across large datasets
 - Cross-reference with voyage records
 
 ### 7. Cargo Search (`maritime_search_cargo`, `maritime_get_cargo_manifest`)
-Search cargo manifests *(stub client -- depends on BGB Huygens API availability)*:
+Search VOC cargo manifests (200 curated records, expandable via download scripts):
 - Filter by commodity, origin, destination, value
 - Full voyage manifests with quantities and values
 - Dutch and English commodity names
@@ -286,8 +287,8 @@ python batavia_case_study_demo.py  # 12-tool chain investigating the Batavia wre
 | `voyage_search_demo.py` | Partial | `maritime_search_voyages`, `maritime_get_voyage` (DAS needs network, EIC/Carreira/Galleon/SOIC offline) |
 | `wreck_investigation_demo.py` | Partial | `maritime_search_wrecks`, `maritime_get_wreck`, `maritime_assess_position`, `maritime_export_geojson` (multi-archive, mostly offline) |
 | `vessel_search_demo.py` | Yes | `maritime_search_vessels`, `maritime_get_vessel`, `maritime_get_hull_profile` |
-| `crew_muster_demo.py` | Yes | `maritime_search_crew`, `maritime_get_crew_member` |
-| `cargo_trade_demo.py` | Yes | `maritime_search_cargo`, `maritime_get_cargo_manifest` |
+| `crew_muster_demo.py` | Partial | `maritime_search_crew`, `maritime_get_crew_member` (requires `download_crew.py` first) |
+| `cargo_trade_demo.py` | No | `maritime_search_cargo`, `maritime_get_cargo_manifest` (200 curated records included) |
 | `geojson_export_demo.py` | Yes | `maritime_export_geojson`, `maritime_search_wrecks` |
 | `statistics_demo.py` | Partial | `maritime_get_statistics`, `maritime_search_wrecks` (multi-archive, mostly offline) |
 | `batavia_case_study_demo.py` | Yes | All tool categories chained together |
@@ -567,6 +568,33 @@ python -m build
 uv build
 ```
 
+### Data Pipeline
+
+All download and generation scripts support `--force` to regenerate even if cached data exists:
+
+```bash
+# Download/generate all datasets
+python scripts/download_all.py
+
+# Force regeneration of all data
+python scripts/download_all.py --force
+
+# Individual scripts
+python scripts/download_das.py          # VOC voyages/vessels/wrecks from Huygens API
+python scripts/download_cliwoc.py       # CLIWOC ship tracks (~261K positions)
+python scripts/download_crew.py         # VOC crew from Nationaal Archief (~774K records, ~80 MB)
+python scripts/download_cargo.py        # BGB cargo from Zenodo RDF
+python scripts/download_eic.py          # EIC from ThreeDecks
+python scripts/generate_carreira.py     # Portuguese Carreira (~500 voyages, ~100 wrecks)
+python scripts/generate_galleon.py      # Manila Galleon (~250 voyages, ~42 wrecks)
+python scripts/generate_soic.py         # Swedish SOIC (~132 voyages, ~20 wrecks)
+python scripts/generate_cargo.py        # Curated cargo fallback (~200 records)
+python scripts/generate_reference.py    # Gazetteer, routes, hull profiles
+python scripts/generate_speed_profiles.py  # CLIWOC speed statistics
+```
+
+> **Data volume:** Core reference data is ~35 MB. With crew data downloaded, total is ~115 MB. The `data/cache/` directory (raw downloads) is gitignored.
+
 ## Configuration
 
 ### Environment Variables
@@ -605,7 +633,7 @@ CHUK_ARTIFACTS_PATH=/tmp/maritime-artifacts
 
 ### S3-Backed Reference Data
 
-For multi-server deployments, reference data (~34 MB across 16 JSON files) can be
+For multi-server deployments, reference data (~35 MB across 18 JSON files) can be
 stored in S3 and preloaded at startup, eliminating the need to run download scripts
 on each server.
 
@@ -659,9 +687,10 @@ Built on top of chuk-mcp-server, this server uses:
 - **Async-First**: Native async/await with sync HTTP wrapped in `asyncio.to_thread()`
 - **Type-Safe**: Pydantic v2 models with `extra="forbid"` for all responses, `extra="allow"` for domain models
 - **LRU Caching**: OrderedDict-based caches for voyages (500), wrecks (500), and vessels
-- **Reproducible Data**: Download scripts fetch real data from DAS and CLIWOC; reference data stored as JSON
+- **Reproducible Data**: Download scripts fetch real data from DAS, CLIWOC, and Nationaal Archief; curated generation scripts for Carreira, Galleon, SOIC; all scripts support `--force` and cache-check pattern
 - **Pluggable Storage**: Artifact storage via chuk-artifacts (memory, filesystem, S3)
 - **No External HTTP Deps**: Uses stdlib `urllib.request` -- no requests/httpx dependency
+- **Indexed Lookups**: Lazy-built in-memory indexes for large datasets (774K crew records)
 - **Cross-Archive Linking**: Unified voyage view with wreck, vessel, hull profile, and CLIWOC track linking
 - **Multi-Archive Dispatch**: 8 archives across 5 nations (Dutch, English, Portuguese, Spanish, Swedish) with unified query interface
 - **Dual Output**: All 29 tools support `output_mode="text"` for human-readable responses
@@ -673,14 +702,14 @@ Built on top of chuk-mcp-server, this server uses:
 | Archive | Records | Period | Source |
 |---------|---------|--------|--------|
 | Dutch Asiatic Shipping (DAS) | 8,194 voyages | 1595-1795 | resources.huygens.knaw.nl/das |
-| VOC Opvarenden | 774,200 crew | 1633-1794 | nationaalarchief.nl |
-| Boekhouder-Generaal Batavia | ~50,000 cargo | 1700-1795 | bgb.huygens.knaw.nl |
+| VOC Opvarenden | up to 774,200 crew | 1633-1794 | nationaalarchief.nl |
+| Boekhouder-Generaal Batavia | 200 cargo (curated) | 1700-1795 | bgb.huygens.knaw.nl |
 | MAARER Wrecks | 734 wrecks | 1595-1795 | Compiled dataset |
 | CLIWOC Ship Tracks | ~261,000 positions | 1662-1855 | historicalclimatology.com (CLIWOC 2.1 Full) |
 | English East India Company (EIC) | ~150 voyages, ~35 wrecks | 1600-1874 | Hardy/Farrington (curated) |
-| Portuguese Carreira da India | ~120 voyages, ~40 wrecks | 1497-1835 | Guinote/Frutuoso/Lopes (curated) |
-| Spanish Manila Galleon | ~100 voyages, ~25 wrecks | 1565-1815 | Schurz (curated) |
-| Swedish East India Company (SOIC) | ~80 voyages, ~12 wrecks | 1731-1813 | Koninckx (curated) |
+| Portuguese Carreira da India | ~500 voyages, ~100 wrecks | 1497-1835 | Guinote/Frutuoso/Lopes (curated + expanded) |
+| Spanish Manila Galleon | ~250 voyages, ~42 wrecks | 1565-1815 | Schurz (curated + expanded) |
+| Swedish East India Company (SOIC) | ~132 voyages, ~20 wrecks | 1731-1813 | Koninckx (curated + expanded) |
 
 ### Reference Data
 
@@ -691,9 +720,9 @@ Built on top of chuk-mcp-server, this server uses:
 | Speed Profiles | 215 profiles, 6 routes | Generated from CLIWOC 2.1 daily positions |
 | Hull Profiles | 6 ship types | Archaeological measurements |
 | EIC Archives | ~150 voyages, ~35 wrecks | Hardy's Register of Ships (1835), Farrington (1999) |
-| Carreira Archives | ~120 voyages, ~40 wrecks | Guinote/Frutuoso/Lopes "As Armadas da India" |
-| Galleon Archives | ~100 voyages, ~25 wrecks | Schurz "The Manila Galleon" (1939) |
-| SOIC Archives | ~80 voyages, ~12 wrecks | Koninckx "First and Second Charters of the SEIC" (1980) |
+| Carreira Archives | ~500 voyages, ~100 wrecks | Guinote/Frutuoso/Lopes "As Armadas da India" |
+| Galleon Archives | ~250 voyages, ~42 wrecks | Schurz "The Manila Galleon" (1939) |
+| SOIC Archives | ~132 voyages, ~20 wrecks | Koninckx "First and Second Charters of the SEIC" (1980) |
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for design principles and data flow diagrams.
 See [SPEC.md](SPEC.md) for the full tool specification with parameter tables.
@@ -739,6 +768,16 @@ See [ROADMAP.md](ROADMAP.md) for the development roadmap and planned features.
 - **~450 new voyage records, ~112 new wrecks** from curated academic sources
 - **Coverage expanded**: 1497-1874 (from 1595-1795)
 - 585 tests, 97%+ branch coverage
+
+### Completed (v0.8.0)
+
+- **Expanded curated archives**: Carreira 120->500 voyages/100 wrecks, Galleon 100->250 voyages/42 wrecks, SOIC 80->132 voyages/20 wrecks
+- **Download infrastructure**: shared `download_utils.py` with cache-check-download pattern and `--force` flag
+- **VOC crew pipeline**: `download_crew.py` downloads 774K records from Nationaal Archief; `crew_client.py` with indexed lookups for O(1) voyage/ID searches
+- **Cargo pipeline**: `download_cargo.py` for BGB Zenodo RDF, `generate_cargo.py` for curated fallback
+- **EIC pipeline**: `download_eic.py` for ThreeDecks scraping, `generate_eic.py` as curated fallback
+- **All scripts retrofitted** with `--force` and cache-check pattern via `download_utils.py`
+- **`download_all.py` orchestrator** runs all 10 scripts with `--force` passthrough
 
 ### Planned
 

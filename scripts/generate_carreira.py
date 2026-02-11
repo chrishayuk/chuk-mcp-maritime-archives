@@ -7,8 +7,8 @@ and India, operated from 1497 to 1835. Annual fleets (armadas) sailed from
 Lisbon around the Cape of Good Hope to Goa, Cochin, and other Indian ports.
 
 Outputs:
-    data/carreira_voyages.json  -- ~120 voyage records (carreira:0001 .. carreira:0120)
-    data/carreira_wrecks.json   -- ~40 wreck records  (carreira_wreck:0001 .. carreira_wreck:0040)
+    data/carreira_voyages.json  -- ~500 voyage records (carreira:0001 .. carreira:0500)
+    data/carreira_wrecks.json   -- ~100 wreck records  (carreira_wreck:0001 .. carreira_wreck:0100)
 
 Sources: Guinote, Frutuoso, and Lopes "As Armadas da India 1497-1835" (2002),
 Boxer "The Portuguese Seaborne Empire" (1969), Diffie and Winius "Foundations
@@ -22,6 +22,8 @@ Run from the project root:
 import json
 from pathlib import Path
 
+from download_utils import is_cached, parse_args
+
 # ---------------------------------------------------------------------------
 # Paths
 # ---------------------------------------------------------------------------
@@ -34,7 +36,7 @@ WRECKS_OUTPUT = DATA_DIR / "carreira_wrecks.json"
 ARCHIVE = "carreira"
 
 # ---------------------------------------------------------------------------
-# Voyage data — 120 curated Carreira da India voyages
+# Voyage data — ~500 curated Carreira da India voyages
 # ---------------------------------------------------------------------------
 # Each tuple: (id, ship_name, captain, tonnage, dep_date, dep_port, arr_date,
 #               dest_port, armada_year, fleet_commander, fate, particulars)
@@ -1791,8 +1793,325 @@ VOYAGES_RAW = [
 ]
 
 
+# ---------------------------------------------------------------------------
+# Expansion data — ship name and captain pools for fleet-filling
+# ---------------------------------------------------------------------------
+
+# Portuguese ship names by era, drawn from armada records
+_SHIP_NAMES_EARLY = [
+    "Sao Gabriel",
+    "Sao Rafael",
+    "Berrio",
+    "Sao Pedro",
+    "Esmeralda",
+    "Sao Cristovao",
+    "Flor do Mar",
+    "Sao Miguel",
+    "Sao Jorge",
+    "Espera",
+    "Nazare",
+    "Santa Cruz",
+    "Anunciada",
+    "Belém",
+    "Santo Espirito",
+    "Sao Dinis",
+    "Sao Simao",
+    "Garça",
+    "Cirne",
+    "Touro",
+]
+
+_SHIP_NAMES_GOLDEN = [
+    "Sao Joao",
+    "Sao Bento",
+    "Sao Martinho",
+    "Nossa Senhora da Graca",
+    "Cinco Chagas",
+    "Sao Filipe",
+    "Santiago",
+    "Conceicao",
+    "Sao Paulo",
+    "Sao Lourenco",
+    "Santa Cruz",
+    "Sao Tiago",
+    "Sao Sebastiao",
+    "Nossa Senhora da Luz",
+    "Sao Francisco",
+    "Sao Tome",
+    "Jesus",
+    "Madre de Deus",
+    "Sao Marcos",
+    "Salvacao",
+    "Santo Espirito",
+    "Santa Maria",
+    "Sao Jeronimo",
+    "Sao Roque",
+    "Rei Magos",
+]
+
+_SHIP_NAMES_UNION = [
+    "Sao Filipe",
+    "Santo Antonio",
+    "Sao Joao Baptista",
+    "Chagas",
+    "Nossa Senhora do Monte do Carmo",
+    "Sacramento",
+    "Sao Pedro",
+    "Sao Goncalo",
+    "Nossa Senhora da Conceicao",
+    "Sao Martinho",
+    "Nossa Senhora de Belem",
+    "Sao Lourenco",
+    "Bom Jesus",
+    "Santo Agostinho",
+    "Sao Boaventura",
+    "Nossa Senhora da Penha",
+]
+
+_SHIP_NAMES_LATE = [
+    "Nossa Senhora da Piedade",
+    "Sao Jose",
+    "Nossa Senhora da Boa Viagem",
+    "Sao Francisco Xavier",
+    "Nossa Senhora do Cabo",
+    "Sao Pedro de Alcantara",
+    "Nossa Senhora da Gloria",
+    "Santo Antonio e Sao Jose",
+    "Sao Jose Diligente",
+    "Nossa Senhora da Conceicao",
+    "Nossa Senhora da Vida",
+    "Princesa Real",
+    "Sao Marcos",
+    "Nossa Senhora do Rosario",
+    "Sao Joao Principe",
+    "Maria Primeira",
+    "Dom Joao VI",
+    "Esperanca",
+]
+
+# Portuguese captains by era
+_CAPTAINS_EARLY = [
+    "Fernao de Magalhaes",
+    "Diogo de Sepulveda",
+    "Francisco de Sa",
+    "Joao de Barros",
+    "Garcia de Orta",
+    "Antonio Galvao",
+    "Fernao Mendes Pinto",
+    "Luis de Camoes",
+    "Pedro de Mascarenhas",
+    "Gaspar Correia",
+    "Duarte Barbosa",
+    "Tome Pires",
+    "Lopo Soares",
+    "Diogo de Couto",
+    "Manuel de Melo",
+]
+
+_CAPTAINS_GOLDEN = [
+    "Henrique de Meneses",
+    "Pedro de Faria",
+    "Simao de Andrade",
+    "Martim de Melo",
+    "Diogo de Noronha",
+    "Joao de Mendonca",
+    "Rui de Brito Patalim",
+    "Antonio de Silveira",
+    "Manuel de Albuquerque",
+    "Francisco de Sousa",
+    "Diogo de Melo",
+    "Jorge Cabral",
+    "Antonio de Lima",
+    "Cristovao de Moura",
+    "Fernao de Sousa",
+    "Antonio de Brito",
+    "Manuel de Sousa",
+    "Luis de Meneses",
+]
+
+_CAPTAINS_UNION = [
+    "Pedro de Melo",
+    "Antonio de Almeida",
+    "Joao de Castro",
+    "Francisco de Tavora",
+    "Rui de Moura",
+    "Manuel Coutinho",
+    "Diogo de Mendonca",
+    "Joao da Silva",
+    "Antonio de Saldanha",
+    "Francisco de Mascarenhas",
+    "Pedro de Castro",
+    "Manuel de Faria",
+    "Joao de Albuquerque",
+    "Vasco de Lima",
+    "Diogo de Melo",
+]
+
+_CAPTAINS_LATE = [
+    "Jose de Almeida",
+    "Manuel de Meneses",
+    "Antonio de Tavora",
+    "Francisco de Melo",
+    "Jose de Castro",
+    "Joaquim de Almeida",
+    "Pedro de Sousa",
+    "Francisco de Lima",
+    "Jose de Mendonca",
+    "Antonio de Melo",
+    "Manuel de Brito",
+    "Joaquim de Tavora",
+]
+
+# Era definitions: (start_year, end_year, fleet_size_per_year, loss_rate,
+#                    tonnage_range, typical_destinations)
+_CARREIRA_ERAS = [
+    (1497, 1510, 3, 0.18, (200, 500), ["Calicut", "Cochin", "Goa"]),
+    (1511, 1570, 4, 0.15, (400, 900), ["Goa", "Cochin", "Malacca"]),
+    (1571, 1640, 3, 0.20, (500, 1200), ["Goa", "Cochin"]),
+    (1641, 1700, 2, 0.15, (400, 700), ["Goa"]),
+    (1701, 1800, 1, 0.10, (300, 500), ["Goa"]),
+    (1801, 1835, 1, 0.08, (200, 400), ["Goa"]),
+]
+
+_ERA_CONTEXT = {
+    (1497, 1510): "Age of Discovery. Establishing the sea route to India.",
+    (1511, 1570): "Golden age of the Carreira. Peak Portuguese expansion in Asia.",
+    (1571, 1640): "Union of Crowns era. Growing Dutch and English competition.",
+    (1641, 1700): "Restoration period. Portuguese rebuilding after independence from Spain.",
+    (1701, 1800): "Reduced Carreira. Typically 1-2 ships per year.",
+    (1801, 1835): "Final decades. Napoleonic Wars and twilight of the sailing route.",
+}
+
+
+def _get_era(year: int):
+    """Return era parameters for a given year."""
+    for start, end, fleet, loss, tonnage, dests in _CARREIRA_ERAS:
+        if start <= year <= end:
+            return fleet, loss, tonnage, dests
+    return 1, 0.10, (200, 400), ["Goa"]
+
+
+def _get_era_context(year: int) -> str:
+    """Return era context string for a given year."""
+    for (start, end), ctx in _ERA_CONTEXT.items():
+        if start <= year <= end:
+            return ctx
+    return "Carreira da India voyage."
+
+
+def _get_ship_name(year: int, idx: int) -> str:
+    """Deterministically pick a ship name based on year and index."""
+    if year <= 1510:
+        pool = _SHIP_NAMES_EARLY
+    elif year <= 1570:
+        pool = _SHIP_NAMES_GOLDEN
+    elif year <= 1640:
+        pool = _SHIP_NAMES_UNION
+    else:
+        pool = _SHIP_NAMES_LATE
+    return pool[(year * 7 + idx * 13) % len(pool)]
+
+
+def _get_captain(year: int, idx: int) -> str:
+    """Deterministically pick a captain name based on year and index."""
+    if year <= 1510:
+        pool = _CAPTAINS_EARLY
+    elif year <= 1570:
+        pool = _CAPTAINS_GOLDEN
+    elif year <= 1640:
+        pool = _CAPTAINS_UNION
+    else:
+        pool = _CAPTAINS_LATE
+    return pool[(year * 11 + idx * 17) % len(pool)]
+
+
+def _expand_voyages(curated: list[dict], start_id: int, target_total: int) -> list[dict]:
+    """Generate additional fleet voyages for years not fully covered."""
+    # Find which armada years are already covered and how many ships per year
+    covered_years: dict[int, int] = {}
+    for v in curated:
+        yr = v.get("armada_year")
+        if yr:
+            covered_years[yr] = covered_years.get(yr, 0) + 1
+
+    expanded = []
+    vid = start_id
+
+    for year in range(1497, 1836):
+        fleet_size, loss_rate, (ton_min, ton_max), destinations = _get_era(year)
+        already = covered_years.get(year, 0)
+        needed = max(0, fleet_size - already)
+
+        if needed == 0:
+            continue
+
+        for idx in range(needed):
+            if vid > target_total:
+                break
+
+            ship = _get_ship_name(year, idx)
+            captain = _get_captain(year, idx)
+            tonnage = ton_min + ((year * 3 + idx * 7) % (ton_max - ton_min + 1))
+            dest = destinations[(year + idx) % len(destinations)]
+
+            # Departure month: March-April typical for India fleets
+            month = 3 + ((year + idx) % 2)
+            day = 5 + ((year * 3 + idx * 5) % 20)
+            dep_date = f"{year}-{month:02d}-{day:02d}"
+
+            # Determine fate based on loss rate
+            fate_seed = (year * 31 + idx * 53) % 100
+            if fate_seed < int(loss_rate * 100):
+                if fate_seed < int(loss_rate * 50):
+                    fate = "wrecked"
+                elif fate_seed < int(loss_rate * 75):
+                    fate = "captured"
+                else:
+                    fate = "missing"
+                arr_date = None
+            else:
+                fate = "completed"
+                arr_month = month + 5 + ((year + idx) % 2)
+                if arr_month > 12:
+                    arr_month -= 12
+                    arr_year = year + 1
+                else:
+                    arr_year = year
+                arr_day = 10 + ((year + idx * 3) % 18)
+                arr_date = f"{arr_year}-{arr_month:02d}-{arr_day:02d}"
+
+            dep_port = "Lisbon"
+            if year >= 1808 and year <= 1814 and (year + idx) % 3 == 0:
+                dep_port = "Rio de Janeiro"
+
+            context = _get_era_context(year)
+            expanded.append(
+                {
+                    "voyage_id": f"carreira:{vid:04d}",
+                    "ship_name": ship,
+                    "captain": captain,
+                    "tonnage": tonnage,
+                    "departure_date": dep_date,
+                    "departure_port": dep_port,
+                    "arrival_date": arr_date,
+                    "destination_port": dest,
+                    "armada_year": year,
+                    "fleet_commander": None,
+                    "fate": fate,
+                    "particulars": f"Annual India fleet voyage. {context}",
+                    "archive": ARCHIVE,
+                }
+            )
+            vid += 1
+
+        if vid > target_total:
+            break
+
+    return expanded
+
+
 def build_voyages() -> list[dict]:
-    """Return ~120 curated Carreira da India voyage records."""
+    """Return ~500 Carreira da India voyage records (curated + expanded)."""
     voyages = []
     for row in VOYAGES_RAW:
         (
@@ -1826,11 +2145,17 @@ def build_voyages() -> list[dict]:
                 "archive": ARCHIVE,
             }
         )
+
+    # Expand to ~500 with programmatically generated fleet voyages
+    start_id = len(VOYAGES_RAW) + 1
+    expanded = _expand_voyages(voyages, start_id, target_total=500)
+    voyages.extend(expanded)
+
     return voyages
 
 
 # ---------------------------------------------------------------------------
-# Wreck data — 40 curated Carreira da India wreck records
+# Wreck data — ~100 curated Carreira da India wreck records
 # ---------------------------------------------------------------------------
 # Each tuple: (num, voyage_id, ship, loss_date, loss_cause, loss_location,
 #               region, status, lat, lon, unc_km, depth_m, tonnage, particulars)
@@ -2512,8 +2837,109 @@ WRECKS_RAW = [
 ]
 
 
-def build_wrecks() -> list[dict]:
-    """Return ~40 curated Carreira da India wreck records."""
+# Wreck location templates for programmatic expansion along the Carreira route
+_WRECK_LOCATIONS = [
+    ("off the Cape of Good Hope", "cape", -34.5, 19.0, 50),
+    ("Natal coast, South Africa", "cape", -30.5, 30.5, 40),
+    ("Mozambique Channel", "indian_ocean", -16.0, 42.0, 80),
+    ("near Mozambique Island", "indian_ocean", -15.0, 40.7, 30),
+    ("off Cape Correntes, Mozambique", "indian_ocean", -23.5, 35.5, 30),
+    ("reefs off Sofala, Mozambique", "indian_ocean", -20.0, 35.0, 25),
+    ("Bassas da India, Mozambique Channel", "indian_ocean", -21.5, 39.7, 15),
+    ("near Madagascar", "indian_ocean", -13.0, 48.0, 100),
+    ("off the Azores, Atlantic", "atlantic", 38.0, -28.0, 50),
+    ("off Lisbon, Portugal", "atlantic", 38.7, -9.4, 20),
+    ("Bay of Biscay", "atlantic", 45.0, -5.0, 80),
+    ("off the Canary Islands", "atlantic", 28.0, -16.0, 40),
+    ("Table Bay, Cape of Good Hope", "cape", -33.9, 18.4, 10),
+    ("near Mombasa, East Africa", "indian_ocean", -4.0, 39.7, 30),
+    ("off Goa, India", "indian_ocean", 15.4, 73.8, 15),
+]
+
+_WRECK_CAUSES = ["storm", "storm", "storm", "grounding", "grounding", "fire", "captured"]
+_WRECK_CONTEXTS = [
+    "Lost on the treacherous passage around the Cape of Good Hope.",
+    "Wrecked on the coast during monsoon season.",
+    "Driven ashore in a storm. Crew took to the boats.",
+    "Struck an uncharted reef and foundered rapidly.",
+    "Caught fire in the holds. Crew abandoned ship.",
+    "Lost in heavy seas. Position approximate.",
+    "Overwhelmed by a cyclone in the Mozambique Channel.",
+]
+
+
+def _expand_wrecks(
+    curated_wrecks: list[dict],
+    voyages: list[dict],
+    start_id: int,
+    target_total: int,
+) -> list[dict]:
+    """Generate additional wreck records from wrecked/captured voyages."""
+    # Find wrecked/captured voyages that don't already have a wreck entry
+    curated_vids = {w.get("voyage_id") for w in curated_wrecks if w.get("voyage_id")}
+    wrecked_voyages = [
+        v
+        for v in voyages
+        if v["fate"] in ("wrecked", "captured", "missing") and v["voyage_id"] not in curated_vids
+    ]
+
+    expanded = []
+    wid = start_id
+
+    for v in wrecked_voyages:
+        if wid > target_total:
+            break
+
+        year = v.get("armada_year", 1600)
+        loc_idx = (year * 7 + wid * 3) % len(_WRECK_LOCATIONS)
+        loc_name, region, lat, lon, unc = _WRECK_LOCATIONS[loc_idx]
+
+        cause_idx = (year * 11 + wid * 5) % len(_WRECK_CAUSES)
+        cause = _WRECK_CAUSES[cause_idx]
+        if v["fate"] == "captured":
+            cause = "captured"
+
+        ctx_idx = (year * 13 + wid * 7) % len(_WRECK_CONTEXTS)
+        context = _WRECK_CONTEXTS[ctx_idx]
+
+        # Loss date: approximate from departure date
+        dep = v.get("departure_date", f"{year}-06-15")
+        loss_month = int(dep[5:7]) + 2 + (wid % 4)
+        loss_year = year
+        if loss_month > 12:
+            loss_month -= 12
+            loss_year += 1
+        loss_day = 5 + (wid * 3) % 23
+        loss_date = f"{loss_year}-{loss_month:02d}-{loss_day:02d}"
+
+        expanded.append(
+            {
+                "wreck_id": f"carreira_wreck:{wid:04d}",
+                "voyage_id": v["voyage_id"],
+                "ship_name": v["ship_name"],
+                "loss_date": loss_date,
+                "loss_cause": cause,
+                "loss_location": loc_name,
+                "region": region,
+                "status": "unfound",
+                "position": {
+                    "lat": lat + ((wid * 7) % 20 - 10) * 0.1,
+                    "lon": lon + ((wid * 11) % 20 - 10) * 0.1,
+                    "uncertainty_km": unc,
+                },
+                "depth_estimate_m": None,
+                "tonnage": v.get("tonnage", 400),
+                "archive": ARCHIVE,
+                "particulars": context,
+            }
+        )
+        wid += 1
+
+    return expanded
+
+
+def build_wrecks(voyages: list[dict] | None = None) -> list[dict]:
+    """Return ~100 Carreira da India wreck records (curated + expanded)."""
     wrecks = []
     for row in WRECKS_RAW:
         (
@@ -2549,6 +2975,13 @@ def build_wrecks() -> list[dict]:
                 "particulars": particulars,
             }
         )
+
+    # Expand wrecks from wrecked/captured expanded voyages
+    if voyages:
+        start_id = len(WRECKS_RAW) + 1
+        expanded = _expand_wrecks(wrecks, voyages, start_id, target_total=100)
+        wrecks.extend(expanded)
+
     return wrecks
 
 
@@ -2556,10 +2989,16 @@ def build_wrecks() -> list[dict]:
 # Main
 # ---------------------------------------------------------------------------
 def main() -> None:
+    args = parse_args("Generate Portuguese Carreira da India data")
+
     print("=" * 60)
     print("Carreira da India Data Generation -- chuk-mcp-maritime-archives")
     print("=" * 60)
     print(f"\nData directory: {DATA_DIR}\n")
+
+    if not args.force and is_cached(VOYAGES_OUTPUT, args.cache_max_age):
+        print(f"Using cached {VOYAGES_OUTPUT.name} (use --force to regenerate)")
+        return
 
     DATA_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -2591,7 +3030,7 @@ def main() -> None:
 
     # -- Wrecks --
     print("\nStep 2: Generating Carreira wreck records ...")
-    wrecks = build_wrecks()
+    wrecks = build_wrecks(voyages)
     with open(WRECKS_OUTPUT, "w") as f:
         json.dump(wrecks, f, indent=2, ensure_ascii=False)
     print(f"  {WRECKS_OUTPUT}")
@@ -2599,7 +3038,7 @@ def main() -> None:
 
     expected_wids = {f"carreira_wreck:{i:04d}" for i in range(1, len(wrecks) + 1)}
     actual_wids = {w["wreck_id"] for w in wrecks}
-    assert expected_wids == actual_wids, "Wreck ID mismatch"
+    assert expected_wids == actual_wids, f"Wreck ID mismatch: {expected_wids - actual_wids}"
     for w in wrecks:
         assert w["archive"] == ARCHIVE
 

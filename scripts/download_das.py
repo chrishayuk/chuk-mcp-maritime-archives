@@ -26,6 +26,8 @@ import sys
 import urllib.request
 from pathlib import Path
 
+from download_utils import is_cached, parse_args
+
 BASE_URL = "https://resources.huygens.knaw.nl/das"
 DETAILS_CSV = f"{BASE_URL}/voyages_with_details.csv"
 OPVARENDEN_CSV = f"{BASE_URL}/voyages_with_opvarenden.csv"
@@ -494,11 +496,18 @@ def save_json(data: list[dict], filename: str) -> Path:
 
 
 def main() -> None:
+    args = parse_args("Download DAS (Dutch Asiatic Shipping) data")
+
     print("=" * 60)
     print("DAS Data Download — chuk-mcp-maritime-archives")
     print("=" * 60)
     print(f"\nSource: {BASE_URL}")
     print(f"Output: {DATA_DIR}\n")
+
+    voyages_path = DATA_DIR / "voyages.json"
+    if not args.force and is_cached(voyages_path, args.cache_max_age):
+        print(f"Using cached {voyages_path.name} (use --force to re-download)")
+        return
 
     # Step 1: Download voyage details CSV
     print("Step 1: Downloading voyage details CSV...")

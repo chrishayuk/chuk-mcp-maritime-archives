@@ -19,6 +19,8 @@ from collections import defaultdict
 from datetime import date
 from pathlib import Path
 
+from download_utils import is_cached, parse_args
+
 # ---------------------------------------------------------------------------
 # Paths
 # ---------------------------------------------------------------------------
@@ -297,6 +299,12 @@ def compute_stats(values: list[float]) -> dict:
 
 
 def main() -> None:
+    args = parse_args("Generate speed profiles from CLIWOC data")
+
+    if not args.force and is_cached(OUTPUT_PATH, args.cache_max_age):
+        print(f"Using cached {OUTPUT_PATH.name} (use --force to regenerate)")
+        return
+
     print("Loading CLIWOC tracks …")
     with open(TRACKS_PATH) as f:
         cliwoc = json.load(f)

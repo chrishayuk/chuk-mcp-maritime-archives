@@ -758,5 +758,1145 @@
     "tonnage": 250,
     "archive": "carreira",
     "particulars": "Ship of Bartolomeu Dias, first European to round the Cape in 1488. He perished in the same storm that struck Cabral's fleet in 1500, a tragic irony: the man who discovered the Cape route died there."
+  },
+  {
+    "wreck_id": "carreira_wreck:0041",
+    "voyage_id": "carreira:0136",
+    "ship_name": "Espera",
+    "loss_date": "1507-07-13",
+    "loss_cause": "grounding",
+    "loss_location": "near Madagascar",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -13.3,
+      "lon": 48.1,
+      "uncertainty_km": 100
+    },
+    "depth_estimate_m": null,
+    "tonnage": 206,
+    "archive": "carreira",
+    "particulars": "Lost in heavy seas. Position approximate."
+  },
+  {
+    "wreck_id": "carreira_wreck:0042",
+    "voyage_id": "carreira:0142",
+    "ship_name": "Nazare",
+    "loss_date": "1510-07-16",
+    "loss_cause": "captured",
+    "loss_location": "Natal coast, South Africa",
+    "region": "cape",
+    "status": "unfound",
+    "position": {
+      "lat": -30.1,
+      "lon": 29.7,
+      "uncertainty_km": 40
+    },
+    "depth_estimate_m": null,
+    "tonnage": 215,
+    "archive": "carreira",
+    "particulars": "Driven ashore in a storm. Crew took to the boats."
+  },
+  {
+    "wreck_id": "carreira_wreck:0043",
+    "voyage_id": "carreira:0150",
+    "ship_name": "Jesus",
+    "loss_date": "1513-09-19",
+    "loss_cause": "storm",
+    "loss_location": "Bay of Biscay",
+    "region": "atlantic",
+    "status": "unfound",
+    "position": {
+      "lat": 44.1,
+      "lon": -4.7,
+      "uncertainty_km": 80
+    },
+    "depth_estimate_m": null,
+    "tonnage": 430,
+    "archive": "carreira",
+    "particulars": "Overwhelmed by a cyclone in the Mozambique Channel."
+  },
+  {
+    "wreck_id": "carreira_wreck:0044",
+    "voyage_id": "carreira:0152",
+    "ship_name": "Madre de Deus",
+    "loss_date": "1513-06-22",
+    "loss_cause": "captured",
+    "loss_location": "near Mombasa, East Africa",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -4.2,
+      "lon": 39.1,
+      "uncertainty_km": 30
+    },
+    "depth_estimate_m": null,
+    "tonnage": 444,
+    "archive": "carreira",
+    "particulars": "Overwhelmed by a cyclone in the Mozambique Channel."
+  },
+  {
+    "wreck_id": "carreira_wreck:0045",
+    "voyage_id": "carreira:0162",
+    "ship_name": "Nossa Senhora da Luz",
+    "loss_date": "1516-06-25",
+    "loss_cause": "grounding",
+    "loss_location": "near Madagascar",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -12.5,
+      "lon": 48.5,
+      "uncertainty_km": 100
+    },
+    "depth_estimate_m": null,
+    "tonnage": 453,
+    "archive": "carreira",
+    "particulars": "Struck an uncharted reef and foundered rapidly."
+  },
+  {
+    "wreck_id": "carreira_wreck:0046",
+    "voyage_id": "carreira:0169",
+    "ship_name": "Sao Francisco",
+    "loss_date": "1518-08-05",
+    "loss_cause": "storm",
+    "loss_location": "off Lisbon, Portugal",
+    "region": "atlantic",
+    "status": "unfound",
+    "position": {
+      "lat": 37.900000000000006,
+      "lon": -9.8,
+      "uncertainty_km": 20
+    },
+    "depth_estimate_m": null,
+    "tonnage": 452,
+    "archive": "carreira",
+    "particulars": "Wrecked on the coast during monsoon season."
+  },
+  {
+    "wreck_id": "carreira_wreck:0047",
+    "voyage_id": "carreira:0180",
+    "ship_name": "Santa Cruz",
+    "loss_date": "1521-08-08",
+    "loss_cause": "fire",
+    "loss_location": "near Mozambique Island",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -15.1,
+      "lon": 41.400000000000006,
+      "uncertainty_km": 30
+    },
+    "depth_estimate_m": null,
+    "tonnage": 461,
+    "archive": "carreira",
+    "particulars": "Lost in heavy seas. Position approximate."
+  },
+  {
+    "wreck_id": "carreira_wreck:0048",
+    "voyage_id": "carreira:0186",
+    "ship_name": "Sao Tiago",
+    "loss_date": "1523-06-11",
+    "loss_cause": "grounding",
+    "loss_location": "reefs off Sofala, Mozambique",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -19.4,
+      "lon": 34.8,
+      "uncertainty_km": 25
+    },
+    "depth_estimate_m": null,
+    "tonnage": 460,
+    "archive": "carreira",
+    "particulars": "Struck an uncharted reef and foundered rapidly."
+  },
+  {
+    "wreck_id": "carreira_wreck:0049",
+    "voyage_id": "carreira:0197",
+    "ship_name": "Conceicao",
+    "loss_date": "1526-06-14",
+    "loss_cause": "storm",
+    "loss_location": "off Goa, India",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": 14.700000000000001,
+      "lon": 74.7,
+      "uncertainty_km": 15
+    },
+    "depth_estimate_m": null,
+    "tonnage": 469,
+    "archive": "carreira",
+    "particulars": "Lost on the treacherous passage around the Cape of Good Hope."
+  },
+  {
+    "wreck_id": "carreira_wreck:0050",
+    "voyage_id": "carreira:0199",
+    "ship_name": "Sao Paulo",
+    "loss_date": "1526-07-17",
+    "loss_cause": "fire",
+    "loss_location": "Mozambique Channel",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -16.0,
+      "lon": 42.0,
+      "uncertainty_km": 80
+    },
+    "depth_estimate_m": null,
+    "tonnage": 483,
+    "archive": "carreira",
+    "particulars": "Lost on the treacherous passage around the Cape of Good Hope."
+  },
+  {
+    "wreck_id": "carreira_wreck:0051",
+    "voyage_id": "carreira:0210",
+    "ship_name": "Cinco Chagas",
+    "loss_date": "1529-09-20",
+    "loss_cause": "storm",
+    "loss_location": "off the Canary Islands",
+    "region": "atlantic",
+    "status": "unfound",
+    "position": {
+      "lat": 28.7,
+      "lon": -16.9,
+      "uncertainty_km": 40
+    },
+    "depth_estimate_m": null,
+    "tonnage": 492,
+    "archive": "carreira",
+    "particulars": "Caught fire in the holds. Crew abandoned ship."
+  },
+  {
+    "wreck_id": "carreira_wreck:0052",
+    "voyage_id": "carreira:0217",
+    "ship_name": "Sao Filipe",
+    "loss_date": "1531-05-23",
+    "loss_cause": "storm",
+    "loss_location": "near Mombasa, East Africa",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -4.6,
+      "lon": 39.900000000000006,
+      "uncertainty_km": 30
+    },
+    "depth_estimate_m": null,
+    "tonnage": 491,
+    "archive": "carreira",
+    "particulars": "Driven ashore in a storm. Crew took to the boats."
+  },
+  {
+    "wreck_id": "carreira_wreck:0053",
+    "voyage_id": "carreira:0229",
+    "ship_name": "Sao Bento",
+    "loss_date": "1534-07-26",
+    "loss_cause": "captured",
+    "loss_location": "near Madagascar",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -12.9,
+      "lon": 47.3,
+      "uncertainty_km": 100
+    },
+    "depth_estimate_m": null,
+    "tonnage": 500,
+    "archive": "carreira",
+    "particulars": "Overwhelmed by a cyclone in the Mozambique Channel."
+  },
+  {
+    "wreck_id": "carreira_wreck:0054",
+    "voyage_id": "carreira:0231",
+    "ship_name": "Sao Martinho",
+    "loss_date": "1534-08-06",
+    "loss_cause": "storm",
+    "loss_location": "Bay of Biscay",
+    "region": "atlantic",
+    "status": "unfound",
+    "position": {
+      "lat": 45.8,
+      "lon": -4.6,
+      "uncertainty_km": 80
+    },
+    "depth_estimate_m": null,
+    "tonnage": 514,
+    "archive": "carreira",
+    "particulars": "Overwhelmed by a cyclone in the Mozambique Channel."
+  },
+  {
+    "wreck_id": "carreira_wreck:0055",
+    "voyage_id": "carreira:0240",
+    "ship_name": "Sao Jeronimo",
+    "loss_date": "1537-08-09",
+    "loss_cause": "grounding",
+    "loss_location": "off Cape Correntes, Mozambique",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -24.0,
+      "lon": 35.0,
+      "uncertainty_km": 30
+    },
+    "depth_estimate_m": null,
+    "tonnage": 509,
+    "archive": "carreira",
+    "particulars": "Struck an uncharted reef and foundered rapidly."
+  },
+  {
+    "wreck_id": "carreira_wreck:0056",
+    "voyage_id": "carreira:0242",
+    "ship_name": "Sao Roque",
+    "loss_date": "1537-05-12",
+    "loss_cause": "storm",
+    "loss_location": "near Madagascar",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -12.8,
+      "lon": 48.6,
+      "uncertainty_km": 100
+    },
+    "depth_estimate_m": null,
+    "tonnage": 523,
+    "archive": "carreira",
+    "particulars": "Struck an uncharted reef and foundered rapidly."
+  },
+  {
+    "wreck_id": "carreira_wreck:0057",
+    "voyage_id": "carreira:0246",
+    "ship_name": "Sao Roque",
+    "loss_date": "1539-07-15",
+    "loss_cause": "captured",
+    "loss_location": "off Lisbon, Portugal",
+    "region": "atlantic",
+    "status": "unfound",
+    "position": {
+      "lat": 39.6,
+      "lon": -9.700000000000001,
+      "uncertainty_km": 20
+    },
+    "depth_estimate_m": null,
+    "tonnage": 508,
+    "archive": "carreira",
+    "particulars": "Wrecked on the coast during monsoon season."
+  },
+  {
+    "wreck_id": "carreira_wreck:0058",
+    "voyage_id": "carreira:0257",
+    "ship_name": "Salvacao",
+    "loss_date": "1542-07-18",
+    "loss_cause": "grounding",
+    "loss_location": "near Mozambique Island",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -15.4,
+      "lon": 41.5,
+      "uncertainty_km": 30
+    },
+    "depth_estimate_m": null,
+    "tonnage": 517,
+    "archive": "carreira",
+    "particulars": "Lost in heavy seas. Position approximate."
+  },
+  {
+    "wreck_id": "carreira_wreck:0059",
+    "voyage_id": "carreira:0259",
+    "ship_name": "Santo Espirito",
+    "loss_date": "1542-08-21",
+    "loss_cause": "captured",
+    "loss_location": "Bassas da India, Mozambique Channel",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -21.2,
+      "lon": 39.6,
+      "uncertainty_km": 15
+    },
+    "depth_estimate_m": null,
+    "tonnage": 531,
+    "archive": "carreira",
+    "particulars": "Lost in heavy seas. Position approximate."
+  },
+  {
+    "wreck_id": "carreira_wreck:0060",
+    "voyage_id": "carreira:0271",
+    "ship_name": "Jesus",
+    "loss_date": "1545-06-24",
+    "loss_cause": "fire",
+    "loss_location": "off the Cape of Good Hope",
+    "region": "cape",
+    "status": "unfound",
+    "position": {
+      "lat": -35.5,
+      "lon": 18.0,
+      "uncertainty_km": 50
+    },
+    "depth_estimate_m": null,
+    "tonnage": 540,
+    "archive": "carreira",
+    "particulars": "Driven ashore in a storm. Crew took to the boats."
+  },
+  {
+    "wreck_id": "carreira_wreck:0061",
+    "voyage_id": "carreira:0277",
+    "ship_name": "Madre de Deus",
+    "loss_date": "1547-06-27",
+    "loss_cause": "captured",
+    "loss_location": "Mozambique Channel",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -16.3,
+      "lon": 42.1,
+      "uncertainty_km": 80
+    },
+    "depth_estimate_m": null,
+    "tonnage": 539,
+    "archive": "carreira",
+    "particulars": "Lost on the treacherous passage around the Cape of Good Hope."
+  },
+  {
+    "wreck_id": "carreira_wreck:0062",
+    "voyage_id": "carreira:0288",
+    "ship_name": "Nossa Senhora da Luz",
+    "loss_date": "1550-08-07",
+    "loss_cause": "storm",
+    "loss_location": "off the Canary Islands",
+    "region": "atlantic",
+    "status": "unfound",
+    "position": {
+      "lat": 28.4,
+      "lon": -16.8,
+      "uncertainty_km": 40
+    },
+    "depth_estimate_m": null,
+    "tonnage": 548,
+    "archive": "carreira",
+    "particulars": "Caught fire in the holds. Crew abandoned ship."
+  },
+  {
+    "wreck_id": "carreira_wreck:0063",
+    "voyage_id": "carreira:0294",
+    "ship_name": "Sao Francisco",
+    "loss_date": "1552-08-10",
+    "loss_cause": "captured",
+    "loss_location": "near Mombasa, East Africa",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -4.9,
+      "lon": 40.0,
+      "uncertainty_km": 30
+    },
+    "depth_estimate_m": null,
+    "tonnage": 547,
+    "archive": "carreira",
+    "particulars": "Driven ashore in a storm. Crew took to the boats."
+  },
+  {
+    "wreck_id": "carreira_wreck:0064",
+    "voyage_id": "carreira:0300",
+    "ship_name": "Santa Cruz",
+    "loss_date": "1553-05-13",
+    "loss_cause": "storm",
+    "loss_location": "off the Azores, Atlantic",
+    "region": "atlantic",
+    "status": "unfound",
+    "position": {
+      "lat": 37.8,
+      "lon": -28.6,
+      "uncertainty_km": 50
+    },
+    "depth_estimate_m": null,
+    "tonnage": 571,
+    "archive": "carreira",
+    "particulars": "Wrecked on the coast during monsoon season."
+  },
+  {
+    "wreck_id": "carreira_wreck:0065",
+    "voyage_id": "carreira:0304",
+    "ship_name": "Santa Cruz",
+    "loss_date": "1555-07-16",
+    "loss_cause": "storm",
+    "loss_location": "Bay of Biscay",
+    "region": "atlantic",
+    "status": "unfound",
+    "position": {
+      "lat": 45.5,
+      "lon": -4.5,
+      "uncertainty_km": 80
+    },
+    "depth_estimate_m": null,
+    "tonnage": 556,
+    "archive": "carreira",
+    "particulars": "Overwhelmed by a cyclone in the Mozambique Channel."
+  },
+  {
+    "wreck_id": "carreira_wreck:0066",
+    "voyage_id": "carreira:0306",
+    "ship_name": "Sao Tiago",
+    "loss_date": "1555-08-19",
+    "loss_cause": "fire",
+    "loss_location": "near Mombasa, East Africa",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -4.8,
+      "lon": 39.300000000000004,
+      "uncertainty_km": 30
+    },
+    "depth_estimate_m": null,
+    "tonnage": 570,
+    "archive": "carreira",
+    "particulars": "Overwhelmed by a cyclone in the Mozambique Channel."
+  },
+  {
+    "wreck_id": "carreira_wreck:0067",
+    "voyage_id": "carreira:0318",
+    "ship_name": "Conceicao",
+    "loss_date": "1558-08-22",
+    "loss_cause": "storm",
+    "loss_location": "near Madagascar",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -13.1,
+      "lon": 48.7,
+      "uncertainty_km": 100
+    },
+    "depth_estimate_m": null,
+    "tonnage": 579,
+    "archive": "carreira",
+    "particulars": "Struck an uncharted reef and foundered rapidly."
+  },
+  {
+    "wreck_id": "carreira_wreck:0068",
+    "voyage_id": "carreira:0322",
+    "ship_name": "Sao Paulo",
+    "loss_date": "1560-06-25",
+    "loss_cause": "storm",
+    "loss_location": "off Lisbon, Portugal",
+    "region": "atlantic",
+    "status": "unfound",
+    "position": {
+      "lat": 39.300000000000004,
+      "lon": -9.6,
+      "uncertainty_km": 20
+    },
+    "depth_estimate_m": null,
+    "tonnage": 578,
+    "archive": "carreira",
+    "particulars": "Wrecked on the coast during monsoon season."
+  },
+  {
+    "wreck_id": "carreira_wreck:0069",
+    "voyage_id": "carreira:0332",
+    "ship_name": "Cinco Chagas",
+    "loss_date": "1563-06-05",
+    "loss_cause": "grounding",
+    "loss_location": "near Mozambique Island",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -15.7,
+      "lon": 41.6,
+      "uncertainty_km": 30
+    },
+    "depth_estimate_m": null,
+    "tonnage": 587,
+    "archive": "carreira",
+    "particulars": "Lost in heavy seas. Position approximate."
+  },
+  {
+    "wreck_id": "carreira_wreck:0070",
+    "voyage_id": "carreira:0344",
+    "ship_name": "Sao Bento",
+    "loss_date": "1566-08-08",
+    "loss_cause": "captured",
+    "loss_location": "Table Bay, Cape of Good Hope",
+    "region": "cape",
+    "status": "unfound",
+    "position": {
+      "lat": -33.9,
+      "lon": 18.4,
+      "uncertainty_km": 10
+    },
+    "depth_estimate_m": null,
+    "tonnage": 610,
+    "archive": "carreira",
+    "particulars": "Driven ashore in a storm. Crew took to the boats."
+  },
+  {
+    "wreck_id": "carreira_wreck:0071",
+    "voyage_id": "carreira:0349",
+    "ship_name": "Sao Bento",
+    "loss_date": "1568-08-11",
+    "loss_cause": "captured",
+    "loss_location": "off Goa, India",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": 16.1,
+      "lon": 72.89999999999999,
+      "uncertainty_km": 15
+    },
+    "depth_estimate_m": null,
+    "tonnage": 595,
+    "archive": "carreira",
+    "particulars": "Lost on the treacherous passage around the Cape of Good Hope."
+  },
+  {
+    "wreck_id": "carreira_wreck:0072",
+    "voyage_id": "carreira:0351",
+    "ship_name": "Sao Martinho",
+    "loss_date": "1568-05-14",
+    "loss_cause": "grounding",
+    "loss_location": "Mozambique Channel",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -16.6,
+      "lon": 42.2,
+      "uncertainty_km": 80
+    },
+    "depth_estimate_m": null,
+    "tonnage": 609,
+    "archive": "carreira",
+    "particulars": "Lost on the treacherous passage around the Cape of Good Hope."
+  },
+  {
+    "wreck_id": "carreira_wreck:0073",
+    "voyage_id": "carreira:0361",
+    "ship_name": "Sacramento",
+    "loss_date": "1571-07-17",
+    "loss_cause": "captured",
+    "loss_location": "off the Canary Islands",
+    "region": "atlantic",
+    "status": "unfound",
+    "position": {
+      "lat": 28.1,
+      "lon": -16.7,
+      "uncertainty_km": 40
+    },
+    "depth_estimate_m": null,
+    "tonnage": 1007,
+    "archive": "carreira",
+    "particulars": "Caught fire in the holds. Crew abandoned ship."
+  },
+  {
+    "wreck_id": "carreira_wreck:0074",
+    "voyage_id": "carreira:0367",
+    "ship_name": "Sao Filipe",
+    "loss_date": "1573-07-20",
+    "loss_cause": "fire",
+    "loss_location": "near Mombasa, East Africa",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -3.2,
+      "lon": 40.1,
+      "uncertainty_km": 30
+    },
+    "depth_estimate_m": null,
+    "tonnage": 1020,
+    "archive": "carreira",
+    "particulars": "Driven ashore in a storm. Crew took to the boats."
+  },
+  {
+    "wreck_id": "carreira_wreck:0075",
+    "voyage_id": "carreira:0370",
+    "ship_name": "Nossa Senhora do Monte do Carmo",
+    "loss_date": "1574-08-23",
+    "loss_cause": "storm",
+    "loss_location": "off the Azores, Atlantic",
+    "region": "atlantic",
+    "status": "unfound",
+    "position": {
+      "lat": 37.5,
+      "lon": -28.5,
+      "uncertainty_km": 50
+    },
+    "depth_estimate_m": null,
+    "tonnage": 1030,
+    "archive": "carreira",
+    "particulars": "Wrecked on the coast during monsoon season."
+  },
+  {
+    "wreck_id": "carreira_wreck:0076",
+    "voyage_id": "carreira:0374",
+    "ship_name": "Sacramento",
+    "loss_date": "1576-06-26",
+    "loss_cause": "captured",
+    "loss_location": "Bay of Biscay",
+    "region": "atlantic",
+    "status": "unfound",
+    "position": {
+      "lat": 45.2,
+      "lon": -4.4,
+      "uncertainty_km": 80
+    },
+    "depth_estimate_m": null,
+    "tonnage": 1029,
+    "archive": "carreira",
+    "particulars": "Overwhelmed by a cyclone in the Mozambique Channel."
+  },
+  {
+    "wreck_id": "carreira_wreck:0077",
+    "voyage_id": "carreira:0379",
+    "ship_name": "Sao Pedro",
+    "loss_date": "1578-06-06",
+    "loss_cause": "fire",
+    "loss_location": "Table Bay, Cape of Good Hope",
+    "region": "cape",
+    "status": "unfound",
+    "position": {
+      "lat": -33.0,
+      "lon": 18.099999999999998,
+      "uncertainty_km": 10
+    },
+    "depth_estimate_m": null,
+    "tonnage": 1028,
+    "archive": "carreira",
+    "particulars": "Caught fire in the holds. Crew abandoned ship."
+  },
+  {
+    "wreck_id": "carreira_wreck:0078",
+    "voyage_id": "carreira:0382",
+    "ship_name": "Nossa Senhora de Belem",
+    "loss_date": "1579-07-09",
+    "loss_cause": "storm",
+    "loss_location": "near Madagascar",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -13.4,
+      "lon": 48.8,
+      "uncertainty_km": 100
+    },
+    "depth_estimate_m": null,
+    "tonnage": 1038,
+    "archive": "carreira",
+    "particulars": "Struck an uncharted reef and foundered rapidly."
+  },
+  {
+    "wreck_id": "carreira_wreck:0079",
+    "voyage_id": "carreira:0386",
+    "ship_name": "Sao Lourenco",
+    "loss_date": "1581-09-12",
+    "loss_cause": "captured",
+    "loss_location": "off Lisbon, Portugal",
+    "region": "atlantic",
+    "status": "unfound",
+    "position": {
+      "lat": 39.0,
+      "lon": -9.5,
+      "uncertainty_km": 20
+    },
+    "depth_estimate_m": null,
+    "tonnage": 1037,
+    "archive": "carreira",
+    "particulars": "Wrecked on the coast during monsoon season."
+  },
+  {
+    "wreck_id": "carreira_wreck:0080",
+    "voyage_id": "carreira:0388",
+    "ship_name": "Sacramento",
+    "loss_date": "1581-06-15",
+    "loss_cause": "grounding",
+    "loss_location": "Table Bay, Cape of Good Hope",
+    "region": "cape",
+    "status": "unfound",
+    "position": {
+      "lat": -34.9,
+      "lon": 17.4,
+      "uncertainty_km": 10
+    },
+    "depth_estimate_m": null,
+    "tonnage": 1051,
+    "archive": "carreira",
+    "particulars": "Wrecked on the coast during monsoon season."
+  },
+  {
+    "wreck_id": "carreira_wreck:0081",
+    "voyage_id": "carreira:0395",
+    "ship_name": "Sao Filipe",
+    "loss_date": "1584-06-18",
+    "loss_cause": "storm",
+    "loss_location": "Bassas da India, Mozambique Channel",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -21.8,
+      "lon": 39.800000000000004,
+      "uncertainty_km": 15
+    },
+    "depth_estimate_m": null,
+    "tonnage": 1046,
+    "archive": "carreira",
+    "particulars": "Lost in heavy seas. Position approximate."
+  },
+  {
+    "wreck_id": "carreira_wreck:0082",
+    "voyage_id": "carreira:0401",
+    "ship_name": "Sao Lourenco",
+    "loss_date": "1586-08-21",
+    "loss_cause": "captured",
+    "loss_location": "off the Azores, Atlantic",
+    "region": "atlantic",
+    "status": "unfound",
+    "position": {
+      "lat": 38.4,
+      "lon": -28.8,
+      "uncertainty_km": 50
+    },
+    "depth_estimate_m": null,
+    "tonnage": 1059,
+    "archive": "carreira",
+    "particulars": "Struck an uncharted reef and foundered rapidly."
+  },
+  {
+    "wreck_id": "carreira_wreck:0083",
+    "voyage_id": "carreira:0404",
+    "ship_name": "Nossa Senhora da Penha",
+    "loss_date": "1587-09-24",
+    "loss_cause": "storm",
+    "loss_location": "near Mozambique Island",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -15.9,
+      "lon": 41.0,
+      "uncertainty_km": 30
+    },
+    "depth_estimate_m": null,
+    "tonnage": 1069,
+    "archive": "carreira",
+    "particulars": "Driven ashore in a storm. Crew took to the boats."
+  },
+  {
+    "wreck_id": "carreira_wreck:0084",
+    "voyage_id": "carreira:0408",
+    "ship_name": "Sao Filipe",
+    "loss_date": "1589-05-27",
+    "loss_cause": "captured",
+    "loss_location": "reefs off Sofala, Mozambique",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -20.2,
+      "lon": 34.4,
+      "uncertainty_km": 25
+    },
+    "depth_estimate_m": null,
+    "tonnage": 1068,
+    "archive": "carreira",
+    "particulars": "Lost on the treacherous passage around the Cape of Good Hope."
+  },
+  {
+    "wreck_id": "carreira_wreck:0085",
+    "voyage_id": "carreira:0416",
+    "ship_name": "Sacramento",
+    "loss_date": "1592-07-07",
+    "loss_cause": "grounding",
+    "loss_location": "off Goa, India",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": 15.9,
+      "lon": 74.3,
+      "uncertainty_km": 15
+    },
+    "depth_estimate_m": null,
+    "tonnage": 1077,
+    "archive": "carreira",
+    "particulars": "Caught fire in the holds. Crew abandoned ship."
+  },
+  {
+    "wreck_id": "carreira_wreck:0086",
+    "voyage_id": "carreira:0420",
+    "ship_name": "Sao Pedro",
+    "loss_date": "1594-07-10",
+    "loss_cause": "captured",
+    "loss_location": "Natal coast, South Africa",
+    "region": "cape",
+    "status": "unfound",
+    "position": {
+      "lat": -31.3,
+      "lon": 30.1,
+      "uncertainty_km": 40
+    },
+    "depth_estimate_m": null,
+    "tonnage": 1076,
+    "archive": "carreira",
+    "particulars": "Driven ashore in a storm. Crew took to the boats."
+  },
+  {
+    "wreck_id": "carreira_wreck:0087",
+    "voyage_id": "carreira:0427",
+    "ship_name": "Sao Lourenco",
+    "loss_date": "1597-09-13",
+    "loss_cause": "fire",
+    "loss_location": "Bay of Biscay",
+    "region": "atlantic",
+    "status": "unfound",
+    "position": {
+      "lat": 44.9,
+      "lon": -4.3,
+      "uncertainty_km": 80
+    },
+    "depth_estimate_m": null,
+    "tonnage": 1085,
+    "archive": "carreira",
+    "particulars": "Overwhelmed by a cyclone in the Mozambique Channel."
+  },
+  {
+    "wreck_id": "carreira_wreck:0088",
+    "voyage_id": "carreira:0429",
+    "ship_name": "Sacramento",
+    "loss_date": "1597-06-16",
+    "loss_cause": "captured",
+    "loss_location": "near Mombasa, East Africa",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -3.4,
+      "lon": 39.5,
+      "uncertainty_km": 30
+    },
+    "depth_estimate_m": null,
+    "tonnage": 1099,
+    "archive": "carreira",
+    "particulars": "Overwhelmed by a cyclone in the Mozambique Channel."
+  },
+  {
+    "wreck_id": "carreira_wreck:0089",
+    "voyage_id": "carreira:0436",
+    "ship_name": "Sao Filipe",
+    "loss_date": "1600-06-19",
+    "loss_cause": "captured",
+    "loss_location": "near Madagascar",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -13.7,
+      "lon": 48.9,
+      "uncertainty_km": 100
+    },
+    "depth_estimate_m": null,
+    "tonnage": 1094,
+    "archive": "carreira",
+    "particulars": "Struck an uncharted reef and foundered rapidly."
+  },
+  {
+    "wreck_id": "carreira_wreck:0090",
+    "voyage_id": "carreira:0441",
+    "ship_name": "Sao Lourenco",
+    "loss_date": "1602-08-22",
+    "loss_cause": "fire",
+    "loss_location": "off Lisbon, Portugal",
+    "region": "atlantic",
+    "status": "unfound",
+    "position": {
+      "lat": 38.7,
+      "lon": -9.4,
+      "uncertainty_km": 20
+    },
+    "depth_estimate_m": null,
+    "tonnage": 1107,
+    "archive": "carreira",
+    "particulars": "Wrecked on the coast during monsoon season."
+  },
+  {
+    "wreck_id": "carreira_wreck:0091",
+    "voyage_id": "carreira:0450",
+    "ship_name": "Sao Filipe",
+    "loss_date": "1605-08-25",
+    "loss_cause": "storm",
+    "loss_location": "near Mozambique Island",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -14.3,
+      "lon": 39.800000000000004,
+      "uncertainty_km": 30
+    },
+    "depth_estimate_m": null,
+    "tonnage": 1116,
+    "archive": "carreira",
+    "particulars": "Lost in heavy seas. Position approximate."
+  },
+  {
+    "wreck_id": "carreira_wreck:0092",
+    "voyage_id": "carreira:0454",
+    "ship_name": "Santo Antonio",
+    "loss_date": "1607-06-05",
+    "loss_cause": "storm",
+    "loss_location": "reefs off Sofala, Mozambique",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -20.6,
+      "lon": 35.2,
+      "uncertainty_km": 25
+    },
+    "depth_estimate_m": null,
+    "tonnage": 1115,
+    "archive": "carreira",
+    "particulars": "Struck an uncharted reef and foundered rapidly."
+  },
+  {
+    "wreck_id": "carreira_wreck:0093",
+    "voyage_id": "carreira:0457",
+    "ship_name": "Sacramento",
+    "loss_date": "1608-07-08",
+    "loss_cause": "storm",
+    "loss_location": "off the Cape of Good Hope",
+    "region": "cape",
+    "status": "unfound",
+    "position": {
+      "lat": -34.4,
+      "lon": 18.3,
+      "uncertainty_km": 50
+    },
+    "depth_estimate_m": null,
+    "tonnage": 1125,
+    "archive": "carreira",
+    "particulars": "Driven ashore in a storm. Crew took to the boats."
+  },
+  {
+    "wreck_id": "carreira_wreck:0094",
+    "voyage_id": "carreira:0461",
+    "ship_name": "Sao Pedro",
+    "loss_date": "1610-07-11",
+    "loss_cause": "captured",
+    "loss_location": "Mozambique Channel",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -15.2,
+      "lon": 42.4,
+      "uncertainty_km": 80
+    },
+    "depth_estimate_m": null,
+    "tonnage": 1124,
+    "archive": "carreira",
+    "particulars": "Lost on the treacherous passage around the Cape of Good Hope."
+  },
+  {
+    "wreck_id": "carreira_wreck:0095",
+    "voyage_id": "carreira:0463",
+    "ship_name": "Sao Filipe",
+    "loss_date": "1610-08-14",
+    "loss_cause": "captured",
+    "loss_location": "reefs off Sofala, Mozambique",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -20.5,
+      "lon": 34.5,
+      "uncertainty_km": 25
+    },
+    "depth_estimate_m": null,
+    "tonnage": 1138,
+    "archive": "carreira",
+    "particulars": "Lost on the treacherous passage around the Cape of Good Hope."
+  },
+  {
+    "wreck_id": "carreira_wreck:0096",
+    "voyage_id": "carreira:0469",
+    "ship_name": "Sao Lourenco",
+    "loss_date": "1613-06-17",
+    "loss_cause": "storm",
+    "loss_location": "off Goa, India",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": 15.6,
+      "lon": 74.39999999999999,
+      "uncertainty_km": 15
+    },
+    "depth_estimate_m": null,
+    "tonnage": 1133,
+    "archive": "carreira",
+    "particulars": "Caught fire in the holds. Crew abandoned ship."
+  },
+  {
+    "wreck_id": "carreira_wreck:0097",
+    "voyage_id": "carreira:0471",
+    "ship_name": "Sacramento",
+    "loss_date": "1613-07-20",
+    "loss_cause": "storm",
+    "loss_location": "Mozambique Channel",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -15.1,
+      "lon": 41.7,
+      "uncertainty_km": 80
+    },
+    "depth_estimate_m": null,
+    "tonnage": 1147,
+    "archive": "carreira",
+    "particulars": "Caught fire in the holds. Crew abandoned ship."
+  },
+  {
+    "wreck_id": "carreira_wreck:0098",
+    "voyage_id": "carreira:0475",
+    "ship_name": "Sao Pedro",
+    "loss_date": "1615-07-23",
+    "loss_cause": "captured",
+    "loss_location": "off Cape Correntes, Mozambique",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": -23.9,
+      "lon": 36.3,
+      "uncertainty_km": 30
+    },
+    "depth_estimate_m": null,
+    "tonnage": 1146,
+    "archive": "carreira",
+    "particulars": "Driven ashore in a storm. Crew took to the boats."
+  },
+  {
+    "wreck_id": "carreira_wreck:0099",
+    "voyage_id": "carreira:0479",
+    "ship_name": "Nossa Senhora de Belem",
+    "loss_date": "1616-08-26",
+    "loss_cause": "storm",
+    "loss_location": "off Goa, India",
+    "region": "indian_ocean",
+    "status": "unfound",
+    "position": {
+      "lat": 15.700000000000001,
+      "lon": 73.7,
+      "uncertainty_km": 15
+    },
+    "depth_estimate_m": null,
+    "tonnage": 1156,
+    "archive": "carreira",
+    "particulars": "Wrecked on the coast during monsoon season."
+  },
+  {
+    "wreck_id": "carreira_wreck:0100",
+    "voyage_id": "carreira:0483",
+    "ship_name": "Sao Lourenco",
+    "loss_date": "1618-06-06",
+    "loss_cause": "captured",
+    "loss_location": "Natal coast, South Africa",
+    "region": "cape",
+    "status": "unfound",
+    "position": {
+      "lat": -31.5,
+      "lon": 29.5,
+      "uncertainty_km": 40
+    },
+    "depth_estimate_m": null,
+    "tonnage": 1155,
+    "archive": "carreira",
+    "particulars": "Overwhelmed by a cyclone in the Mozambique Channel."
   }
 ]

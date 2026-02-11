@@ -3,8 +3,11 @@
 Crew Muster Demo -- chuk-mcp-maritime-archives
 
 Search for VOC crew members in historical muster roll records.
-The VOC Opvarenden database contains 774,200 personnel records
+The VOC Opvarenden database contains up to 774,200 personnel records
 from 1633-1794, including name, rank, origin, pay, and fate.
+
+Requires running ``scripts/download_crew.py`` first to download
+the crew dataset from the Nationaal Archief (~80 MB).
 
 Demonstrates:
     maritime_search_crew (by ship name, by rank)
@@ -33,8 +36,8 @@ async def main() -> None:
     result = await runner.run("maritime_search_crew", ship_name="Ridderschap")
 
     if "error" in result:
-        print(f"   API unavailable: {result['error']}")
-        print("   (This demo requires network access to the VOC Opvarenden archive)")
+        print(f"   No crew data: {result['error']}")
+        print("   (Run scripts/download_crew.py to download crew records)")
         return
 
     print(f"   Found {result['crew_count']} crew record(s)")

@@ -166,6 +166,39 @@ Expanded from 4 Dutch archives to 8 multi-nation archives. Multi-archive dispatc
 **Quality:**
 - 585 tests across 13 test modules, 97%+ branch coverage
 
+### v0.8.0 -- Expanded Archives & Download Infrastructure
+
+Full-coverage data pipeline with cache-check-download pattern and expanded curated archives.
+
+**Download infrastructure:**
+- `scripts/download_utils.py` -- shared utilities: `parse_args()` with `--force`, `is_cached()`, `download_file()`, `save_json()`
+- All 10 download/generate scripts retrofitted with `--force` flag and cache-check pattern
+- `scripts/download_all.py` rewritten to orchestrate all scripts with `--force` passthrough
+
+**New download scripts:**
+- `scripts/download_crew.py` -- downloads 774K VOC crew records from Nationaal Archief bulk CSV
+- `scripts/download_cargo.py` -- downloads BGB cargo data from Zenodo RDF dataset
+- `scripts/download_eic.py` -- downloads EIC data from ThreeDecks (falls back to curated generator)
+
+**Expanded curated archives:**
+- **Carreira da India**: 120 → ~500 voyages, 40 → ~100 wrecks. Programmatic fleet-filling with era-appropriate ship name, captain, and tonnage pools covering 1497-1835.
+- **Manila Galleon**: 100 → ~250 voyages, 25 → ~42 wrecks. Expanded with eastbound/westbound pairs and era-specific cargo details covering 1565-1815.
+- **SOIC**: 80 → ~132 voyages, 12 → ~20 wrecks. Added 8 wreck entries along the Gothenburg-Canton route.
+
+**Crew client indexed lookups:**
+- `CrewClient` rewritten with lazy-built in-memory indexes for O(1) voyage_id and crew_id lookups
+- `_voyage_index`: dict[str, list[dict]] for fast filtered search across 774K records
+- `_id_index`: dict[str, dict] for instant crew member retrieval
+
+**Cargo data model fix:**
+- `CargoInfo.quantity` changed from `float | None` to `str | float | None` to support descriptive quantities (e.g. "450 balen")
+
+**Other:**
+- `scripts/upload_reference_data.py` updated with new data files
+- `.gitignore` updated: `data/cache/`, `data/crew.json`
+- `constants.py` record counts updated for all expanded archives
+- Version bumped to 0.8.0
+
 ---
 
 ## Planned
@@ -239,23 +272,18 @@ Current and potential data sources for the project.
 |--------|---------|--------|--------|
 | [DAS](https://resources.huygens.knaw.nl/das) | 8,194 voyages | `download_das.py` | Working |
 | [CLIWOC 2.1 Full](https://historicalclimatology.com/cliwoc.html) | 282K records, 182 columns | `download_cliwoc.py` | Working |
+| [VOC Opvarenden](https://www.nationaalarchief.nl/) | 774,200 crew records | `download_crew.py` | Working (bulk CSV download) |
+| [BGB Cargo](https://bgb.huygens.knaw.nl/) | 200 curated + expandable | `download_cargo.py` / `generate_cargo.py` | Working (Zenodo RDF + curated fallback) |
 | VOC Gazetteer | ~160 places | `data/gazetteer.json` | Curated |
 | VOC Routes | 8 routes | `data/routes.json` | Curated |
 | Hull Profiles | 6 types | `data/hull_profiles.json` | Curated |
 | Speed Profiles | 215 profiles, 6 routes | `data/speed_profiles.json` | Generated from CLIWOC |
-| EIC Archives | ~150 voyages, ~35 wrecks | `generate_eic.py` | Curated seed dataset from Hardy/Farrington |
-| Carreira da India | ~120 voyages, ~40 wrecks | `generate_carreira.py` | Curated seed dataset from Guinote/Frutuoso/Lopes |
-| Manila Galleon | ~100 voyages, ~25 wrecks | `generate_galleon.py` | Curated seed dataset from Schurz |
-| SOIC Archives | ~80 voyages, ~12 wrecks | `generate_soic.py` | Curated seed dataset from Koninckx |
+| EIC Archives | ~150 voyages, ~35 wrecks | `generate_eic.py` / `download_eic.py` | Curated from Hardy/Farrington + ThreeDecks download |
+| Carreira da India | ~500 voyages, ~100 wrecks | `generate_carreira.py` | Curated + expanded from Guinote/Frutuoso/Lopes |
+| Manila Galleon | ~250 voyages, ~42 wrecks | `generate_galleon.py` | Curated + expanded from Schurz |
+| SOIC Archives | ~132 voyages, ~20 wrecks | `generate_soic.py` | Curated + expanded from Koninckx |
 
-> **Note:** The EIC, Carreira, Galleon, and SOIC datasets are curated selections of notable voyages and famous wrecks -- not exhaustive inventories. The EIC conducted thousands of voyages; our ~150 represent historically significant records. Expanding these datasets is a key area for contribution.
-
-### Stub Clients (Partially Implemented)
-
-| Source | Records | Format | Status |
-|--------|---------|--------|--------|
-| [VOC Opvarenden](https://www.nationaalarchief.nl/) | 774,200 crew records | REST API | Stub client -- API may be intermittently unavailable |
-| [BGB Cargo](https://bgb.huygens.knaw.nl/) | ~50,000 cargo records | REST API | Stub client -- API may be intermittently unavailable |
+> **Note:** All download and generate scripts support `--force` to regenerate data. Run `python scripts/download_all.py` to fetch/generate all datasets. Core reference data is ~35 MB; with crew data downloaded, total is ~115 MB.
 
 ### Potential
 
@@ -270,8 +298,9 @@ Current and potential data sources for the project.
 
 See [README.md](README.md#contributing) for contribution guidelines. Key areas where help is welcome:
 
-- **Archive data enrichment** -- expanding voyage/wreck records with additional details from published sources
+- **EIC expansion** -- expanding the 150-voyage EIC dataset using Hardy's Register and ThreeDecks data
 - **Gazetteer expansion** -- adding more historical place names with coordinates (especially for non-Dutch ports)
 - **Route accuracy** -- improving waypoint positions and sailing time estimates
 - **Additional sailing routes** -- EIC, Carreira, Galleon, and SOIC standard routes
 - **Test coverage** -- edge cases in position estimation, date handling, and multi-archive dispatch
+- **Cargo enrichment** -- expanding the 200-record curated cargo dataset using Glamann's "Dutch-Asiatic Trade" tables

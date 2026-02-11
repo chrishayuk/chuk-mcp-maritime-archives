@@ -2,9 +2,10 @@
 """
 Cargo Trade Demo -- chuk-mcp-maritime-archives
 
-Explore VOC cargo manifests and trade goods. The BGB archive
-contains records of goods shipped between Asia and the Netherlands,
-1700-1795, including spices, textiles, porcelain, silver, and more.
+Explore VOC cargo manifests and trade goods. Contains 200 curated
+cargo records from the Boekhouder-Generaal Batavia, covering goods
+shipped between Asia and the Netherlands, 1700-1795, including
+spices, textiles, porcelain, silver, and more.
 
 Demonstrates:
     maritime_search_cargo (by commodity, by value)
@@ -33,8 +34,7 @@ async def main() -> None:
     all_cargo = await runner.run("maritime_search_cargo", max_results=20)
 
     if "error" in all_cargo:
-        print(f"   API unavailable: {all_cargo['error']}")
-        print("   (This demo requires network access to the BGB archive)")
+        print(f"   Error: {all_cargo['error']}")
         return
 
     print(f"   Total cargo records: {all_cargo['cargo_count']}")

@@ -21,6 +21,8 @@ import json
 import sys
 from pathlib import Path
 
+from download_utils import is_cached, parse_args
+
 # Add project root to path so we can import the source modules
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
@@ -69,10 +71,17 @@ def validate_hull_profiles() -> Path:
 
 
 def main() -> None:
+    args = parse_args("Validate and reformat reference data")
+
     print("=" * 60)
     print("Reference Data Validation — chuk-mcp-maritime-archives")
     print("=" * 60)
     print(f"\nData directory: {DATA_DIR}\n")
+
+    gazetteer_path = DATA_DIR / "gazetteer.json"
+    if not args.force and is_cached(gazetteer_path, args.cache_max_age):
+        print("Using cached reference data (use --force to regenerate)")
+        return
 
     DATA_DIR.mkdir(parents=True, exist_ok=True)
 
