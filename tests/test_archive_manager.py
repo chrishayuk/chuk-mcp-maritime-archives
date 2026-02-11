@@ -70,36 +70,37 @@ class TestHullProfiles:
 class TestVoyageOperations:
     @pytest.mark.asyncio
     async def test_search_voyages_no_filters(self, manager: ArchiveManager):
-        results = await manager.search_voyages()
-        assert len(results) == 12  # 3 DAS + 3 EIC + 2 carreira + 2 galleon + 2 SOIC
+        result = await manager.search_voyages()
+        assert len(result.items) == 12  # 3 DAS + 3 EIC + 2 carreira + 2 galleon + 2 SOIC
+        assert result.total_count == 12
 
     @pytest.mark.asyncio
     async def test_search_voyages_by_name(self, manager: ArchiveManager):
-        results = await manager.search_voyages(ship_name="Batavia")
-        assert len(results) == 1
-        assert results[0]["ship_name"] == "Batavia"
+        result = await manager.search_voyages(ship_name="Batavia")
+        assert len(result.items) == 1
+        assert result.items[0]["ship_name"] == "Batavia"
 
     @pytest.mark.asyncio
     async def test_search_voyages_by_fate(self, manager: ArchiveManager):
-        results = await manager.search_voyages(fate="wrecked")
-        assert all(v["fate"] == "wrecked" for v in results)
-        assert len(results) == 7  # 2 DAS + 2 EIC + 1 carreira + 1 galleon + 1 SOIC
+        result = await manager.search_voyages(fate="wrecked")
+        assert all(v["fate"] == "wrecked" for v in result.items)
+        assert len(result.items) == 7  # 2 DAS + 2 EIC + 1 carreira + 1 galleon + 1 SOIC
 
     @pytest.mark.asyncio
     async def test_search_voyages_by_archive(self, manager: ArchiveManager):
-        results = await manager.search_voyages(archive="das")
-        assert len(results) == 3
+        result = await manager.search_voyages(archive="das")
+        assert len(result.items) == 3
 
     @pytest.mark.asyncio
     async def test_search_voyages_by_archive_no_match(self, manager: ArchiveManager):
-        results = await manager.search_voyages(archive="nonexistent")
-        assert len(results) == 0
+        result = await manager.search_voyages(archive="nonexistent")
+        assert len(result.items) == 0
 
     @pytest.mark.asyncio
     async def test_search_voyages_route_filter(self, manager: ArchiveManager):
-        results = await manager.search_voyages(route="abrolhos")
-        assert len(results) == 1
-        assert results[0]["ship_name"] == "Batavia"
+        result = await manager.search_voyages(route="abrolhos")
+        assert len(result.items) == 1
+        assert result.items[0]["ship_name"] == "Batavia"
 
     @pytest.mark.asyncio
     async def test_get_voyage_exists(self, manager: ArchiveManager):
@@ -121,25 +122,28 @@ class TestVoyageOperations:
 class TestWreckOperations:
     @pytest.mark.asyncio
     async def test_search_wrecks_no_filters(self, manager: ArchiveManager):
-        results = await manager.search_wrecks()
-        assert len(results) == 8  # 3 MAARER + 2 EIC + 1 carreira + 1 galleon + 1 SOIC
+        result = await manager.search_wrecks()
+        assert len(result.items) == 8  # 3 MAARER + 2 EIC + 1 carreira + 1 galleon + 1 SOIC
+        assert result.total_count == 8
 
     @pytest.mark.asyncio
     async def test_search_wrecks_by_status(self, manager: ArchiveManager):
-        results = await manager.search_wrecks(status="found")
-        assert all(w["status"] == "found" for w in results)
-        assert len(results) == 6  # 3 MAARER + 1 EIC + 1 galleon + 1 SOIC
+        result = await manager.search_wrecks(status="found")
+        assert all(w["status"] == "found" for w in result.items)
+        assert len(result.items) == 6  # 3 MAARER + 1 EIC + 1 galleon + 1 SOIC
 
     @pytest.mark.asyncio
     async def test_search_wrecks_by_region(self, manager: ArchiveManager):
-        results = await manager.search_wrecks(region="cape")
-        assert all(w["region"] == "cape" for w in results)
-        assert len(results) == 3  # 1 MAARER (Meermin) + 1 EIC (Grosvenor) + 1 carreira (Sao Joao)
+        result = await manager.search_wrecks(region="cape")
+        assert all(w["region"] == "cape" for w in result.items)
+        assert (
+            len(result.items) == 3
+        )  # 1 MAARER (Meermin) + 1 EIC (Grosvenor) + 1 carreira (Sao Joao)
 
     @pytest.mark.asyncio
     async def test_search_wrecks_by_archive(self, manager: ArchiveManager):
-        results = await manager.search_wrecks(archive="maarer")
-        assert len(results) == 3
+        result = await manager.search_wrecks(archive="maarer")
+        assert len(result.items) == 3
 
     @pytest.mark.asyncio
     async def test_get_wreck_exists(self, manager: ArchiveManager):
@@ -161,14 +165,14 @@ class TestWreckOperations:
 class TestVesselOperations:
     @pytest.mark.asyncio
     async def test_search_vessels(self, manager: ArchiveManager):
-        results = await manager.search_vessels()
-        assert len(results) == 2
+        result = await manager.search_vessels()
+        assert len(result.items) == 2
 
     @pytest.mark.asyncio
     async def test_search_vessels_by_name(self, manager: ArchiveManager):
-        results = await manager.search_vessels(name="Batavia")
-        assert len(results) == 1
-        assert results[0]["name"] == "Batavia"
+        result = await manager.search_vessels(name="Batavia")
+        assert len(result.items) == 1
+        assert result.items[0]["name"] == "Batavia"
 
     @pytest.mark.asyncio
     async def test_get_vessel(self, manager: ArchiveManager):
@@ -190,14 +194,14 @@ class TestVesselOperations:
 class TestCrewOperations:
     @pytest.mark.asyncio
     async def test_search_crew(self, manager: ArchiveManager):
-        results = await manager.search_crew()
-        assert len(results) == 2
+        result = await manager.search_crew()
+        assert len(result.items) == 2
 
     @pytest.mark.asyncio
     async def test_search_crew_by_ship(self, manager: ArchiveManager):
-        results = await manager.search_crew(ship_name="Ridderschap")
-        assert len(results) == 2
-        assert all("Ridderschap" in c["ship_name"] for c in results)
+        result = await manager.search_crew(ship_name="Ridderschap")
+        assert len(result.items) == 2
+        assert all("Ridderschap" in c["ship_name"] for c in result.items)
 
     @pytest.mark.asyncio
     async def test_get_crew_member(self, manager: ArchiveManager):
@@ -214,14 +218,14 @@ class TestCrewOperations:
 class TestCargoOperations:
     @pytest.mark.asyncio
     async def test_search_cargo(self, manager: ArchiveManager):
-        results = await manager.search_cargo()
-        assert len(results) == 2
+        result = await manager.search_cargo()
+        assert len(result.items) == 2
 
     @pytest.mark.asyncio
     async def test_search_cargo_by_voyage(self, manager: ArchiveManager):
-        results = await manager.search_cargo(voyage_id="das:8123")
-        assert len(results) == 2
-        assert all(c["voyage_id"] == "das:8123" for c in results)
+        result = await manager.search_cargo(voyage_id="das:8123")
+        assert len(result.items) == 2
+        assert all(c["voyage_id"] == "das:8123" for c in result.items)
 
     @pytest.mark.asyncio
     async def test_get_cargo_manifest(self, manager: ArchiveManager):
@@ -594,3 +598,46 @@ class TestManagerDateFilter:
         records = [{"name": "A", "loss_date": "1629"}]
         result = manager._filter_by_date_range(records, "invalid", "loss_date")
         assert len(result) == 1  # returns all
+
+
+# ---------------------------------------------------------------------------
+# Pagination integration tests
+# ---------------------------------------------------------------------------
+
+
+class TestPaginationIntegration:
+    @pytest.mark.asyncio
+    async def test_paginate_through_all_voyages(self, manager: ArchiveManager):
+        """Page through all voyages and verify no duplicates."""
+        all_ids: list[str] = []
+        cursor = None
+        while True:
+            result = await manager.search_voyages(max_results=3, cursor=cursor)
+            all_ids.extend(v["voyage_id"] for v in result.items)
+            if not result.has_more:
+                break
+            cursor = result.next_cursor
+        assert len(all_ids) == len(set(all_ids)), "Duplicate voyage IDs across pages"
+        assert len(all_ids) == result.total_count
+
+    @pytest.mark.asyncio
+    async def test_first_page_matches_no_cursor(self, manager: ArchiveManager):
+        """First page with cursor=None should match default behavior."""
+        result_no_cursor = await manager.search_voyages(max_results=5)
+        result_with_none = await manager.search_voyages(max_results=5, cursor=None)
+        assert [v["voyage_id"] for v in result_no_cursor.items] == [
+            v["voyage_id"] for v in result_with_none.items
+        ]
+
+    @pytest.mark.asyncio
+    async def test_pagination_total_count_stable(self, manager: ArchiveManager):
+        """total_count should be the same on every page."""
+        result1 = await manager.search_voyages(max_results=2)
+        result2 = await manager.search_voyages(max_results=2, cursor=result1.next_cursor)
+        assert result1.total_count == result2.total_count
+
+    @pytest.mark.asyncio
+    async def test_max_results_clamped(self, manager: ArchiveManager):
+        """Requesting more than MAX_PAGE_SIZE should be clamped."""
+        result = await manager.search_voyages(max_results=9999)
+        assert len(result.items) <= 500

@@ -28,6 +28,7 @@ def register_crew_tools(mcp: object, manager: object) -> None:
         fate: str | None = None,
         archive: str | None = None,
         max_results: int = 100,
+        cursor: str | None = None,
         output_mode: str = "json",
     ) -> str:
         """
@@ -35,7 +36,7 @@ def register_crew_tools(mcp: object, manager: object) -> None:
 
         Queries the VOC Opvarenden database containing 774,200 personnel
         records from 1633-1794. All search parameters are optional and
-        combined with AND logic.
+        combined with AND logic. Supports cursor-based pagination.
 
         Args:
             name: Crew member name or partial name (case-insensitive)
@@ -47,23 +48,25 @@ def register_crew_tools(mcp: object, manager: object) -> None:
             fate: Crew fate - survived, died_voyage, died_asia, deserted,
                 discharged
             archive: Restrict to a specific archive (default: voc_crew)
-            max_results: Maximum results to return (default: 100)
+            max_results: Maximum results per page (default: 100, max: 500)
+            cursor: Pagination cursor from a previous result's next_cursor field
             output_mode: Response format - "json" (default) or "text"
 
         Returns:
-            JSON or text with matching crew records
+            JSON or text with matching crew records and pagination metadata
 
         Tips for LLMs:
             - Use voyage_id to list the complete crew of a specific voyage
             - Set fate="died_voyage" to find crew lost at sea
             - Names are in historical Dutch spelling; try partial matches
+            - If has_more is true, pass next_cursor as cursor to get the next page
             - Follow up with maritime_get_crew_member for full details
               including pay and embarkation date
             - Combine with maritime_search_voyages to cross-reference
               ship and voyage information
         """
         try:
-            results = await manager.search_crew(  # type: ignore[union-attr]
+            result = await manager.search_crew(  # type: ignore[union-attr]
                 name=name,
                 rank=rank,
                 ship_name=ship_name,
@@ -73,9 +76,10 @@ def register_crew_tools(mcp: object, manager: object) -> None:
                 fate=fate,
                 archive=archive or "voc_crew",
                 max_results=max_results,
+                cursor=cursor,
             )
 
-            if not results:
+            if not result.items:
                 return format_response(
                     ErrorResponse(error=ErrorMessages.NO_RESULTS),
                     output_mode,
@@ -90,7 +94,7 @@ def register_crew_tools(mcp: object, manager: object) -> None:
                     ship_name=c.get("ship_name"),
                     voyage_id=c.get("voyage_id"),
                 )
-                for c in results
+                for c in result.items
             ]
 
             return format_response(
@@ -98,6 +102,9 @@ def register_crew_tools(mcp: object, manager: object) -> None:
                     crew_count=len(crew),
                     crew=crew,
                     message=SuccessMessages.CREW_FOUND.format(len(crew)),
+                    total_count=result.total_count,
+                    next_cursor=result.next_cursor,
+                    has_more=result.has_more,
                 ),
                 output_mode,
             )

@@ -1,6 +1,6 @@
 # chuk-mcp-maritime-archives Specification
 
-Version 0.8.0
+Version 0.9.0
 
 ## Overview
 
@@ -11,6 +11,7 @@ through the colonial era, 1497-1874. Covers Dutch (VOC), English (EIC), Portugue
 (Carreira da India), Spanish (Manila Galleon), and Swedish (SOIC) maritime archives.
 
 - **29 tools** for searching, retrieving, analysing, and exporting maritime archival data
+- **Cursor-based pagination** -- all 6 search tools support `cursor` / `next_cursor` / `has_more` for paging through large result sets
 - **Dual output mode** -- all tools return JSON (default) or human-readable text via `output_mode` parameter
 - **Async-first** -- tool entry points are async; sync HTTP I/O runs in thread pools
 - **Pluggable storage** -- exported data stored via chuk-artifacts (memory, filesystem, S3)
@@ -116,15 +117,19 @@ Search voyage records across all archives with multiple filter criteria.
 | `route` | `str?` | `None` | Route keyword (matched against summary and ports) |
 | `fate` | `str?` | `None` | Voyage outcome: `completed`, `wrecked`, `captured`, `scuttled`, `missing` |
 | `archive` | `str?` | `None` | Limit to specific archive |
-| `max_results` | `int` | `50` | Maximum results to return |
+| `max_results` | `int` | `50` | Maximum results per page (max: 500) |
+| `cursor` | `str?` | `None` | Pagination cursor from a previous result's `next_cursor` field |
 
 **Response:** `VoyageSearchResponse`
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `voyage_count` | `int` | Number of voyages found |
+| `voyage_count` | `int` | Number of voyages on this page |
 | `voyages` | `VoyageInfo[]` | Voyage summaries |
 | `archive` | `str?` | Archive filter applied |
+| `total_count` | `int?` | Total matching records across all pages |
+| `next_cursor` | `str?` | Cursor for next page (null if no more pages) |
+| `has_more` | `bool` | Whether more pages are available |
 | `message` | `str` | Result message |
 
 ---
@@ -167,15 +172,19 @@ Search shipwreck and loss records across all archives.
 | `max_depth_m` | `float?` | `None` | Maximum depth in metres |
 | `min_cargo_value` | `float?` | `None` | Minimum cargo value in guilders |
 | `archive` | `str?` | `None` | Limit to specific archive |
-| `max_results` | `int` | `100` | Maximum results to return |
+| `max_results` | `int` | `100` | Maximum results per page (max: 500) |
+| `cursor` | `str?` | `None` | Pagination cursor from a previous result's `next_cursor` field |
 
 **Response:** `WreckSearchResponse`
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `wreck_count` | `int` | Number of wrecks found |
+| `wreck_count` | `int` | Number of wrecks on this page |
 | `wrecks` | `WreckInfo[]` | Wreck summaries with positions |
 | `archive` | `str?` | Archive filter applied |
+| `total_count` | `int?` | Total matching records across all pages |
+| `next_cursor` | `str?` | Cursor for next page (null if no more pages) |
+| `has_more` | `bool` | Whether more pages are available |
 | `message` | `str` | Result message |
 
 ---
@@ -217,14 +226,18 @@ Search VOC vessel records.
 | `min_tonnage` | `int?` | `None` | Minimum tonnage (lasten) |
 | `max_tonnage` | `int?` | `None` | Maximum tonnage (lasten) |
 | `archive` | `str?` | `None` | Limit to specific archive |
-| `max_results` | `int` | `50` | Maximum results to return |
+| `max_results` | `int` | `50` | Maximum results per page (max: 500) |
+| `cursor` | `str?` | `None` | Pagination cursor from a previous result's `next_cursor` field |
 
 **Response:** `VesselSearchResponse`
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `vessel_count` | `int` | Number of vessels found |
+| `vessel_count` | `int` | Number of vessels on this page |
 | `vessels` | `VesselInfo[]` | Vessel summaries |
+| `total_count` | `int?` | Total matching records across all pages |
+| `next_cursor` | `str?` | Cursor for next page (null if no more pages) |
+| `has_more` | `bool` | Whether more pages are available |
 | `message` | `str` | Result message |
 
 ---
@@ -302,14 +315,18 @@ Search VOC crew muster roll records.
 | `date_range` | `str?` | `None` | Date range |
 | `fate` | `str?` | `None` | Service outcome: `survived`, `died_voyage`, `died_asia`, `deserted`, `discharged` |
 | `archive` | `str` | `voc_crew` | Archive to query |
-| `max_results` | `int` | `100` | Maximum results to return |
+| `max_results` | `int` | `100` | Maximum results per page (max: 500) |
+| `cursor` | `str?` | `None` | Pagination cursor from a previous result's `next_cursor` field |
 
 **Response:** `CrewSearchResponse`
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `crew_count` | `int` | Number of crew records found |
+| `crew_count` | `int` | Number of crew records on this page |
 | `crew` | `CrewInfo[]` | Crew record summaries |
+| `total_count` | `int?` | Total matching records across all pages |
+| `next_cursor` | `str?` | Cursor for next page (null if no more pages) |
+| `has_more` | `bool` | Whether more pages are available |
 | `message` | `str` | Result message |
 
 ---
@@ -350,14 +367,18 @@ Search cargo manifest records.
 | `date_range` | `str?` | `None` | Date range |
 | `min_value` | `float?` | `None` | Minimum value in guilders |
 | `archive` | `str` | `voc_cargo` | Archive to query |
-| `max_results` | `int` | `100` | Maximum results to return |
+| `max_results` | `int` | `100` | Maximum results per page (max: 500) |
+| `cursor` | `str?` | `None` | Pagination cursor from a previous result's `next_cursor` field |
 
 **Response:** `CargoSearchResponse`
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `cargo_count` | `int` | Number of cargo entries found |
+| `cargo_count` | `int` | Number of cargo entries on this page |
 | `cargo` | `CargoInfo[]` | Cargo record summaries |
+| `total_count` | `int?` | Total matching records across all pages |
+| `next_cursor` | `str?` | Cursor for next page (null if no more pages) |
+| `has_more` | `bool` | Whether more pages are available |
 | `message` | `str` | Result message |
 
 ---
@@ -635,15 +656,19 @@ positions from 1662-1855, 8 European maritime nations).
 | `year_start` | `int?` | `None` | Earliest year to include |
 | `year_end` | `int?` | `None` | Latest year to include |
 | `ship_name` | `str?` | `None` | Ship name or partial name (case-insensitive; requires CLIWOC 2.1 Full data) |
-| `max_results` | `int` | `50` | Maximum results to return |
+| `max_results` | `int` | `50` | Maximum results per page (max: 500) |
+| `cursor` | `str?` | `None` | Pagination cursor from a previous result's `next_cursor` field |
 | `output_mode` | `str` | `"json"` | `"json"` or `"text"` |
 
 **Response: `TrackSearchResponse`**
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `track_count` | `int` | Number of matching tracks |
+| `track_count` | `int` | Number of tracks on this page |
 | `tracks` | `TrackInfo[]` | Track summaries (no positions) |
+| `total_count` | `int?` | Total matching tracks across all pages |
+| `next_cursor` | `str?` | Cursor for next page (null if no more pages) |
+| `has_more` | `bool` | Whether more pages are available |
 | `message` | `str` | Human-readable summary |
 
 **TrackInfo fields:**

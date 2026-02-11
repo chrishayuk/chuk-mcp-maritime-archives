@@ -199,17 +199,39 @@ Full-coverage data pipeline with cache-check-download pattern and expanded curat
 - `constants.py` record counts updated for all expanded archives
 - Version bumped to 0.8.0
 
+### v0.9.0 -- Cursor-Based Pagination
+
+Cursor-based pagination for all 6 search tools. Enables browsing large result sets page by page.
+
+**Pagination infrastructure:**
+- `encode_cursor()` / `decode_cursor()` utilities (base64-encoded offset)
+- `PaginatedResult` dataclass returned by all `ArchiveManager.search_*()` methods
+- `_paginate()` static method centralises offset/limit slicing across all search methods
+- `MAX_PAGE_SIZE = 500` clamp prevents oversized pages
+
+**Updated search tools (6 tools):**
+- `maritime_search_voyages` -- `cursor` parameter, `total_count` / `next_cursor` / `has_more` in response
+- `maritime_search_wrecks` -- same pattern
+- `maritime_search_crew` -- same pattern (enables paging through 774K records)
+- `maritime_search_cargo` -- same pattern
+- `maritime_search_vessels` -- same pattern
+- `maritime_search_tracks` -- same pattern (tool-level pagination for CLIWOC module function)
+
+**Response model changes:**
+- 6 search response models (`VoyageSearchResponse`, `WreckSearchResponse`, `CrewSearchResponse`, `CargoSearchResponse`, `VesselSearchResponse`, `TrackSearchResponse`) gained `total_count`, `next_cursor`, `has_more` fields
+- `to_text()` output includes pagination footer when `has_more` is true
+- Backward compatible: all new fields have safe defaults (`None` / `False`)
+
+**Multi-archive pagination:**
+- Deterministic sort order for multi-archive results (by date + ID) ensures stable pagination
+- Fetch all matching records from all clients, sort, then paginate the combined result
+
+**Quality:**
+- 597 tests across 13 test modules, 97%+ branch coverage
+
 ---
 
 ## Planned
-
-### Streaming Search
-
-Paginated search results for large result sets.
-
-- Cursor-based pagination for voyage, crew, and cargo searches
-- `next_cursor` field in search responses
-- Efficient for browsing the full 8,194-voyage or 774,200-crew datasets
 
 ### WebSocket Transport
 
@@ -239,7 +261,7 @@ This server is the data layer in a composable stack of MCP servers:
 
 | Server | Tools | Tests | Role |
 |--------|-------|-------|------|
-| chuk-mcp-maritime-archives | 29 | 585 | Voyage, wreck, vessel, crew, cargo records |
+| chuk-mcp-maritime-archives | 29 | 597 | Voyage, wreck, vessel, crew, cargo records |
 | chuk-mcp-ocean-drift | 10 | 235 | Forward/backtrack/Monte Carlo drift |
 | chuk-mcp-dem | 4 | 711 | Bathymetry and elevation data |
 | chuk-mcp-stac | 5 | 382 | Satellite imagery via STAC catalogues |
@@ -247,7 +269,7 @@ This server is the data layer in a composable stack of MCP servers:
 | chuk-mcp-tides | 8 | 717 | Tidal current data |
 | chuk-mcp-physics | 66 | 240 | Fluid dynamics computations |
 | chuk-mcp-open-meteo | 6 | 22 | Weather and wind data |
-| **Total** | **136** | **3,146** | |
+| **Total** | **136** | **3,158** | |
 
 All servers follow the same patterns: Pydantic v2 models, dual output mode, chuk-artifacts storage.
 

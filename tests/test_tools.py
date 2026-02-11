@@ -5,6 +5,8 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
+from chuk_mcp_maritime_archives.core.archive_manager import PaginatedResult
+
 from .conftest import (
     MockMCPServer,
     SAMPLE_CARGO,
@@ -13,6 +15,11 @@ from .conftest import (
     SAMPLE_VOYAGES,
     SAMPLE_WRECKS,
 )
+
+
+def _paginated(items: list[dict]) -> PaginatedResult:
+    """Wrap a list of dicts in a PaginatedResult with no pagination."""
+    return PaginatedResult(items=items, total_count=len(items), next_cursor=None, has_more=False)
 
 
 @pytest.fixture
@@ -24,16 +31,16 @@ def mock_mcp() -> MockMCPServer:
 def mock_manager() -> MagicMock:
     """Manager with all methods mocked."""
     mgr = MagicMock()
-    # Async methods
-    mgr.search_voyages = AsyncMock(return_value=SAMPLE_VOYAGES)
+    # Async methods — search methods return PaginatedResult
+    mgr.search_voyages = AsyncMock(return_value=_paginated(SAMPLE_VOYAGES))
     mgr.get_voyage = AsyncMock(return_value=SAMPLE_VOYAGES[0])
-    mgr.search_wrecks = AsyncMock(return_value=SAMPLE_WRECKS)
+    mgr.search_wrecks = AsyncMock(return_value=_paginated(SAMPLE_WRECKS))
     mgr.get_wreck = AsyncMock(return_value=SAMPLE_WRECKS[0])
-    mgr.search_vessels = AsyncMock(return_value=SAMPLE_VESSELS)
+    mgr.search_vessels = AsyncMock(return_value=_paginated(SAMPLE_VESSELS))
     mgr.get_vessel = AsyncMock(return_value=SAMPLE_VESSELS[0])
-    mgr.search_crew = AsyncMock(return_value=SAMPLE_CREW)
+    mgr.search_crew = AsyncMock(return_value=_paginated(SAMPLE_CREW))
     mgr.get_crew_member = AsyncMock(return_value=SAMPLE_CREW[0])
-    mgr.search_cargo = AsyncMock(return_value=SAMPLE_CARGO)
+    mgr.search_cargo = AsyncMock(return_value=_paginated(SAMPLE_CARGO))
     mgr.get_cargo_manifest = AsyncMock(return_value=SAMPLE_CARGO)
     mgr.assess_position = AsyncMock(
         return_value={
@@ -118,7 +125,7 @@ class TestVoyageTools:
 
     @pytest.mark.asyncio
     async def test_search_voyages_no_results(self):
-        self.mgr.search_voyages.return_value = []
+        self.mgr.search_voyages.return_value = _paginated([])
         fn = self.mcp.get_tool("maritime_search_voyages")
         result = await fn()
         parsed = json.loads(result)
@@ -191,7 +198,7 @@ class TestWreckTools:
 
     @pytest.mark.asyncio
     async def test_search_wrecks_no_results(self):
-        self.mgr.search_wrecks.return_value = []
+        self.mgr.search_wrecks.return_value = _paginated([])
         fn = self.mcp.get_tool("maritime_search_wrecks")
         result = await fn()
         parsed = json.loads(result)
@@ -264,7 +271,7 @@ class TestVesselTools:
 
     @pytest.mark.asyncio
     async def test_search_vessels_no_results(self):
-        self.mgr.search_vessels.return_value = []
+        self.mgr.search_vessels.return_value = _paginated([])
         fn = self.mcp.get_tool("maritime_search_vessels")
         result = await fn()
         parsed = json.loads(result)
@@ -388,7 +395,7 @@ class TestCrewTools:
 
     @pytest.mark.asyncio
     async def test_search_crew_no_results(self):
-        self.mgr.search_crew.return_value = []
+        self.mgr.search_crew.return_value = _paginated([])
         fn = self.mcp.get_tool("maritime_search_crew")
         result = await fn()
         parsed = json.loads(result)
@@ -461,7 +468,7 @@ class TestCargoTools:
 
     @pytest.mark.asyncio
     async def test_search_cargo_no_results(self):
-        self.mgr.search_cargo.return_value = []
+        self.mgr.search_cargo.return_value = _paginated([])
         fn = self.mcp.get_tool("maritime_search_cargo")
         result = await fn()
         parsed = json.loads(result)
@@ -715,3 +722,49 @@ class TestDiscoveryTools:
         result = await fn()
         parsed = json.loads(result)
         assert "err" in parsed["error"]
+
+
+# ---------------------------------------------------------------------------
+# Pagination tests — verify cursor propagation and response metadata
+# ---------------------------------------------------------------------------
+
+
+class TestPagination:
+    @pytest.fixture(autouse=True)
+    def _register(self, mock_mcp, mock_manager):
+        from chuk_mcp_maritime_archives.tools.voyages.api import register_voyage_tools
+
+        register_voyage_tools(mock_mcp, mock_manager)
+        self.mcp = mock_mcp
+        self.mgr = mock_manager
+
+    @pytest.mark.asyncio
+    async def test_cursor_forwarded_to_manager(self):
+        fn = self.mcp.get_tool("maritime_search_voyages")
+        await fn(cursor="abc123")
+        self.mgr.search_voyages.assert_called_once()
+        call_kwargs = self.mgr.search_voyages.call_args.kwargs
+        assert call_kwargs["cursor"] == "abc123"
+
+    @pytest.mark.asyncio
+    async def test_response_includes_pagination_metadata(self):
+        self.mgr.search_voyages.return_value = PaginatedResult(
+            items=SAMPLE_VOYAGES[:1],
+            total_count=3,
+            next_cursor="eyJvIjoxfQ",
+            has_more=True,
+        )
+        fn = self.mcp.get_tool("maritime_search_voyages")
+        result = await fn()
+        parsed = json.loads(result)
+        assert parsed["total_count"] == 3
+        assert parsed["next_cursor"] == "eyJvIjoxfQ"
+        assert parsed["has_more"] is True
+
+    @pytest.mark.asyncio
+    async def test_no_pagination_without_cursor(self):
+        fn = self.mcp.get_tool("maritime_search_voyages")
+        result = await fn()
+        parsed = json.loads(result)
+        assert parsed["has_more"] is False
+        assert "next_cursor" not in parsed  # excluded by exclude_none=True

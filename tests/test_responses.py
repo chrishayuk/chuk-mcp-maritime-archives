@@ -27,8 +27,32 @@ from chuk_mcp_maritime_archives.models.responses import (
     WreckDetailResponse,
     WreckInfo,
     WreckSearchResponse,
+    decode_cursor,
+    encode_cursor,
     format_response,
 )
+
+
+# ---------------------------------------------------------------------------
+# Cursor utility tests
+# ---------------------------------------------------------------------------
+
+
+class TestCursorUtilities:
+    def test_encode_decode_roundtrip(self):
+        for offset in [0, 1, 50, 100, 999]:
+            assert decode_cursor(encode_cursor(offset)) == offset
+
+    def test_decode_none_returns_zero(self):
+        assert decode_cursor(None) == 0
+
+    def test_decode_empty_returns_zero(self):
+        assert decode_cursor("") == 0
+
+    def test_encode_produces_url_safe_string(self):
+        cursor = encode_cursor(42)
+        assert isinstance(cursor, str)
+        assert "=" not in cursor  # padding stripped
 
 
 class TestArchiveListResponseToText:
@@ -105,6 +129,20 @@ class TestVoyageSearchResponseToText:
         text = resp.to_text()
         assert "das:1" in text
         assert "[" not in text  # no fate bracket
+
+    def test_pagination_footer_in_text(self):
+        v = VoyageInfo(voyage_id="das:1", ship_name="Test")
+        resp = VoyageSearchResponse(
+            voyage_count=1,
+            voyages=[v],
+            message="Found 1",
+            total_count=100,
+            next_cursor="abc",
+            has_more=True,
+        )
+        text = resp.to_text()
+        assert "1 of 100" in text
+        assert 'cursor="abc"' in text
 
 
 class TestVoyageDetailResponseToText:

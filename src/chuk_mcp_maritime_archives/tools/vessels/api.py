@@ -30,6 +30,7 @@ def register_vessel_tools(mcp: object, manager: object) -> None:
         max_tonnage: int | None = None,
         archive: str | None = None,
         max_results: int = 50,
+        cursor: str | None = None,
         output_mode: str = "json",
     ) -> str:
         """
@@ -37,6 +38,7 @@ def register_vessel_tools(mcp: object, manager: object) -> None:
 
         Queries the DAS vessel registry for ships used by the VOC.
         All search parameters are optional and combined with AND logic.
+        Supports cursor-based pagination.
 
         Args:
             name: Vessel name or partial name (case-insensitive)
@@ -49,24 +51,26 @@ def register_vessel_tools(mcp: object, manager: object) -> None:
             min_tonnage: Minimum tonnage in lasten
             max_tonnage: Maximum tonnage in lasten
             archive: Restrict to a specific archive (default: all)
-            max_results: Maximum results to return (default: 50)
+            max_results: Maximum results per page (default: 50, max: 500)
+            cursor: Pagination cursor from a previous result's next_cursor field
             output_mode: Response format - "json" (default) or "text"
 
         Returns:
-            JSON or text with matching vessel records
+            JSON or text with matching vessel records and pagination metadata
 
         Tips for LLMs:
             - Use ship_type to filter by vessel class (retourschip is the
               standard large Asia-route ship)
             - Chamber indicates which of the six VOC offices commissioned
               the vessel
+            - If has_more is true, pass next_cursor as cursor to get the next page
             - Follow up with maritime_get_vessel for full construction details
             - Use maritime_get_hull_profile for hydrodynamic characteristics
               of a ship type (useful for drift modelling)
             - Combine with maritime_search_voyages to find voyages by this vessel
         """
         try:
-            results = await manager.search_vessels(  # type: ignore[union-attr]
+            result = await manager.search_vessels(  # type: ignore[union-attr]
                 name=name,
                 ship_type=ship_type,
                 built_range=built_range,
@@ -76,9 +80,10 @@ def register_vessel_tools(mcp: object, manager: object) -> None:
                 max_tonnage=max_tonnage,
                 archive=archive,
                 max_results=max_results,
+                cursor=cursor,
             )
 
-            if not results:
+            if not result.items:
                 return format_response(
                     ErrorResponse(error=ErrorMessages.NO_RESULTS),
                     output_mode,
@@ -93,7 +98,7 @@ def register_vessel_tools(mcp: object, manager: object) -> None:
                     built_year=v.get("built_year"),
                     chamber=v.get("chamber"),
                 )
-                for v in results
+                for v in result.items
             ]
 
             return format_response(
@@ -101,6 +106,9 @@ def register_vessel_tools(mcp: object, manager: object) -> None:
                     vessel_count=len(vessels),
                     vessels=vessels,
                     message=SuccessMessages.VESSELS_FOUND.format(len(vessels)),
+                    total_count=result.total_count,
+                    next_cursor=result.next_cursor,
+                    has_more=result.has_more,
                 ),
                 output_mode,
             )

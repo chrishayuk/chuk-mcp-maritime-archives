@@ -27,6 +27,7 @@ def register_cargo_tools(mcp: object, manager: object) -> None:
         min_value: float | None = None,
         archive: str | None = None,
         max_results: int = 100,
+        cursor: str | None = None,
         output_mode: str = "json",
     ) -> str:
         """
@@ -35,6 +36,7 @@ def register_cargo_tools(mcp: object, manager: object) -> None:
         Queries the Boekhouder-Generaal Batavia (BGB) cargo database for
         trade goods shipped between Asia and the Netherlands, 1700-1795.
         All search parameters are optional and combined with AND logic.
+        Supports cursor-based pagination.
 
         Args:
             voyage_id: Filter by specific voyage
@@ -45,11 +47,12 @@ def register_cargo_tools(mcp: object, manager: object) -> None:
             date_range: Date range as "YYYY/YYYY" or "YYYY-MM-DD/YYYY-MM-DD"
             min_value: Minimum cargo value in guilders
             archive: Restrict to a specific archive (default: voc_cargo)
-            max_results: Maximum results to return (default: 100)
+            max_results: Maximum results per page (default: 100, max: 500)
+            cursor: Pagination cursor from a previous result's next_cursor field
             output_mode: Response format - "json" (default) or "text"
 
         Returns:
-            JSON or text with matching cargo records
+            JSON or text with matching cargo records and pagination metadata
 
         Tips for LLMs:
             - Use commodity to search for specific trade goods
@@ -58,10 +61,11 @@ def register_cargo_tools(mcp: object, manager: object) -> None:
             - Common VOC commodities: pepper, cloves, nutmeg, mace, cinnamon,
               textiles, porcelain, silver, copper, tea, coffee, sugar
             - Values are in contemporary Dutch guilders
+            - If has_more is true, pass next_cursor as cursor to get the next page
             - Combine with maritime_search_voyages to find the voyage context
         """
         try:
-            results = await manager.search_cargo(  # type: ignore[union-attr]
+            result = await manager.search_cargo(  # type: ignore[union-attr]
                 voyage_id=voyage_id,
                 commodity=commodity,
                 origin=origin,
@@ -70,9 +74,10 @@ def register_cargo_tools(mcp: object, manager: object) -> None:
                 min_value=min_value,
                 archive=archive or "voc_cargo",
                 max_results=max_results,
+                cursor=cursor,
             )
 
-            if not results:
+            if not result.items:
                 return format_response(
                     ErrorResponse(error=ErrorMessages.NO_RESULTS),
                     output_mode,
@@ -88,7 +93,7 @@ def register_cargo_tools(mcp: object, manager: object) -> None:
                     unit=c.get("unit"),
                     value_guilders=c.get("value_guilders"),
                 )
-                for c in results
+                for c in result.items
             ]
 
             return format_response(
@@ -96,6 +101,9 @@ def register_cargo_tools(mcp: object, manager: object) -> None:
                     cargo_count=len(cargo),
                     cargo=cargo,
                     message=SuccessMessages.CARGO_FOUND.format(len(cargo)),
+                    total_count=result.total_count,
+                    next_cursor=result.next_cursor,
+                    has_more=result.has_more,
                 ),
                 output_mode,
             )

@@ -20,6 +20,8 @@ from .maritime import (
     Waypoint,
 )
 from .responses import (
+    decode_cursor,
+    encode_cursor,
     ArchiveDetailResponse,
     ArchiveInfo,
     ArchiveListResponse,
@@ -81,6 +83,9 @@ __all__ = [
     "Vessel",
     "VesselDimensions",
     "Waypoint",
+    # Cursor utilities
+    "decode_cursor",
+    "encode_cursor",
     # Response models
     "ArchiveDetailResponse",
     "ArchiveInfo",

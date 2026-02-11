@@ -357,8 +357,8 @@ class TestMultiArchiveManager:
     @pytest.mark.asyncio
     async def test_search_voyages_all_archives(self):
         """Search with no archive filter returns results from all archives."""
-        results = await self.manager.search_voyages(max_results=100)
-        archives = {v.get("archive") for v in results}
+        result = await self.manager.search_voyages(max_results=100)
+        archives = {v.get("archive") for v in result.items}
         # Should include DAS + the 4 new archives
         assert "das" in archives
         assert "eic" in archives
@@ -368,15 +368,15 @@ class TestMultiArchiveManager:
 
     @pytest.mark.asyncio
     async def test_search_voyages_single_archive(self):
-        results = await self.manager.search_voyages(archive="eic")
-        assert len(results) == 3
-        for v in results:
+        result = await self.manager.search_voyages(archive="eic")
+        assert len(result.items) == 3
+        for v in result.items:
             assert v["archive"] == "eic"
 
     @pytest.mark.asyncio
     async def test_search_voyages_unknown_archive(self):
-        results = await self.manager.search_voyages(archive="nonexistent")
-        assert results == []
+        result = await self.manager.search_voyages(archive="nonexistent")
+        assert result.items == []
 
     @pytest.mark.asyncio
     async def test_get_voyage_eic(self):
@@ -409,14 +409,14 @@ class TestMultiArchiveManager:
 
     @pytest.mark.asyncio
     async def test_search_wrecks_all_archives(self):
-        results = await self.manager.search_wrecks(max_results=100)
-        archives = {w.get("archive") for w in results}
+        result = await self.manager.search_wrecks(max_results=100)
+        archives = {w.get("archive") for w in result.items}
         assert len(archives) >= 2  # at least MAARER + some new
 
     @pytest.mark.asyncio
     async def test_search_wrecks_single_archive(self):
-        results = await self.manager.search_wrecks(archive="eic")
-        for w in results:
+        result = await self.manager.search_wrecks(archive="eic")
+        for w in result.items:
             assert w["archive"] == "eic"
 
     @pytest.mark.asyncio
@@ -444,9 +444,9 @@ class TestMultiArchiveManager:
 
     @pytest.mark.asyncio
     async def test_search_voyages_by_name_across_archives(self):
-        results = await self.manager.search_voyages(ship_name="Gotheborg")
-        assert len(results) >= 1
-        assert results[0]["archive"] == "soic"
+        result = await self.manager.search_voyages(ship_name="Gotheborg")
+        assert len(result.items) >= 1
+        assert result.items[0]["archive"] == "soic"
 
     @pytest.mark.asyncio
     async def test_voyage_full_eic(self):

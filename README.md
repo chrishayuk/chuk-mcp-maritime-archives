@@ -295,7 +295,7 @@ python batavia_case_study_demo.py  # 12-tool chain investigating the Batavia wre
 
 ## Tool Reference
 
-All tools accept an optional `output_mode` parameter (`"json"` default, or `"text"` for human-readable output).
+All tools accept an optional `output_mode` parameter (`"json"` default, or `"text"` for human-readable output). All search tools support cursor-based pagination via `cursor`, `max_results`, `next_cursor`, `has_more`, and `total_count`.
 
 | Tool | Category | Description |
 |------|----------|-------------|
@@ -338,7 +338,8 @@ All tools accept an optional `output_mode` parameter (`"json"` default, or `"tex
   "date_range": "1620/1640",                     # optional, YYYY/YYYY
   "departure_port": "Texel",                     # optional
   "fate": "wrecked",                             # optional
-  "max_results": 10                              # optional, default 50
+  "max_results": 10,                             # optional, default 50, max 500
+  "cursor": "eyJvIjoxMH0"                       # optional, from previous next_cursor
 }
 ```
 
@@ -351,7 +352,8 @@ All tools accept an optional `output_mode` parameter (`"json"` default, or `"tex
   "status": "unfound",                           # optional
   "min_depth_m": 100,                            # optional
   "min_cargo_value": 100000,                     # optional, guilders
-  "max_results": 50                              # optional, default 100
+  "max_results": 50,                             # optional, default 100, max 500
+  "cursor": null                                 # optional, from previous next_cursor
 }
 ```
 
@@ -362,7 +364,8 @@ All tools accept an optional `output_mode` parameter (`"json"` default, or `"tex
   "ship_name": "Ridderschap van Holland",        # optional
   "rank": "schipper",                            # optional
   "fate": "died_voyage",                         # optional
-  "max_results": 50                              # optional, default 100
+  "max_results": 50,                             # optional, default 100, max 500
+  "cursor": null                                 # optional, from previous next_cursor
 }
 ```
 
@@ -373,7 +376,8 @@ All tools accept an optional `output_mode` parameter (`"json"` default, or `"tex
   "commodity": "pepper",                         # optional, substring match
   "origin": "Malabar",                           # optional
   "min_value": 100000,                           # optional, guilders
-  "max_results": 50                              # optional, default 100
+  "max_results": 50,                             # optional, default 100, max 500
+  "cursor": null                                 # optional, from previous next_cursor
 }
 ```
 
@@ -480,7 +484,8 @@ All tools accept an optional `output_mode` parameter (`"json"` default, or `"tex
   "year_start": 1780,                             # optional, earliest year
   "year_end": 1800,                               # optional, latest year
   "ship_name": "BATAVIA",                         # optional, substring match (CLIWOC 2.1 Full)
-  "max_results": 50                               # optional, default 50
+  "max_results": 50,                              # optional, default 50, max 500
+  "cursor": null                                  # optional, from previous next_cursor
 }
 ```
 
@@ -695,7 +700,8 @@ Built on top of chuk-mcp-server, this server uses:
 - **Multi-Archive Dispatch**: 8 archives across 5 nations (Dutch, English, Portuguese, Spanish, Swedish) with unified query interface
 - **Dual Output**: All 29 tools support `output_mode="text"` for human-readable responses
 - **Domain Reference Data**: ~160 place gazetteer, 8 routes, 6 hull profiles, 215 speed profiles, ~261K ship positions, 22 regions, 7 navigation eras
-- **585 Tests**: Across 13 test modules with 97%+ branch coverage
+- **Cursor-Based Pagination**: All 6 search tools support `cursor` / `next_cursor` / `has_more` for paging through large result sets
+- **597 Tests**: Across 13 test modules with 97%+ branch coverage
 
 ### Supported Archives
 
@@ -779,9 +785,16 @@ See [ROADMAP.md](ROADMAP.md) for the development roadmap and planned features.
 - **All scripts retrofitted** with `--force` and cache-check pattern via `download_utils.py`
 - **`download_all.py` orchestrator** runs all 10 scripts with `--force` passthrough
 
+### Completed (v0.9.0)
+
+- **Cursor-based pagination** for all 6 search tools (voyages, wrecks, crew, cargo, vessels, tracks)
+- `cursor` parameter on all search tools; `total_count`, `next_cursor`, `has_more` in all search responses
+- Page through 774K crew records or 8,194 voyages incrementally
+- `PaginatedResult` dataclass and `_paginate()` in ArchiveManager; deterministic sort for multi-archive queries
+- 597 tests, 97%+ branch coverage
+
 ### Planned
 
-- **Streaming search**: paginated search results for large result sets
 - **WebSocket transport**: real-time subscription to search refinements
 - **Drift modelling**: available as chuk-mcp-ocean-drift (10 tools, v0.1.0) — forward/backtrack/Monte Carlo drift computation using hull profiles and position data from this server
 

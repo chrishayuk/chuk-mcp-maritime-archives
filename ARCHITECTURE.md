@@ -126,7 +126,7 @@ All data files in `data/` are produced by scripts in `scripts/`:
 
 ### 11. Test Coverage -- 97%+
 
-All modules maintain 97%+ branch coverage (585 tests across 13 test modules). Tests use
+All modules maintain 97%+ branch coverage (597 tests across 13 test modules). Tests use
 `pytest-asyncio` and mock at the client data boundary (`_load_json`), not at the manager
 level, to exercise the full data flow from tool to client.
 

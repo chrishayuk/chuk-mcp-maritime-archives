@@ -9,14 +9,44 @@ between JSON and human-readable output.
 
 from __future__ import annotations
 
+import base64
+import json
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
 
 # ---------------------------------------------------------------------------
+# Cursor utilities
+# ---------------------------------------------------------------------------
+
+
+def encode_cursor(offset: int) -> str:
+    """Encode an integer offset as an opaque cursor string."""
+    return base64.urlsafe_b64encode(json.dumps({"o": offset}).encode()).decode().rstrip("=")
+
+
+def decode_cursor(cursor: str | None) -> int:
+    """Decode an opaque cursor string to an integer offset. Returns 0 for None/empty."""
+    if not cursor:
+        return 0
+    padded = cursor + "=" * (-len(cursor) % 4)
+    payload = json.loads(base64.urlsafe_b64decode(padded))
+    return int(payload["o"])
+
+
+# ---------------------------------------------------------------------------
 # Helper
 # ---------------------------------------------------------------------------
+
+
+def _pagination_footer(count: int, total: int | None, has_more: bool, cursor: str | None) -> str:
+    """Build a pagination footer for to_text() output."""
+    if total is not None and has_more and cursor:
+        return f'\n  Showing {count} of {total} total matches. Use cursor="{cursor}" for next page.'
+    if total is not None and total > count:
+        return f"\n  Showing {count} of {total} total matches."
+    return ""
 
 
 def format_response(response: BaseModel, output_mode: str = "json") -> str:
@@ -125,6 +155,9 @@ class VoyageSearchResponse(BaseModel):
     voyages: list[VoyageInfo]
     archive: str | None = None
     message: str = ""
+    total_count: int | None = None
+    next_cursor: str | None = None
+    has_more: bool = False
 
     def to_text(self) -> str:
         lines = [self.message, ""]
@@ -136,6 +169,11 @@ class VoyageSearchResponse(BaseModel):
                 lines.append(
                     f"    {v.departure_port} ({v.departure_date}) -> {v.destination_port or '?'}"
                 )
+        footer = _pagination_footer(
+            len(self.voyages), self.total_count, self.has_more, self.next_cursor
+        )
+        if footer:
+            lines.append(footer)
         return "\n".join(lines)
 
 
@@ -275,6 +313,9 @@ class WreckSearchResponse(BaseModel):
     wrecks: list[WreckInfo]
     archive: str | None = None
     message: str = ""
+    total_count: int | None = None
+    next_cursor: str | None = None
+    has_more: bool = False
 
     def to_text(self) -> str:
         lines = [self.message, ""]
@@ -283,6 +324,11 @@ class WreckSearchResponse(BaseModel):
             lines.append(f"  {w.wreck_id}: {w.ship_name}{status_str}")
             if w.loss_date:
                 lines.append(f"    Lost: {w.loss_date} ({w.loss_cause or '?'})")
+        footer = _pagination_footer(
+            len(self.wrecks), self.total_count, self.has_more, self.next_cursor
+        )
+        if footer:
+            lines.append(footer)
         return "\n".join(lines)
 
 
@@ -331,11 +377,19 @@ class VesselSearchResponse(BaseModel):
     vessel_count: int
     vessels: list[VesselInfo]
     message: str = ""
+    total_count: int | None = None
+    next_cursor: str | None = None
+    has_more: bool = False
 
     def to_text(self) -> str:
         lines = [self.message, ""]
         for v in self.vessels:
             lines.append(f"  {v.vessel_id}: {v.name} ({v.type or '?'}, {v.tonnage or '?'} lasten)")
+        footer = _pagination_footer(
+            len(self.vessels), self.total_count, self.has_more, self.next_cursor
+        )
+        if footer:
+            lines.append(footer)
         return "\n".join(lines)
 
 
@@ -379,6 +433,9 @@ class CrewSearchResponse(BaseModel):
     crew_count: int
     crew: list[CrewInfo]
     message: str = ""
+    total_count: int | None = None
+    next_cursor: str | None = None
+    has_more: bool = False
 
     def to_text(self) -> str:
         lines = [self.message, ""]
@@ -386,6 +443,11 @@ class CrewSearchResponse(BaseModel):
             lines.append(f"  {c.crew_id}: {c.name} ({c.rank_english or c.rank or '?'})")
             if c.ship_name:
                 lines.append(f"    Ship: {c.ship_name}")
+        footer = _pagination_footer(
+            len(self.crew), self.total_count, self.has_more, self.next_cursor
+        )
+        if footer:
+            lines.append(footer)
         return "\n".join(lines)
 
 
@@ -430,12 +492,20 @@ class CargoSearchResponse(BaseModel):
     cargo_count: int
     cargo: list[CargoInfo]
     message: str = ""
+    total_count: int | None = None
+    next_cursor: str | None = None
+    has_more: bool = False
 
     def to_text(self) -> str:
         lines = [self.message, ""]
         for c in self.cargo:
             val = f" ({c.value_guilders:,.0f} guilders)" if c.value_guilders else ""
             lines.append(f"  {c.cargo_id}: {c.commodity} — {c.quantity or '?'} {c.unit or ''}{val}")
+        footer = _pagination_footer(
+            len(self.cargo), self.total_count, self.has_more, self.next_cursor
+        )
+        if footer:
+            lines.append(footer)
         return "\n".join(lines)
 
 
@@ -734,6 +804,9 @@ class TrackSearchResponse(BaseModel):
     track_count: int
     tracks: list[TrackInfo]
     message: str = ""
+    total_count: int | None = None
+    next_cursor: str | None = None
+    has_more: bool = False
 
     def to_text(self) -> str:
         lines = [self.message, ""]
@@ -742,6 +815,11 @@ class TrackSearchResponse(BaseModel):
             ship = f" {t.ship_name}" if t.ship_name else ""
             lines.append(f"  Voyage {t.voyage_id}{nat}{ship}: {t.start_date} to {t.end_date}")
             lines.append(f"    {t.position_count} positions, ~{t.duration_days or '?'} days")
+        footer = _pagination_footer(
+            len(self.tracks), self.total_count, self.has_more, self.next_cursor
+        )
+        if footer:
+            lines.append(footer)
         return "\n".join(lines)
 
 

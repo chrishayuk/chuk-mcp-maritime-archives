@@ -2,7 +2,7 @@
 
 import logging
 
-from ...constants import ErrorMessages
+from ...constants import MAX_PAGE_SIZE, ErrorMessages
 from ...core.cliwoc_tracks import (
     get_track,
     nearby_tracks,
@@ -15,6 +15,8 @@ from ...models import (
     TrackDetailResponse,
     TrackInfo,
     TrackSearchResponse,
+    decode_cursor,
+    encode_cursor,
     format_response,
 )
 
@@ -31,6 +33,7 @@ def register_tracks_tools(mcp: object, manager: object) -> None:
         year_end: int | None = None,
         ship_name: str | None = None,
         max_results: int = 50,
+        cursor: str | None = None,
         output_mode: str = "json",
     ) -> str:
         """
@@ -39,6 +42,7 @@ def register_tracks_tools(mcp: object, manager: object) -> None:
         Returns voyage track summaries from ~261K daily logbook observations
         recorded by 8 European maritime nations. Each track represents one
         voyage with dated lat/lon positions from the ship's logbook.
+        Supports cursor-based pagination.
 
         Args:
             nationality: Two-letter nationality code to filter by.
@@ -48,35 +52,46 @@ def register_tracks_tools(mcp: object, manager: object) -> None:
             year_end: Latest year to include (e.g., 1750)
             ship_name: Ship name or partial name (case-insensitive; requires
                 CLIWOC 2.1 Full data)
-            max_results: Maximum results (default: 50)
+            max_results: Maximum results per page (default: 50, max: 500)
+            cursor: Pagination cursor from a previous result's next_cursor field
             output_mode: Response format - "json" (default) or "text"
 
         Returns:
-            JSON or text with matching track summaries
+            JSON or text with matching track summaries and pagination metadata
 
         Tips for LLMs:
             - Use nationality filter to find ships of a specific nation
             - Combine year_start/year_end to narrow to a specific period
             - Results show track summaries (start/end dates, position count)
+            - If has_more is true, pass next_cursor as cursor to get the next page
             - Follow up with maritime_get_track to get full position data
             - Use maritime_nearby_tracks to find ships near a wreck site
             - CLIWOC covers 1662-1855 with most data from 1750-1850
             - Nationality breakdown: UK (732), NL (677), ES (472), FR (85)
         """
         try:
-            results = search_tracks(
+            all_results = search_tracks(
                 nationality=nationality,
                 year_start=year_start,
                 year_end=year_end,
                 ship_name=ship_name,
-                max_results=max_results,
+                max_results=999_999,
             )
 
-            if not results:
+            if not all_results:
                 return format_response(
                     ErrorResponse(error=ErrorMessages.NO_RESULTS),
                     output_mode,
                 )
+
+            # Paginate at the tool level (search_tracks is not on ArchiveManager)
+            page_size = min(max_results, MAX_PAGE_SIZE)
+            offset = decode_cursor(cursor)
+            total_count = len(all_results)
+            page = all_results[offset : offset + page_size]
+            next_offset = offset + page_size
+            has_more = next_offset < total_count
+            next_cursor = encode_cursor(next_offset) if has_more else None
 
             tracks = [
                 TrackInfo(
@@ -93,7 +108,7 @@ def register_tracks_tools(mcp: object, manager: object) -> None:
                     year_end=r.get("year_end"),
                     position_count=r.get("position_count", 0),
                 )
-                for r in results
+                for r in page
             ]
 
             return format_response(
@@ -101,6 +116,9 @@ def register_tracks_tools(mcp: object, manager: object) -> None:
                     track_count=len(tracks),
                     tracks=tracks,
                     message=f"Found {len(tracks)} CLIWOC tracks",
+                    total_count=total_count,
+                    next_cursor=next_cursor,
+                    has_more=has_more,
                 ),
                 output_mode,
             )

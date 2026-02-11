@@ -11,14 +11,17 @@ Manages:
 """
 
 import logging
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 
 from ..constants import (
     ARCHIVE_METADATA,
+    MAX_PAGE_SIZE,
     NAVIGATION_ERAS,
 )
+from ..models.responses import decode_cursor, encode_cursor
 from .clients import (
     CargoClient,
     CarreiraClient,
@@ -41,6 +44,20 @@ logger = logging.getLogger(__name__)
 
 # Default data directory relative to the project root
 _DEFAULT_DATA_DIR = Path(__file__).resolve().parent.parent.parent.parent / "data"
+
+# Sentinel value: fetch all matching records from clients (no truncation)
+_FETCH_ALL = 999_999
+
+
+@dataclass
+class PaginatedResult:
+    """Paginated search result with cursor metadata."""
+
+    items: list[dict]
+    total_count: int
+    next_cursor: str | None
+    has_more: bool
+
 
 # Map archive IDs to CLIWOC nationality codes
 _ARCHIVE_NATIONALITY = {
@@ -96,6 +113,29 @@ class ArchiveManager:
             "soic": self._soic_client,
         }
 
+    # --- Pagination Helper --------------------------------------------------
+
+    @staticmethod
+    def _paginate(
+        all_results: list[dict],
+        max_results: int,
+        cursor: str | None,
+    ) -> PaginatedResult:
+        """Slice a full result list into a page with cursor metadata."""
+        page_size = min(max_results, MAX_PAGE_SIZE)
+        offset = decode_cursor(cursor)
+        total_count = len(all_results)
+        page = all_results[offset : offset + page_size]
+        next_offset = offset + page_size
+        has_more = next_offset < total_count
+        next_cursor = encode_cursor(next_offset) if has_more else None
+        return PaginatedResult(
+            items=page,
+            total_count=total_count,
+            next_cursor=next_cursor,
+            has_more=has_more,
+        )
+
     # --- Archive Registry ---------------------------------------------------
 
     def list_archives(self) -> list[dict]:
@@ -129,7 +169,8 @@ class ArchiveManager:
         fate: str | None = None,
         archive: str | None = None,
         max_results: int = 50,
-    ) -> list[dict]:
+        cursor: str | None = None,
+    ) -> PaginatedResult:
         """Search for voyages across all archives or a specific one."""
         search_kwargs = dict(
             ship_name=ship_name,
@@ -139,21 +180,22 @@ class ArchiveManager:
             destination_port=destination_port,
             route=route,
             fate=fate,
-            max_results=max_results,
+            max_results=_FETCH_ALL,
         )
 
         if archive and archive in self._voyage_clients:
             results = await self._voyage_clients[archive].search(**search_kwargs)
         elif archive:
-            return []
+            results = []
         else:
             # Query all voyage archives and merge results
-            all_results: list[dict] = []
+            results = []
             for client in self._voyage_clients.values():
-                all_results.extend(await client.search(**search_kwargs))
-            results = all_results
+                results.extend(await client.search(**search_kwargs))
+            # Deterministic sort for stable pagination across archives
+            results.sort(key=lambda v: (v.get("departure_date") or "9999", v.get("voyage_id", "")))
 
-        return results[:max_results]
+        return self._paginate(results, max_results, cursor)
 
     async def get_voyage(self, voyage_id: str) -> dict | None:
         """Get full voyage details, routing to the correct archive client."""
@@ -456,7 +498,8 @@ class ArchiveManager:
         min_cargo_value: float | None = None,
         archive: str | None = None,
         max_results: int = 100,
-    ) -> list[dict]:
+        cursor: str | None = None,
+    ) -> PaginatedResult:
         """Search wreck records across all archives or a specific one."""
         search_kwargs = dict(
             ship_name=ship_name,
@@ -467,7 +510,7 @@ class ArchiveManager:
             min_depth_m=min_depth_m,
             max_depth_m=max_depth_m,
             min_cargo_value=min_cargo_value,
-            max_results=max_results,
+            max_results=_FETCH_ALL,
         )
 
         if archive and archive in self._wreck_clients:
@@ -477,18 +520,19 @@ class ArchiveManager:
             else:
                 results = await client.search(**search_kwargs)
         elif archive:
-            return []
+            results = []
         else:
             # Query all wreck archives and merge results
-            all_results: list[dict] = []
+            results = []
             for client in self._wreck_clients.values():
                 if hasattr(client, "search_wrecks"):
-                    all_results.extend(await client.search_wrecks(**search_kwargs))
+                    results.extend(await client.search_wrecks(**search_kwargs))
                 else:
-                    all_results.extend(await client.search(**search_kwargs))
-            results = all_results
+                    results.extend(await client.search(**search_kwargs))
+            # Deterministic sort for stable pagination across archives
+            results.sort(key=lambda w: (w.get("loss_date") or "9999", w.get("wreck_id", "")))
 
-        return results[:max_results]
+        return self._paginate(results, max_results, cursor)
 
     async def get_wreck(self, wreck_id: str) -> dict | None:
         """Get full wreck record, routing to the correct archive client."""
@@ -522,16 +566,18 @@ class ArchiveManager:
         max_tonnage: int | None = None,
         archive: str | None = None,
         max_results: int = 50,
-    ) -> list[dict]:
+        cursor: str | None = None,
+    ) -> PaginatedResult:
         """Search vessel records from local DAS data."""
-        return await self._das_client.search_vessels(
+        results = await self._das_client.search_vessels(
             name=name,
             ship_type=ship_type,
             chamber=chamber,
             min_tonnage=min_tonnage,
             max_tonnage=max_tonnage,
-            max_results=max_results,
+            max_results=_FETCH_ALL,
         )
+        return self._paginate(results, max_results, cursor)
 
     async def get_vessel(self, vessel_id: str) -> dict | None:
         """Get full vessel specification."""
@@ -550,17 +596,19 @@ class ArchiveManager:
         fate: str | None = None,
         archive: str = "voc_crew",
         max_results: int = 100,
-    ) -> list[dict]:
+        cursor: str | None = None,
+    ) -> PaginatedResult:
         """Search crew muster records."""
-        return await self._crew_client.search(
+        results = await self._crew_client.search(
             name=name,
             rank=rank,
             ship_name=ship_name,
             voyage_id=voyage_id,
             origin=origin,
             fate=fate,
-            max_results=max_results,
+            max_results=_FETCH_ALL,
         )
+        return self._paginate(results, max_results, cursor)
 
     async def get_crew_member(self, crew_id: str) -> dict | None:
         """Get full crew member record."""
@@ -578,16 +626,18 @@ class ArchiveManager:
         min_value: float | None = None,
         archive: str = "voc_cargo",
         max_results: int = 100,
-    ) -> list[dict]:
+        cursor: str | None = None,
+    ) -> PaginatedResult:
         """Search cargo manifests."""
-        return await self._cargo_client.search(
+        results = await self._cargo_client.search(
             voyage_id=voyage_id,
             commodity=commodity,
             origin=origin,
             destination=destination,
             min_value=min_value,
-            max_results=max_results,
+            max_results=_FETCH_ALL,
         )
+        return self._paginate(results, max_results, cursor)
 
     async def get_cargo_manifest(self, voyage_id: str) -> list[dict]:
         """Get full cargo manifest for a voyage."""
@@ -715,7 +765,7 @@ class ArchiveManager:
         group_by: str | None = None,
     ) -> dict:
         """Get aggregate statistics across archives."""
-        wrecks = await self.search_wrecks(max_results=1000)
+        wrecks = (await self.search_wrecks(max_results=10000)).items
 
         if date_range:
             wrecks = self._filter_by_date_range(wrecks, date_range, "loss_date")
@@ -778,9 +828,11 @@ class ArchiveManager:
                 if w:
                     wrecks.append(w)
         else:
-            wrecks = await self.search_wrecks(
-                region=region, status=status, archive=archive, max_results=1000
-            )
+            wrecks = (
+                await self.search_wrecks(
+                    region=region, status=status, archive=archive, max_results=10000
+                )
+            ).items
 
         features = []
         for w in wrecks:

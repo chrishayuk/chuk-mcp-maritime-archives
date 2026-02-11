@@ -13,7 +13,7 @@ from typing import Literal
 
 class ServerConfig(str, Enum):
     NAME = "chuk-mcp-maritime-archives"
-    VERSION = "0.8.0"
+    VERSION = "0.9.0"
     DESCRIPTION = "Historical Maritime Archives"
 
 
@@ -374,6 +374,7 @@ VOC_CHAMBERS: list[str] = [
 
 
 MAX_RESULTS: int = 50
+MAX_PAGE_SIZE: int = 500
 DEFAULT_ARCHIVE: str = "das"
 
 
