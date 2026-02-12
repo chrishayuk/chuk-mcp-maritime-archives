@@ -62,7 +62,7 @@ async def main() -> None:
 
     # Single archive detail
     print("\n--- Archive details (maritime_get_archive) ---")
-    for aid in ["das", "eic", "carreira", "galleon", "soic"]:
+    for aid in ["das", "eic", "carreira", "galleon", "soic", "ukho"]:
         arch = await runner.run("maritime_get_archive", archive_id=aid)
         a = arch["archive"]
         print(f"  {aid:10s}  {a['name']}")

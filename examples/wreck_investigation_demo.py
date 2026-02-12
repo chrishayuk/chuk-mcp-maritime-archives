@@ -3,7 +3,7 @@
 Wreck Investigation Demo -- chuk-mcp-maritime-archives
 
 Demonstrates a complete wreck investigation workflow across multiple
-archives (MAARER, EIC, Carreira, Galleon, SOIC): search for wrecks,
+archives (MAARER, EIC, Carreira, Galleon, SOIC, UKHO): search for wrecks,
 examine individual wreck records, assess position quality, and export
 locations as GeoJSON.
 
@@ -54,7 +54,7 @@ async def main() -> None:
     print("\n1b. Per-archive wreck searches (offline)")
     print("-" * 40)
 
-    for archive in ["eic", "carreira", "galleon", "soic"]:
+    for archive in ["eic", "carreira", "galleon", "soic", "ukho"]:
         wrecks = await runner.run("maritime_search_wrecks", archive=archive, max_results=3)
         if "error" not in wrecks:
             print(f"\n   {archive.upper()} ({wrecks['wreck_count']} wrecks):")

@@ -30,6 +30,7 @@ from .clients import (
     EICClient,
     GalleonClient,
     SOICClient,
+    UKHOClient,
     WreckClient,
 )
 from .cliwoc_tracks import (
@@ -94,6 +95,7 @@ class ArchiveManager:
         self._carreira_client = CarreiraClient(data_dir=data_path)
         self._galleon_client = GalleonClient(data_dir=data_path)
         self._soic_client = SOICClient(data_dir=data_path)
+        self._ukho_client = UKHOClient(data_dir=data_path)
 
         # Multi-archive dispatch: archive ID -> voyage client
         self._voyage_clients: dict[str, Any] = {
@@ -111,6 +113,7 @@ class ArchiveManager:
             "carreira": self._carreira_client,
             "galleon": self._galleon_client,
             "soic": self._soic_client,
+            "ukho": self._ukho_client,
         }
 
     # --- Pagination Helper --------------------------------------------------
@@ -496,6 +499,8 @@ class ArchiveManager:
         min_depth_m: float | None = None,
         max_depth_m: float | None = None,
         min_cargo_value: float | None = None,
+        flag: str | None = None,
+        vessel_type: str | None = None,
         archive: str | None = None,
         max_results: int = 100,
         cursor: str | None = None,
@@ -510,6 +515,8 @@ class ArchiveManager:
             min_depth_m=min_depth_m,
             max_depth_m=max_depth_m,
             min_cargo_value=min_cargo_value,
+            flag=flag,
+            vessel_type=vessel_type,
             max_results=_FETCH_ALL,
         )
 
@@ -546,6 +553,7 @@ class ArchiveManager:
             ("carreira_wreck:", self._carreira_client),
             ("galleon_wreck:", self._galleon_client),
             ("soic_wreck:", self._soic_client),
+            ("ukho_wreck:", self._ukho_client),
         ]:
             if wreck_id.startswith(prefix):
                 return await client.get_wreck_by_id(wreck_id)

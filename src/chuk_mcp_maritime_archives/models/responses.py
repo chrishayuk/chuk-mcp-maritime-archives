@@ -304,6 +304,9 @@ class WreckInfo(BaseModel):
     status: str | None = None
     position: dict[str, Any] | None = None
     archive: str | None = None
+    flag: str | None = None
+    vessel_type: str | None = None
+    depth_estimate_m: float | None = None
 
 
 class WreckSearchResponse(BaseModel):

@@ -4,7 +4,7 @@ Statistics Demo -- chuk-mcp-maritime-archives
 
 Compute aggregate statistics across multiple maritime archives. Shows
 total losses, breakdowns by region, cause, status, and decade, plus
-per-archive wreck comparisons (EIC, Carreira, Galleon, SOIC).
+per-archive wreck comparisons (EIC, Carreira, Galleon, SOIC, UKHO).
 
 Demonstrates:
     maritime_get_statistics (aggregate analysis)
@@ -84,7 +84,7 @@ async def main() -> None:
     print("\n2. Per-archive wreck comparison")
     print("-" * 40)
 
-    for archive in ["eic", "carreira", "galleon", "soic"]:
+    for archive in ["eic", "carreira", "galleon", "soic", "ukho"]:
         wrecks = await runner.run("maritime_search_wrecks", archive=archive, max_results=100)
         if "error" not in wrecks:
             count = wrecks["wreck_count"]

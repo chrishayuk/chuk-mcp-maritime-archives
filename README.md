@@ -8,12 +8,12 @@
 
 ## Features
 
-This MCP server provides structured access to historical maritime archives and reference data through 29 tools across 8 archives and 5 nations.
+This MCP server provides structured access to historical maritime archives and reference data through 29 tools across 9 archives and 6 nations.
 
 **All tools return fully-typed Pydantic v2 models** for type safety, validation, and excellent IDE support. All tools support `output_mode="text"` for human-readable output alongside the default JSON.
 
 ### 1. Archive Discovery (`maritime_list_archives`, `maritime_get_archive`)
-Browse 8 maritime archives across 5 nations:
+Browse 9 maritime archives across 6 nations:
 - Dutch Asiatic Shipping (DAS) -- 8,194 voyages (1595-1795)
 - VOC Opvarenden -- up to 774,200 crew records (1633-1794)
 - Boekhouder-Generaal Batavia -- 200 curated cargo records (1700-1795)
@@ -22,8 +22,9 @@ Browse 8 maritime archives across 5 nations:
 - Portuguese Carreira da India -- ~500 voyages, ~100 wrecks (1497-1835)
 - Spanish Manila Galleon -- ~250 voyages, ~42 wrecks (1565-1815)
 - Swedish East India Company (SOIC) -- ~132 voyages, ~20 wrecks (1731-1813)
+- UK Hydrographic Office (UKHO) -- 94,000+ wrecks worldwide (1500-2024)
 
-> **Note:** The EIC, Carreira, Galleon, and SOIC archives are curated datasets compiled from published academic sources. Carreira, Galleon, and SOIC include programmatically expanded records covering the full historical period. VOC Crew data requires running `scripts/download_crew.py` to download from the Nationaal Archief (774K records, ~80 MB). Cargo and EIC have download scripts (`download_cargo.py`, `download_eic.py`) for future expansion from external sources.
+> **Note:** The EIC, Carreira, Galleon, and SOIC archives are curated datasets compiled from published academic sources. Carreira, Galleon, and SOIC include programmatically expanded records covering the full historical period. VOC Crew data requires running `scripts/download_crew.py` to download from the Nationaal Archief (774K records, ~80 MB). UKHO data requires running `scripts/download_ukho.py` to download from EMODnet (94K records). A curated fallback of 50 representative wrecks ships with the repo via `scripts/generate_ukho.py`. Cargo and EIC have download scripts (`download_cargo.py`, `download_eic.py`) for future expansion from external sources.
 
 ### 2. Voyage Search (`maritime_search_voyages`, `maritime_get_voyage`)
 Search voyage records across all 5 voyage archives (DAS, EIC, Carreira, Galleon, SOIC):
@@ -32,9 +33,10 @@ Search voyage records across all 5 voyage archives (DAS, EIC, Carreira, Galleon,
 - Full voyage detail including incident narratives and vessel data
 
 ### 3. Wreck Search (`maritime_search_wrecks`, `maritime_get_wreck`)
-Search shipwreck and loss records across all 5 wreck archives (MAARER, EIC, Carreira, Galleon, SOIC):
-- Filter by region, cause, depth, cargo value, status, archive
+Search shipwreck and loss records across all 6 wreck archives (MAARER, EIC, Carreira, Galleon, SOIC, UKHO):
+- Filter by region, cause, depth, cargo value, status, archive, flag, vessel type
 - Multi-archive wreck search or single-archive filtering
+- UKHO adds 94,000+ global wrecks spanning all eras
 - Position data with uncertainty estimates
 - Archaeological status and notes
 
@@ -256,6 +258,7 @@ python location_lookup_demo.py     # VOC gazetteer: place names to coordinates
 python route_explorer_demo.py      # sailing routes + position estimation
 python track_explorer_demo.py      # CLIWOC ship tracks + nearby search
 python cross_archive_demo.py      # unified voyage view across 5 archives
+python ukho_global_wrecks_demo.py  # UKHO 94K+ global wrecks: flag, depth, type filters
 python speed_profile_demo.py       # CLIWOC-derived speed statistics per segment
 python climate_proxy_demo.py       # ship speeds as climate proxies (wind & monsoon)
 python timeline_demo.py            # chronological voyage timeline from all sources
@@ -284,6 +287,7 @@ python batavia_case_study_demo.py  # 12-tool chain investigating the Batavia wre
 | `speed_profile_demo.py` | No | `maritime_get_speed_profile`, `maritime_estimate_position` |
 | `climate_proxy_demo.py` | No | `maritime_get_speed_profile`, `maritime_get_route`, `maritime_search_tracks`, `maritime_get_track` |
 | `timeline_demo.py` | No | `maritime_get_timeline`, `maritime_search_voyages` |
+| `ukho_global_wrecks_demo.py` | No | `maritime_search_wrecks`, `maritime_get_wreck`, `maritime_get_statistics`, `maritime_export_geojson` (UKHO flag/type/depth filters) |
 | `voyage_search_demo.py` | Partial | `maritime_search_voyages`, `maritime_get_voyage` (DAS needs network, EIC/Carreira/Galleon/SOIC offline) |
 | `wreck_investigation_demo.py` | Partial | `maritime_search_wrecks`, `maritime_get_wreck`, `maritime_assess_position`, `maritime_export_geojson` (multi-archive, mostly offline) |
 | `vessel_search_demo.py` | Yes | `maritime_search_vessels`, `maritime_get_vessel`, `maritime_get_hull_profile` |
@@ -701,7 +705,7 @@ Built on top of chuk-mcp-server, this server uses:
 - **Dual Output**: All 29 tools support `output_mode="text"` for human-readable responses
 - **Domain Reference Data**: ~160 place gazetteer, 8 routes, 6 hull profiles, 215 speed profiles, ~261K ship positions, 22 regions, 7 navigation eras
 - **Cursor-Based Pagination**: All 6 search tools support `cursor` / `next_cursor` / `has_more` for paging through large result sets
-- **597 Tests**: Across 13 test modules with 97%+ branch coverage
+- **616 Tests**: Across 13 test modules with 97%+ branch coverage
 
 ### Supported Archives
 
@@ -793,9 +797,18 @@ See [ROADMAP.md](ROADMAP.md) for the development roadmap and planned features.
 - `PaginatedResult` dataclass and `_paginate()` in ArchiveManager; deterministic sort for multi-archive queries
 - 597 tests, 97%+ branch coverage
 
+### Completed (v0.11.0)
+
+- **UKHO Global Wrecks**: 94,000+ wrecks worldwide from UK Hydrographic Office via EMODnet (Open Government Licence v3.0)
+- **9 archives across 6 nations**: added UKHO as wrecks-only archive with global coverage (1500-2024)
+- **New wreck filters**: `flag` (vessel nationality) and `vessel_type` on wreck search
+- **5 new global regions**: north_atlantic, mediterranean, baltic, north_pacific, australia_nz
+- **Dual data pipeline**: `download_ukho.py` (EMODnet WFS, 94K records) + `generate_ukho.py` (50 curated fallback wrecks)
+- 616 tests, 97%+ branch coverage
+
 ### Planned
 
-- **WebSocket transport**: real-time subscription to search refinements
+- **Full-text narrative search**: `maritime_search_narratives` across all free-text fields with relevance ranking
 - **Drift modelling**: available as chuk-mcp-ocean-drift (10 tools, v0.1.0) — forward/backtrack/Monte Carlo drift computation using hull profiles and position data from this server
 
 ## Contributing

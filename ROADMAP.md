@@ -81,7 +81,7 @@ Expanded to 27 tools across 14 categories. Unified cross-archive queries and ric
 **Cross-archive linking:**
 - `WreckClient.get_by_voyage_id()` -- find wreck linked to a voyage
 - `DASClient.get_vessel_for_voyage()` -- find vessel via reverse voyage_ids index
-- `get_track_by_das_number()` -- CLIWOC↔DAS direct linking via DAS number
+- `get_track_by_das_number()` -- CLIWOC-DAS direct linking via DAS number
 - `find_track_for_voyage()` -- fuzzy match CLIWOC tracks by ship name + date overlap
 - `ArchiveManager.get_voyage_full()` -- orchestrates all linking in one call
 
@@ -155,7 +155,7 @@ Expanded from 4 Dutch archives to 8 multi-nation archives. Multi-archive dispatc
 - `get_voyage("eic:0001")` routes by prefix to the correct client
 - 4 new client classes (`EICClient`, `CarreiraClient`, `GalleonClient`, `SOICClient`) following `BaseArchiveClient` pattern
 - Each client handles both voyages and wrecks in a single class
-- CLIWOC nationality cross-referencing: `eic`→UK, `carreira`→PT, `galleon`→ES, `soic`→SE
+- CLIWOC nationality cross-referencing: `eic`->UK, `carreira`->PT, `galleon`->ES, `soic`->SE
 - `archive` field added to `VoyageInfo` and `WreckInfo` response models
 
 **Data pipeline:**
@@ -181,9 +181,9 @@ Full-coverage data pipeline with cache-check-download pattern and expanded curat
 - `scripts/download_eic.py` -- downloads EIC data from ThreeDecks (falls back to curated generator)
 
 **Expanded curated archives:**
-- **Carreira da India**: 120 → ~500 voyages, 40 → ~100 wrecks. Programmatic fleet-filling with era-appropriate ship name, captain, and tonnage pools covering 1497-1835.
-- **Manila Galleon**: 100 → ~250 voyages, 25 → ~42 wrecks. Expanded with eastbound/westbound pairs and era-specific cargo details covering 1565-1815.
-- **SOIC**: 80 → ~132 voyages, 12 → ~20 wrecks. Added 8 wreck entries along the Gothenburg-Canton route.
+- **Carreira da India**: 120 -> ~500 voyages, 40 -> ~100 wrecks
+- **Manila Galleon**: 100 -> ~250 voyages, 25 -> ~42 wrecks
+- **SOIC**: 80 -> ~132 voyages, 12 -> ~20 wrecks
 
 **Crew client indexed lookups:**
 - `CrewClient` rewritten with lazy-built in-memory indexes for O(1) voyage_id and crew_id lookups
@@ -210,12 +210,8 @@ Cursor-based pagination for all 6 search tools. Enables browsing large result se
 - `MAX_PAGE_SIZE = 500` clamp prevents oversized pages
 
 **Updated search tools (6 tools):**
-- `maritime_search_voyages` -- `cursor` parameter, `total_count` / `next_cursor` / `has_more` in response
-- `maritime_search_wrecks` -- same pattern
-- `maritime_search_crew` -- same pattern (enables paging through 774K records)
-- `maritime_search_cargo` -- same pattern
-- `maritime_search_vessels` -- same pattern
-- `maritime_search_tracks` -- same pattern (tool-level pagination for CLIWOC module function)
+- `maritime_search_voyages`, `maritime_search_wrecks`, `maritime_search_crew`, `maritime_search_cargo`, `maritime_search_vessels`, `maritime_search_tracks`
+- `total_count` / `next_cursor` / `has_more` in all search responses
 
 **Response model changes:**
 - 6 search response models (`VoyageSearchResponse`, `WreckSearchResponse`, `CrewSearchResponse`, `CargoSearchResponse`, `VesselSearchResponse`, `TrackSearchResponse`) gained `total_count`, `next_cursor`, `has_more` fields
@@ -229,9 +225,127 @@ Cursor-based pagination for all 6 search tools. Enables browsing large result se
 **Quality:**
 - 597 tests across 13 test modules, 97%+ branch coverage
 
+### v0.11.0 -- UKHO Global Wrecks
+
+Integrated the UK Hydrographic Office wrecks and obstructions dataset -- 94,000+ records worldwide, available under Open Government Licence v3.0.
+
+**New archive:**
+- **`UKHOClient`** -- wrecks-only client following `BaseArchiveClient` pattern with lazy-indexed lookups for 94K records
+- `scripts/download_ukho.py` -- downloads from EMODnet WFS service with paginated requests
+- `scripts/generate_ukho.py` -- curated fallback of 50 representative wrecks (ships with repo)
+- Multi-archive dispatch: `search_wrecks(archive="ukho")` or cross-archive search
+- 9 archives across 6 nations; total wreck records expanded from ~930 to ~95,000
+
+**New search filters:**
+- `flag` -- filter wrecks by vessel nationality (UKHO-specific)
+- `vessel_type` -- filter by ship type classification (UKHO-specific)
+
+**Expanded geographic coverage:**
+- 5 new global regions: `north_atlantic`, `mediterranean`, `baltic`, `north_pacific`, `australia_nz`
+- `classify_region()` bounding-box classifier maps global UKHO positions to region codes
+- `"collision"` added to `LOSS_CAUSES` for UKHO data
+
+**Quality:**
+- 616 tests across 13 test modules, 97%+ branch coverage
+
 ---
 
 ## Planned
+
+### v0.10.0 -- Full-Text Narrative Search
+
+Full-text search across incident narratives, voyage notes, and wreck descriptions.
+
+- `maritime_search_narratives` -- search across all free-text fields (incident descriptions, voyage notes, archaeological notes, wreck circumstances) with relevance ranking
+- Index incident narratives from DAS voyage records, wreck archaeological notes, and loss circumstance descriptions
+- Support for boolean operators and phrase matching
+- Return matching text snippets with highlighted context
+- Cross-archive: search narratives across all 9 archives in a single query
+- Useful for research questions like "find all mentions of monsoon" or "which wrecks mention cannon"
+
+### v0.12.0 -- NOAA Wrecks & Obstructions (US Waters)
+
+Integrate NOAA's combined wrecks and obstructions database -- ~13,000 wrecks and ~6,000 obstructions in US coastal waters.
+
+- **`NOAAWreckClient`** with ArcGIS REST and KML/XLS download support
+- `scripts/download_noaa_wrecks.py` -- download from ENC Direct / AWOIS data exports
+- Historical context and descriptive information from AWOIS records
+- Position accuracy codes and source quality codes from NOAA's own assessment system
+- Maps to existing position assessment framework (NOAA quality codes -> uncertainty types)
+- Complements UKHO for comprehensive US waters coverage
+
+### v0.13.0 -- Dutch Ships and Sailors (Linked Data)
+
+Integrate the DSS Linked Data Cloud -- four curated Dutch maritime datasets as five-star linked data, hosted by Huygens ING and VU Amsterdam.
+
+- **SPARQL client** for querying the DSS triple store at `semanticweb.cs.vu.nl/dss/`
+- Cross-links DAS voyages with DSS ship records via shared identifiers
+- Generale Zeemonsterrollen VOC (GZMVOC) -- crew counting and payment records, complements existing VOC Opvarenden data
+- Wage comparison data: Asiatic vs European sailors
+- Ship type classification linked to Getty AAT vocabulary
+- `scripts/download_dss.py` -- SPARQL CONSTRUCT queries to extract and cache locally as JSON
+- Fallback to local cache when SPARQL endpoint is unavailable (consistent with local-first pattern)
+
+### v0.14.0 -- Improved Cross-Archive Entity Resolution
+
+Improve the CLIWOC-DAS linking hit rate and add entity resolution scoring across all archives.
+
+- **Fuzzy ship name matching** using Levenshtein distance and phonetic matching (historical spellings vary: "BATAVIA" vs "Batavia" vs "De Batavia")
+- **Date-weighted matching** -- prioritise candidates with closest date overlap, penalise distant matches
+- **Confidence scoring** for all cross-archive links: `link_confidence` field (0.0-1.0) on `VoyageFullResponse`
+- **Link audit tool** -- `maritime_audit_links` returns precision/recall metrics against known ground truth (54 found wrecks, 48 DAS-linked CLIWOC tracks)
+- **Crew-voyage linking** -- match crew records to specific voyages via ship name + date, enabling per-voyage crew lists
+- Currently 48 direct DAS-CLIWOC links via DAS number; target: 200+ fuzzy-matched links with scored confidence
+- `is_curated` field on expanded archive records (Carreira, Galleon, SOIC) to distinguish hand-curated from programmatically generated entries
+
+### v0.15.0 -- Additional Sailing Routes
+
+Extend the route library beyond the 8 existing VOC routes to cover all archive nations.
+
+- **EIC routes**: London -> Cape -> India (Surat, Madras, Calcutta, Bombay) -> China (Canton)
+- **Carreira da India routes**: Lisbon -> Cape -> Goa, with Mozambique Island stopover
+- **Manila Galleon routes**: Acapulco -> Manila (westbound via trade winds) and Manila -> Acapulco (eastbound via North Pacific)
+- **SOIC routes**: Gothenburg -> Cape -> Canton
+- Waypoints, typical sailing days, hazards, and season notes for each route
+- Speed profiles generated from CLIWOC data where nationality-filtered observations exist
+- `maritime_estimate_position` works with all new route IDs
+- Enables position estimation for EIC, Carreira, Galleon, and SOIC voyages (currently only VOC routes supported)
+
+### v0.16.0 -- Crew Demographics & Network Analysis
+
+Analytical tools built on the 774K crew records cross-referenced with voyage data.
+
+- `maritime_crew_demographics` -- aggregate statistics: origins, ranks, fates, pay distributions, filtered by date range, ship, route
+- `maritime_crew_career` -- reconstruct an individual's career across multiple voyages (name + origin matching across records)
+- `maritime_crew_survival_analysis` -- survival rates by route, ship type, rank, decade
+- **Desertion mapping** -- cross-reference crew "deserted" fate with voyage port-of-call data to identify desertion hotspots
+- **Labour migration patterns** -- where the VOC recruited from, how this changed over 160 years
+- Useful for digital humanities research and documentary narrative construction
+
+### v1.0.0 -- Stability & API Freeze
+
+Stable release with frozen tool signatures and response models.
+
+- Semantic versioning commitment: no breaking changes within v1.x
+- Published JSON Schema for all 29+ tool input/output models
+- OpenAPI-compatible specification for HTTP mode
+- Comprehensive migration guide from v0.x
+- Performance benchmarks for all search tools across full dataset sizes
+- Documentation: expanded ARCHITECTURE.md with data flow diagrams for all linking strategies
+
+---
+
+## Future Considerations
+
+These are ideas being tracked but not yet committed to a specific version.
+
+### EMODnet Shipwrecks (European)
+
+The European Marine Observation and Data Network aggregates wreck data from SHOM (France), Historic England, Ireland's National Monument Service, and the Oxford Roman Economy Project. Would extend European coverage significantly, including archaeological wrecks dating back millennia.
+
+### Lloyd's List & War Losses
+
+Lloyd's List (1740-present) covers global shipping movements and casualties. Lloyd's War Losses (1914-1945) covers WWI/WWII vessel losses. Both would massively expand temporal coverage but access is restricted and would require licensing agreements.
 
 ### WebSocket Transport
 
@@ -240,6 +354,23 @@ Real-time updates for interactive exploration.
 - Subscribe to search refinements
 - Progressive result loading
 - Live position tracking during route estimation
+
+### Climate Proxy Analysis Tools
+
+The CLIWOC speed profiles are a proxy dataset for historical wind patterns. Dedicated analysis tools could formalise the relationship between sailing speeds and wind strength demonstrated in the climate proxy research.
+
+- `maritime_climate_proxy` -- compute decadal speed trends by route segment as wind proxies
+- Correlation with ice core records from Antarctica
+- Seasonal monsoon timing analysis from Indian Ocean route speeds
+
+### Wreck Probability Surfaces
+
+Systematic position correction for all unfound wrecks using the full pipeline.
+
+- For each of ~680 unfound VOC wrecks: classify position uncertainty -> estimate drift from hull profile -> generate probability surface
+- Requires chuk-mcp-ocean-drift integration for drift computation
+- Output: GeoJSON probability maps per wreck, scored and ranked by search feasibility
+- The 54 found wrecks serve as ground truth for calibrating drift models
 
 ---
 
@@ -261,7 +392,7 @@ This server is the data layer in a composable stack of MCP servers:
 
 | Server | Tools | Tests | Role |
 |--------|-------|-------|------|
-| chuk-mcp-maritime-archives | 29 | 597 | Voyage, wreck, vessel, crew, cargo records |
+| chuk-mcp-maritime-archives | 29 | 616 | Voyage, wreck, vessel, crew, cargo records |
 | chuk-mcp-ocean-drift | 10 | 235 | Forward/backtrack/Monte Carlo drift |
 | chuk-mcp-dem | 4 | 711 | Bathymetry and elevation data |
 | chuk-mcp-stac | 5 | 382 | Satellite imagery via STAC catalogues |
@@ -269,18 +400,18 @@ This server is the data layer in a composable stack of MCP servers:
 | chuk-mcp-tides | 8 | 717 | Tidal current data |
 | chuk-mcp-physics | 66 | 240 | Fluid dynamics computations |
 | chuk-mcp-open-meteo | 6 | 22 | Weather and wind data |
-| **Total** | **136** | **3,158** | |
+| **Total** | **136** | **3,177** | |
 
 All servers follow the same patterns: Pydantic v2 models, dual output mode, chuk-artifacts storage.
 
 **Example wreck investigation pipeline:**
-1. `maritime_search_wrecks` → find wreck, get position + uncertainty
-2. `maritime_get_hull_profile` → drag coefficients, sinking characteristics
-3. `maritime_assess_position` → quantify position reliability
-4. `ocean_drift_backtrack` → reverse-compute from wreck site to sinking point
-5. `dem_get_elevation` → confirm depth at candidate locations
-6. `tides_get_currents` → tidal influence at the site
-7. `stac_search` → satellite/sonar imagery of search area
+1. `maritime_search_wrecks` -> find wreck, get position + uncertainty
+2. `maritime_get_hull_profile` -> drag coefficients, sinking characteristics
+3. `maritime_assess_position` -> quantify position reliability
+4. `ocean_drift_backtrack` -> reverse-compute from wreck site to sinking point
+5. `dem_get_elevation` -> confirm depth at candidate locations
+6. `tides_get_currents` -> tidal influence at the site
+7. `stac_search` -> satellite/sonar imagery of search area
 
 ---
 
@@ -304,15 +435,25 @@ Current and potential data sources for the project.
 | Carreira da India | ~500 voyages, ~100 wrecks | `generate_carreira.py` | Curated + expanded from Guinote/Frutuoso/Lopes |
 | Manila Galleon | ~250 voyages, ~42 wrecks | `generate_galleon.py` | Curated + expanded from Schurz |
 | SOIC Archives | ~132 voyages, ~20 wrecks | `generate_soic.py` | Curated + expanded from Koninckx |
+| [UKHO Wrecks](https://www.admiralty.co.uk/access-data/marine-data) | 94,000+ wrecks worldwide | `download_ukho.py` / `generate_ukho.py` | Working (EMODnet WFS download + curated fallback) |
 
 > **Note:** All download and generate scripts support `--force` to regenerate data. Run `python scripts/download_all.py` to fetch/generate all datasets. Core reference data is ~35 MB; with crew data downloaded, total is ~115 MB.
+
+### Planned
+
+| Source | Records | Format | Access | Target Version |
+|--------|---------|--------|--------|----------------|
+| [NOAA Wrecks & Obstructions](https://nauticalcharts.noaa.gov/) | ~13,000 wrecks, ~6,000 obstructions | KML/XLS/ArcGIS REST | Public domain | v0.12.0 |
+| [Dutch Ships and Sailors](https://datasets.iisg.amsterdam/dataverse/dss) | Linked data (4 datasets) | RDF/SPARQL | Open access, live triple store | v0.13.0 |
 
 ### Potential
 
 | Source | Description | Format | Notes |
 |--------|-------------|--------|-------|
-| [Dutch Ships and Sailors](https://datasets.iisg.amsterdam/dataverse/dss) | Linked data on Dutch maritime | RDF/SPARQL | Crew, ships, voyages -- needs SPARQL client |
+| [EMODnet Shipwrecks](https://emodnet.ec.europa.eu/) | European wreck aggregation (SHOM, Historic England, Ireland, Oxford Roman Economy) | WFS/CSV | Multi-source, includes archaeological wrecks dating back millennia |
 | [Nationaal Archief OAI](https://www.nationaalarchief.nl/) | Archival metadata | OAI-PMH | Broader than just VOC |
+| Lloyd's List | Global shipping movements and casualties (1740-present) | Restricted | Would require licensing |
+| Lloyd's War Losses | WWI/WWII vessel losses (1914-1945) | Restricted | Would require licensing |
 
 ---
 
@@ -326,3 +467,5 @@ See [README.md](README.md#contributing) for contribution guidelines. Key areas w
 - **Additional sailing routes** -- EIC, Carreira, Galleon, and SOIC standard routes
 - **Test coverage** -- edge cases in position estimation, date handling, and multi-archive dispatch
 - **Cargo enrichment** -- expanding the 200-record curated cargo dataset using Glamann's "Dutch-Asiatic Trade" tables
+- **Entity resolution** -- improving fuzzy matching between CLIWOC ship names and DAS voyage records
+- **Narrative search** -- full-text indexing of incident descriptions and archaeological notes

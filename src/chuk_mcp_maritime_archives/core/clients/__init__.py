@@ -8,6 +8,7 @@ from .das_client import DASClient
 from .eic_client import EICClient
 from .galleon_client import GalleonClient
 from .soic_client import SOICClient
+from .ukho_client import UKHOClient
 from .wreck_client import WreckClient
 
 __all__ = [
@@ -19,5 +20,6 @@ __all__ = [
     "EICClient",
     "GalleonClient",
     "SOICClient",
+    "UKHOClient",
     "WreckClient",
 ]

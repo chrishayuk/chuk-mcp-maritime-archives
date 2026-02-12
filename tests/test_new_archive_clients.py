@@ -1,4 +1,4 @@
-"""Tests for the four new archive clients: EIC, Carreira, Galleon, SOIC."""
+"""Tests for archive clients: EIC, Carreira, Galleon, SOIC, UKHO."""
 
 from pathlib import Path
 
@@ -8,6 +8,7 @@ from chuk_mcp_maritime_archives.core.clients.eic_client import EICClient
 from chuk_mcp_maritime_archives.core.clients.carreira_client import CarreiraClient
 from chuk_mcp_maritime_archives.core.clients.galleon_client import GalleonClient
 from chuk_mcp_maritime_archives.core.clients.soic_client import SOICClient
+from chuk_mcp_maritime_archives.core.clients.ukho_client import UKHOClient
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
@@ -331,6 +332,109 @@ class TestSOICClient:
 
 
 # ---------------------------------------------------------------------------
+# UKHO Client (Wrecks Only)
+# ---------------------------------------------------------------------------
+
+
+class TestUKHOClient:
+    @pytest.fixture(autouse=True)
+    def setup(self):
+        self.client = UKHOClient(data_dir=FIXTURES_DIR)
+
+    @pytest.mark.asyncio
+    async def test_search_all(self):
+        results = await self.client.search_wrecks()
+        assert len(results) == 5
+
+    @pytest.mark.asyncio
+    async def test_search_by_ship_name(self):
+        results = await self.client.search_wrecks(ship_name="Birkenhead")
+        assert len(results) == 1
+        assert results[0]["ship_name"] == "HMS Birkenhead"
+
+    @pytest.mark.asyncio
+    async def test_search_by_region(self):
+        results = await self.client.search_wrecks(region="cape")
+        assert len(results) == 1
+        assert results[0]["wreck_id"] == "ukho_wreck:00001"
+
+    @pytest.mark.asyncio
+    async def test_search_by_cause(self):
+        results = await self.client.search_wrecks(cause="collision")
+        assert len(results) == 1
+        assert results[0]["ship_name"] == "SS Mendi"
+
+    @pytest.mark.asyncio
+    async def test_search_by_depth_min(self):
+        results = await self.client.search_wrecks(min_depth_m=30)
+        assert len(results) == 2  # Birkenhead (30) + San Diego (52)
+
+    @pytest.mark.asyncio
+    async def test_search_by_depth_max(self):
+        results = await self.client.search_wrecks(max_depth_m=10)
+        assert len(results) == 1  # Batavia (5)
+
+    @pytest.mark.asyncio
+    async def test_search_by_flag(self):
+        results = await self.client.search_wrecks(flag="UK")
+        assert len(results) == 2  # Birkenhead + Mendi
+
+    @pytest.mark.asyncio
+    async def test_search_by_vessel_type(self):
+        results = await self.client.search_wrecks(vessel_type="galleon")
+        assert len(results) == 1
+        assert results[0]["ship_name"] == "San Diego"
+
+    @pytest.mark.asyncio
+    async def test_search_by_date_range(self):
+        results = await self.client.search_wrecks(date_range="1900/1920")
+        assert len(results) == 1
+        assert results[0]["ship_name"] == "SS Mendi"
+
+    @pytest.mark.asyncio
+    async def test_get_wreck_by_id(self):
+        result = await self.client.get_wreck_by_id("ukho_wreck:00001")
+        assert result is not None
+        assert result["ship_name"] == "HMS Birkenhead"
+
+    @pytest.mark.asyncio
+    async def test_get_wreck_by_id_without_prefix(self):
+        result = await self.client.get_wreck_by_id("00001")
+        assert result is not None
+        assert result["ship_name"] == "HMS Birkenhead"
+
+    @pytest.mark.asyncio
+    async def test_get_wreck_by_id_not_found(self):
+        result = await self.client.get_wreck_by_id("ukho_wreck:99999")
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_search_delegates_to_search_wrecks(self):
+        """search() should return same results as search_wrecks()."""
+        via_search = await self.client.search()
+        via_wrecks = await self.client.search_wrecks()
+        assert len(via_search) == len(via_wrecks)
+
+    @pytest.mark.asyncio
+    async def test_get_by_id_delegates_to_get_wreck_by_id(self):
+        """get_by_id() should return same result as get_wreck_by_id()."""
+        via_get = await self.client.get_by_id("ukho_wreck:00001")
+        via_wreck = await self.client.get_wreck_by_id("ukho_wreck:00001")
+        assert via_get == via_wreck
+
+    @pytest.mark.asyncio
+    async def test_all_records_have_archive_tag(self):
+        wrecks = await self.client.search_wrecks()
+        for w in wrecks:
+            assert w["archive"] == "ukho"
+
+    @pytest.mark.asyncio
+    async def test_max_results(self):
+        results = await self.client.search_wrecks(max_results=2)
+        assert len(results) == 2
+
+
+# ---------------------------------------------------------------------------
 # Multi-archive Manager Integration
 # ---------------------------------------------------------------------------
 
@@ -352,7 +456,7 @@ class TestMultiArchiveManager:
         assert "carreira" in ids
         assert "galleon" in ids
         assert "soic" in ids
-        assert len(ids) == 8
+        assert len(ids) == 9
 
     @pytest.mark.asyncio
     async def test_search_voyages_all_archives(self):
@@ -456,3 +560,22 @@ class TestMultiArchiveManager:
         # Wreck should be found via _find_wreck_for_voyage
         assert result["wreck"] is not None
         assert result["wreck"]["wreck_id"] == "eic_wreck:0001"
+
+    @pytest.mark.asyncio
+    async def test_search_wrecks_ukho_archive(self):
+        result = await self.manager.search_wrecks(archive="ukho")
+        assert len(result.items) == 5
+        for w in result.items:
+            assert w["archive"] == "ukho"
+
+    @pytest.mark.asyncio
+    async def test_get_wreck_ukho_routing(self):
+        result = await self.manager.get_wreck("ukho_wreck:00001")
+        assert result is not None
+        assert result["ship_name"] == "HMS Birkenhead"
+
+    @pytest.mark.asyncio
+    async def test_search_wrecks_all_includes_ukho(self):
+        result = await self.manager.search_wrecks(max_results=500)
+        archives = {w.get("archive") for w in result.items}
+        assert "ukho" in archives

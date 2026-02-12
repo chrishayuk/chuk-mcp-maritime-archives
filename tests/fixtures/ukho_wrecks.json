@@ -1,0 +1,72 @@
+[
+  {
+    "wreck_id": "ukho_wreck:00001",
+    "ship_name": "HMS Birkenhead",
+    "loss_date": "1852-02-26",
+    "loss_cause": "reef",
+    "loss_location": "Danger Point, near Gansbaai",
+    "region": "cape",
+    "status": "found",
+    "position": {"lat": -34.63, "lon": 19.30, "uncertainty_km": 0.5},
+    "depth_estimate_m": 30,
+    "flag": "UK",
+    "vessel_type": "troopship",
+    "archive": "ukho"
+  },
+  {
+    "wreck_id": "ukho_wreck:00002",
+    "ship_name": "SS Mendi",
+    "loss_date": "1917-02-21",
+    "loss_cause": "collision",
+    "loss_location": "English Channel, off Isle of Wight",
+    "region": "english_channel",
+    "status": "found",
+    "position": {"lat": 50.47, "lon": -1.28, "uncertainty_km": 0.1},
+    "depth_estimate_m": 15,
+    "flag": "UK",
+    "vessel_type": "transport",
+    "archive": "ukho"
+  },
+  {
+    "wreck_id": "ukho_wreck:00003",
+    "ship_name": "Batavia",
+    "loss_date": "1629-06-04",
+    "loss_cause": "reef",
+    "loss_location": "Morning Reef, Houtman Abrolhos",
+    "region": "australia_nz",
+    "status": "found",
+    "position": {"lat": -28.49, "lon": 113.79, "uncertainty_km": 0.1},
+    "depth_estimate_m": 5,
+    "flag": "NL",
+    "vessel_type": "retourschip",
+    "archive": "ukho"
+  },
+  {
+    "wreck_id": "ukho_wreck:00004",
+    "ship_name": "San Diego",
+    "loss_date": "1600-12-14",
+    "loss_cause": "battle",
+    "loss_location": "Fortune Island, Philippines",
+    "region": "south_china_sea",
+    "status": "found",
+    "position": {"lat": 13.86, "lon": 121.22, "uncertainty_km": 1.0},
+    "depth_estimate_m": 52,
+    "flag": "ES",
+    "vessel_type": "galleon",
+    "archive": "ukho"
+  },
+  {
+    "wreck_id": "ukho_wreck:00005",
+    "ship_name": "Unknown vessel",
+    "loss_date": null,
+    "loss_cause": "unknown",
+    "loss_location": null,
+    "region": "north_atlantic",
+    "status": "unfound",
+    "position": {"lat": 48.50, "lon": -30.00, "uncertainty_km": 100.0},
+    "depth_estimate_m": null,
+    "flag": null,
+    "vessel_type": null,
+    "archive": "ukho"
+  }
+]

@@ -13,7 +13,7 @@ from typing import Literal
 
 class ServerConfig(str, Enum):
     NAME = "chuk-mcp-maritime-archives"
-    VERSION = "0.9.0"
+    VERSION = "0.11.0"
     DESCRIPTION = "Historical Maritime Archives"
 
 
@@ -68,6 +68,7 @@ class ArchiveId(str, Enum):
     CARREIRA = "carreira"
     GALLEON = "galleon"
     SOIC = "soic"
+    UKHO = "ukho"
 
 
 ARCHIVE_METADATA: dict[str, dict] = {
@@ -225,6 +226,28 @@ ARCHIVE_METADATA: dict[str, dict] = {
         ),
         "license": "Curated from published academic sources",
     },
+    "ukho": {
+        "name": "UK Hydrographic Office Global Wrecks",
+        "organisation": "UK Hydrographic Office",
+        "coverage_start": "1500",
+        "coverage_end": "2024",
+        "record_types": ["wrecks"],
+        "total_wrecks": 94000,
+        "access_method": "bulk_download",
+        "documentation_url": "https://datahub.admiralty.co.uk",
+        "description": (
+            "Comprehensive global shipwreck database maintained by the UK "
+            "Hydrographic Office. Contains 94,000+ wrecks worldwide with "
+            "vessel names, positions, depths, dates, and loss circumstances. "
+            "Updated quarterly. Distributed via EMODnet Human Activities portal."
+        ),
+        "citation": (
+            "UK Hydrographic Office. Database of Wrecks and Obstructions. "
+            "Accessed via EMODnet Human Activities portal. "
+            "Open Government Licence v3.0."
+        ),
+        "license": "Open Government Licence v3.0",
+    },
 }
 
 
@@ -254,6 +277,11 @@ REGIONS: dict[str, str] = {
     "south_china_coast": "Canton / Pearl River Delta",
     "english_channel": "English Channel / Downs",
     "west_africa": "West African coast",
+    "north_atlantic": "North Atlantic Ocean",
+    "mediterranean": "Mediterranean Sea",
+    "baltic": "Baltic Sea",
+    "north_pacific": "North Pacific Ocean",
+    "australia_nz": "Australia and New Zealand waters",
 }
 
 
@@ -280,6 +308,7 @@ LOSS_CAUSES: list[str] = [
     "battle",
     "grounding",
     "scuttled",
+    "collision",
     "unknown",
 ]
 
@@ -382,7 +411,7 @@ DEFAULT_ARCHIVE: str = "das"
 
 
 ArchiveName = Literal[
-    "das", "voc_crew", "voc_cargo", "maarer", "eic", "carreira", "galleon", "soic"
+    "das", "voc_crew", "voc_cargo", "maarer", "eic", "carreira", "galleon", "soic", "ukho"
 ]
 RegionName = Literal[
     "north_sea",
@@ -407,6 +436,11 @@ RegionName = Literal[
     "south_china_coast",
     "english_channel",
     "west_africa",
+    "north_atlantic",
+    "mediterranean",
+    "baltic",
+    "north_pacific",
+    "australia_nz",
 ]
 
 

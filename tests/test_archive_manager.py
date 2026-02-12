@@ -123,22 +123,23 @@ class TestWreckOperations:
     @pytest.mark.asyncio
     async def test_search_wrecks_no_filters(self, manager: ArchiveManager):
         result = await manager.search_wrecks()
-        assert len(result.items) == 8  # 3 MAARER + 2 EIC + 1 carreira + 1 galleon + 1 SOIC
-        assert result.total_count == 8
+        # 3 MAARER + 2 EIC + 1 carreira + 1 galleon + 1 SOIC + 5 UKHO
+        assert len(result.items) == 13
+        assert result.total_count == 13
 
     @pytest.mark.asyncio
     async def test_search_wrecks_by_status(self, manager: ArchiveManager):
         result = await manager.search_wrecks(status="found")
         assert all(w["status"] == "found" for w in result.items)
-        assert len(result.items) == 6  # 3 MAARER + 1 EIC + 1 galleon + 1 SOIC
+        # 3 MAARER + 1 EIC + 1 galleon + 1 SOIC + 4 UKHO
+        assert len(result.items) == 10
 
     @pytest.mark.asyncio
     async def test_search_wrecks_by_region(self, manager: ArchiveManager):
         result = await manager.search_wrecks(region="cape")
         assert all(w["region"] == "cape" for w in result.items)
-        assert (
-            len(result.items) == 3
-        )  # 1 MAARER (Meermin) + 1 EIC (Grosvenor) + 1 carreira (Sao Joao)
+        # 1 MAARER (Meermin) + 1 EIC (Grosvenor) + 1 carreira (Sao Joao) + 1 UKHO (Birkenhead)
+        assert len(result.items) == 4
 
     @pytest.mark.asyncio
     async def test_search_wrecks_by_archive(self, manager: ArchiveManager):
@@ -338,14 +339,14 @@ class TestStatistics:
         assert "summary" in stats
         assert "losses_by_region" in stats
         assert "losses_by_cause" in stats
-        assert stats["summary"]["total_losses"] == 8  # all wreck archives combined
+        assert stats["summary"]["total_losses"] == 13  # all wreck archives combined
 
     @pytest.mark.asyncio
     async def test_get_statistics_with_date_range(self, manager: ArchiveManager):
         stats = await manager.get_statistics(date_range="1600/1700")
-        assert (
-            stats["summary"]["total_losses"] == 3
-        )  # Batavia 1629, Vergulde Draeck 1656, San Diego 1600
+        # Batavia 1629, Vergulde Draeck 1656, San Diego 1600 (galleon)
+        # + UKHO: Batavia 1629, San Diego 1600
+        assert stats["summary"]["total_losses"] == 5
 
     @pytest.mark.asyncio
     async def test_get_statistics_computes_breakdowns(self, manager: ArchiveManager):
@@ -369,7 +370,7 @@ class TestGeoJSONExport:
     async def test_export_geojson(self, manager: ArchiveManager):
         geojson = await manager.export_geojson()
         assert geojson["type"] == "FeatureCollection"
-        assert len(geojson["features"]) == 8  # all wreck archives combined
+        assert len(geojson["features"]) == 13  # all wreck archives combined
 
     @pytest.mark.asyncio
     async def test_export_geojson_by_status(self, manager: ArchiveManager):

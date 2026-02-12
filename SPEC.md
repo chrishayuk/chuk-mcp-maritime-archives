@@ -1,14 +1,14 @@
 # chuk-mcp-maritime-archives Specification
 
-Version 0.9.0
+Version 0.11.0
 
 ## Overview
 
 chuk-mcp-maritime-archives is an MCP (Model Context Protocol) server that provides
 structured access to historical maritime shipping records, vessel specifications,
 crew muster rolls, cargo manifests, and shipwreck databases from the Age of Exploration
-through the colonial era, 1497-1874. Covers Dutch (VOC), English (EIC), Portuguese
-(Carreira da India), Spanish (Manila Galleon), and Swedish (SOIC) maritime archives.
+through the colonial era and beyond, 1497-2024. Covers Dutch (VOC), English (EIC), Portuguese
+(Carreira da India), Spanish (Manila Galleon), Swedish (SOIC), and UK Hydrographic Office (UKHO) maritime archives.
 
 - **29 tools** for searching, retrieving, analysing, and exporting maritime archival data
 - **Cursor-based pagination** -- all 6 search tools support `cursor` / `next_cursor` / `has_more` for paging through large result sets
@@ -28,6 +28,7 @@ through the colonial era, 1497-1874. Covers Dutch (VOC), English (EIC), Portugue
 | `carreira` | Portuguese Carreira da India | Curated + expanded from Guinote/Frutuoso/Lopes | ~500 voyages, ~100 wrecks | 1497-1835 | voyages, wrecks |
 | `galleon` | Spanish Manila Galleon | Curated + expanded from Schurz | ~250 voyages, ~42 wrecks | 1565-1815 | voyages, wrecks |
 | `soic` | Swedish East India Company | Curated + expanded from Koninckx | ~132 voyages, ~20 wrecks | 1731-1813 | voyages, wrecks |
+| `ukho` | UK Hydrographic Office Global Wrecks | UK Hydrographic Office via EMODnet | 94,000+ wrecks | 1500-2024 | wrecks |
 
 > **Note on data completeness:** The EIC, Carreira, Galleon, and SOIC archives are curated datasets compiled from published academic sources. Carreira, Galleon, and SOIC include programmatically expanded records covering the full historical period. VOC Crew data requires running `scripts/download_crew.py` to download from the Nationaal Archief (774K records, ~80 MB). Cargo and EIC have download scripts for future expansion from external sources.
 
@@ -43,8 +44,9 @@ through the colonial era, 1497-1874. Covers Dutch (VOC), English (EIC), Portugue
 | Carreira | Guinote/Frutuoso/Lopes published sources | Local JSON via `generate_carreira.py` |
 | Galleon | Schurz published sources | Local JSON via `generate_galleon.py` |
 | SOIC | Koninckx published sources | Local JSON via `generate_soic.py` |
+| UKHO | EMODnet Human Activities portal | Bulk download via `download_ukho.py` + `generate_ukho.py` fallback |
 
-All archives except DAS work entirely offline with local JSON data. DAS data is
+All archives except DAS and UKHO work entirely offline with local JSON data. DAS data is
 cached locally after first download. VOC Crew requires running `download_crew.py`
 to fetch the 774K-record dataset. All scripts support `--force` for re-download.
 
@@ -88,7 +90,7 @@ Get detailed metadata for a specific archive.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `archive_id` | `str` | *required* | Archive identifier: `das`, `voc_crew`, `voc_cargo`, `maarer`, `eic`, `carreira`, `galleon`, `soic` |
+| `archive_id` | `str` | *required* | Archive identifier: `das`, `voc_crew`, `voc_cargo`, `maarer`, `eic`, `carreira`, `galleon`, `soic`, `ukho` |
 
 **Response:** `ArchiveDetailResponse`
 
@@ -166,11 +168,13 @@ Search shipwreck and loss records across all archives.
 | `ship_name` | `str?` | `None` | Ship name (substring match) |
 | `date_range` | `str?` | `None` | Date range `YYYY/YYYY` or `YYYY-MM-DD/YYYY-MM-DD` |
 | `region` | `str?` | `None` | Geographic region code (see Regions table) |
-| `cause` | `str?` | `None` | Loss cause: `storm`, `reef`, `fire`, `battle`, `grounding`, `scuttled`, `unknown` |
+| `cause` | `str?` | `None` | Loss cause: `storm`, `reef`, `fire`, `battle`, `grounding`, `scuttled`, `collision`, `unknown` |
 | `status` | `str?` | `None` | Wreck status: `found`, `unfound`, `approximate` |
 | `min_depth_m` | `float?` | `None` | Minimum depth in metres |
 | `max_depth_m` | `float?` | `None` | Maximum depth in metres |
 | `min_cargo_value` | `float?` | `None` | Minimum cargo value in guilders |
+| `flag` | `str?` | `None` | Vessel nationality/flag (substring match, UKHO data) |
+| `vessel_type` | `str?` | `None` | Vessel type classification (substring match, UKHO data) |
 | `archive` | `str?` | `None` | Limit to specific archive |
 | `max_results` | `int` | `100` | Maximum results per page (max: 500) |
 | `cursor` | `str?` | `None` | Pagination cursor from a previous result's `next_cursor` field |
@@ -197,7 +201,7 @@ Get full details for a specific wreck by ID.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `wreck_id` | `str` | *required* | Wreck identifier (e.g., `maarer:VOC-0789`, `eic_wreck:0010`, `carreira_wreck:0001`, `galleon_wreck:0001`, `soic_wreck:0001`) |
+| `wreck_id` | `str` | *required* | Wreck identifier (e.g., `maarer:VOC-0789`, `eic_wreck:0010`, `carreira_wreck:0001`, `galleon_wreck:0001`, `soic_wreck:0001`, `ukho_wreck:00001`) |
 
 **Response:** `WreckDetailResponse`
 
@@ -966,6 +970,11 @@ Each ship type includes full hydrodynamic profiles for drift modelling:
 | `pacific` | Pacific Ocean |
 | `japan` | Japanese waters |
 | `caribbean` | Caribbean Sea |
+| `north_atlantic` | North Atlantic Ocean |
+| `mediterranean` | Mediterranean Sea |
+| `baltic` | Baltic Sea |
+| `north_pacific` | North Pacific Ocean |
+| `australia_nz` | Australia and New Zealand waters |
 
 ### Navigation Technology by Era
 
@@ -997,7 +1006,7 @@ The six administrative divisions of the VOC that built and maintained ships:
 
 ### Loss Causes
 
-`storm`, `reef`, `fire`, `battle`, `grounding`, `scuttled`, `unknown`
+`storm`, `reef`, `fire`, `battle`, `grounding`, `scuttled`, `collision`, `unknown`
 
 ### Voyage Fates
 
@@ -1038,7 +1047,7 @@ All tools return `ErrorResponse` on failure:
 
 ```json
 {
-  "error": "Archive 'invalid' not found. Available: das, voc_crew, voc_cargo, maarer, eic, carreira, galleon, soic",
+  "error": "Archive 'invalid' not found. Available: das, voc_crew, voc_cargo, maarer, eic, carreira, galleon, soic, ukho",
   "message": ""
 }
 ```

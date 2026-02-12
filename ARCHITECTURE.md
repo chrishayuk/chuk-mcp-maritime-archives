@@ -38,7 +38,7 @@ message templates are all constants -- never inline strings.
 
 ### 5. Data Source Clients
 
-Eight archive clients extend `BaseArchiveClient`, each loading from local JSON:
+Nine archive clients extend `BaseArchiveClient`, each loading from local JSON:
 
 **Core archives (Dutch):**
 - `DASClient` -- Dutch Asiatic Shipping voyages and vessels (8,194 voyages)
@@ -51,9 +51,11 @@ Eight archive clients extend `BaseArchiveClient`, each loading from local JSON:
 - `CarreiraClient` -- Portuguese Carreira da India (~500 voyages, ~100 wrecks)
 - `GalleonClient` -- Spanish Manila Galleon (~250 voyages, ~42 wrecks)
 - `SOICClient` -- Swedish East India Company (~132 voyages, ~20 wrecks)
+- `UKHOClient` -- UK Hydrographic Office global wrecks (94,000+ wrecks, wrecks-only)
 
 Each multi-nation client handles both voyages and wrecks in a single class, with
 `search()`, `get_by_id()`, `search_wrecks()`, and `get_wreck_by_id()` methods.
+`UKHOClient` is wrecks-only -- `search()` and `get_by_id()` delegate to wreck methods.
 
 Reference data modules load from JSON files in `data/`:
 - `voc_gazetteer` -- ~160 historical place names from `data/gazetteer.json`
@@ -61,7 +63,7 @@ Reference data modules load from JSON files in `data/`:
 - `hull_profiles` -- 6 ship type profiles from `data/hull_profiles.json`
 - `speed_profiles` -- 215 speed profiles across 6 routes from `data/speed_profiles.json`
 
-`ArchiveManager` instantiates all 8 clients at startup and uses `_voyage_clients`
+`ArchiveManager` instantiates all 9 clients at startup and uses `_voyage_clients`
 and `_wreck_clients` dispatch dicts to route queries by archive ID.
 
 ### 6. LRU Caching
@@ -105,7 +107,7 @@ for instant crew member retrieval across 774K records.
 
 `ArchiveManager` routes queries to the correct client via dispatch dicts:
 - `_voyage_clients`: maps archive IDs (das, eic, carreira, galleon, soic) to voyage clients
-- `_wreck_clients`: maps archive IDs (maarer, eic, carreira, galleon, soic) to wreck clients
+- `_wreck_clients`: maps archive IDs (maarer, eic, carreira, galleon, soic, ukho) to wreck clients
 
 When `archive` is specified, the query goes to a single client. When omitted, all clients
 are queried and results are aggregated. Prefixed IDs (e.g. `eic:0062`) are parsed to route
@@ -116,9 +118,9 @@ archive IDs to nationality codes (das→NL, eic→UK, carreira→PT, galleon→E
 
 All data files in `data/` are produced by scripts in `scripts/`:
 - Download scripts (`download_das.py`, `download_cliwoc.py`, `download_crew.py`,
-  `download_cargo.py`, `download_eic.py`) fetch data from external sources
+  `download_cargo.py`, `download_eic.py`, `download_ukho.py`) fetch data from external sources
 - Generate scripts (`generate_eic.py`, `generate_carreira.py`, `generate_galleon.py`,
-  `generate_soic.py`, `generate_cargo.py`, `generate_reference.py`,
+  `generate_soic.py`, `generate_ukho.py`, `generate_cargo.py`, `generate_reference.py`,
   `generate_speed_profiles.py`) produce curated or computed datasets
 - All scripts support `--force` to regenerate and use a cache-check-download pattern
   via shared utilities in `scripts/download_utils.py`
@@ -126,7 +128,7 @@ All data files in `data/` are produced by scripts in `scripts/`:
 
 ### 11. Test Coverage -- 97%+
 
-All modules maintain 97%+ branch coverage (597 tests across 13 test modules). Tests use
+All modules maintain 97%+ branch coverage (616 tests across 13 test modules). Tests use
 `pytest-asyncio` and mock at the client data boundary (`_load_json`), not at the manager
 level, to exercise the full data flow from tool to client.
 
@@ -221,6 +223,7 @@ server.py                           # CLI entry point (sync)
   |           +-- core/clients/carreira_client.py  # Carreira voyages + wrecks (local JSON)
   |           +-- core/clients/galleon_client.py   # Galleon voyages + wrecks (local JSON)
   |           +-- core/clients/soic_client.py      # SOIC voyages + wrecks (local JSON)
+  |           +-- core/clients/ukho_client.py      # UKHO global wrecks (local JSON)
   |           +-- core/hull_profiles.py            # Hull profiles (data/hull_profiles.json)
   |           +-- core/voc_gazetteer.py            # VOC gazetteer (data/gazetteer.json)
   |           +-- core/voc_routes.py               # VOC routes (data/routes.json)
@@ -262,6 +265,7 @@ src/chuk_mcp_maritime_archives/
 |       +-- carreira_client.py   # Carreira voyages + wrecks (local JSON)
 |       +-- galleon_client.py    # Galleon voyages + wrecks (local JSON)
 |       +-- soic_client.py       # SOIC voyages + wrecks (local JSON)
+|       +-- ukho_client.py       # UKHO global wrecks (local JSON)
 +-- models/
 |   +-- __init__.py
 |   +-- maritime.py    # Domain models (extra="allow")
@@ -321,8 +325,8 @@ and the shared `ArchiveManager`.
 ### `core/archive_manager.py`
 
 The central orchestrator. Manages:
-- **Archive registry**: static metadata for all 8 archives
-- **Data source clients**: 8 clients (DAS, Crew, Cargo, Wreck, EIC, Carreira, Galleon, SOIC)
+- **Archive registry**: static metadata for all 9 archives
+- **Data source clients**: 9 clients (DAS, Crew, Cargo, Wreck, EIC, Carreira, Galleon, SOIC, UKHO)
 - **Multi-archive dispatch**: `_voyage_clients` and `_wreck_clients` dicts route by archive ID
 - **LRU caches**: OrderedDict caches for voyages, wrecks, and vessels
 - **Hull profile lookups**: static reference data for 6 VOC ship types
@@ -386,6 +390,15 @@ routes between Acapulco and Manila.
 Client for the Swedish East India Company (~132 voyages, ~20 wrecks). Loads from
 `data/soic_voyages.json` and `data/soic_wrecks.json`. Gothenburg-Canton route
 via the Cape of Good Hope.
+
+### `core/clients/ukho_client.py`
+
+Client for the UK Hydrographic Office global wrecks database (94,000+ wrecks from
+`data/ukho_wrecks.json`, downloaded via `scripts/download_ukho.py` or generated
+via `scripts/generate_ukho.py`). Wrecks-only archive — no voyage data. `search()`
+and `get_by_id()` delegate to `search_wrecks()` and `get_wreck_by_id()`. Supports
+additional filter parameters `flag` (nationality) and `vessel_type`. Uses lazy-built
+`_wreck_index` for O(1) lookups across 94K records.
 
 ### `core/hull_profiles.py`
 
@@ -576,6 +589,6 @@ of truth in version-controlled JSON files that can be regenerated or edited dire
 
 Position assessment uses `NAVIGATION_ERAS` from constants to determine the navigation
 technology available in a given year. Six eras span 1595-1880, covering the full range
-of all 8 archives. The era determines the baseline position uncertainty (30km for
+of all 9 archives. The era determines the baseline position uncertainty (30km for
 1595-1650 down to 2km for 1840-1880), which is then adjusted based on the source
 description keywords.
