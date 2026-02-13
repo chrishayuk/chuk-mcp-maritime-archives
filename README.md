@@ -8,7 +8,7 @@
 
 ## Features
 
-This MCP server provides structured access to historical maritime archives and reference data through 30 tools across 10 archives and 6 nations.
+This MCP server provides structured access to historical maritime archives and reference data through 33 tools across 10 archives and 6 nations.
 
 **All tools return fully-typed Pydantic v2 models** for type safety, validation, and excellent IDE support. All tools support `output_mode="text"` for human-readable output alongside the default JSON.
 
@@ -99,6 +99,7 @@ Historical sailing speed statistics derived from CLIWOC 2.1 daily positions:
 Historical ship track data from CLIWOC 2.1 Full logbooks (1662-1855):
 - ~261K daily position observations from 8 European maritime nations
 - Search by nationality (NL, UK, ES, FR, SE, US, DE, DK), year range, and ship name
+- **Geographic bounding box**: filter tracks by `lat_min`/`lat_max`/`lon_min`/`lon_max`
 - Full position histories for individual voyages with ship names, company, and DAS numbers
 - **Nearby ship search**: find what other ships were near a position on a given date
 - Useful for wreck investigation context and route reconstruction
@@ -133,7 +134,15 @@ Full-text search across all free-text narrative content:
 - Relevance-ranked results with text snippets and match context
 - Cursor-based pagination
 
-### 17. Server Discovery (`maritime_capabilities`)
+### 18. Track Analytics (`maritime_compute_track_speeds`, `maritime_aggregate_track_speeds`, `maritime_compare_speed_groups`)
+Server-side speed computation and statistical analysis on CLIWOC track data:
+- **Per-voyage speeds**: compute daily haversine-based speeds from consecutive logbook positions
+- **Bulk aggregation**: aggregate speeds across all matching tracks by decade, year, month, direction, or nationality
+- **Statistical testing**: Mann-Whitney U test comparing speed distributions between two time periods (no scipy needed)
+- Geographic bounding box filtering, speed bounds, direction filtering
+- Enables climate proxy analysis: detect wind trends, seasonal patterns, volcanic signals in historical ship speeds
+
+### 19. Server Discovery (`maritime_capabilities`)
 List full server capabilities for LLM workflow planning:
 - Available archives with metadata
 - All registered tools with descriptions
@@ -275,6 +284,7 @@ python noaa_us_wrecks_demo.py     # NOAA 13K+ US wrecks: GP quality, Gulf, Great
 python narrative_search_demo.py   # full-text search across all narrative fields
 python speed_profile_demo.py       # CLIWOC-derived speed statistics per segment
 python climate_proxy_demo.py       # ship speeds as climate proxies (wind & monsoon)
+python volcanic_signal_demo.py    # volcanic signals, E/W ratios, spatial variation
 python timeline_demo.py            # chronological voyage timeline from all sources
 
 # Core tool demos (network required)
@@ -299,7 +309,8 @@ python batavia_case_study_demo.py  # 12-tool chain investigating the Batavia wre
 | `track_explorer_demo.py` | No | `maritime_search_tracks`, `maritime_get_track`, `maritime_nearby_tracks` |
 | `cross_archive_demo.py` | Partial | `maritime_search_voyages`, `maritime_get_voyage_full` (EIC/Carreira/Galleon/SOIC offline, DAS needs network) |
 | `speed_profile_demo.py` | No | `maritime_get_speed_profile`, `maritime_estimate_position` |
-| `climate_proxy_demo.py` | No | `maritime_get_speed_profile`, `maritime_get_route`, `maritime_search_tracks`, `maritime_get_track` |
+| `climate_proxy_demo.py` | No | `maritime_get_speed_profile`, `maritime_get_route`, `maritime_aggregate_track_speeds`, `maritime_compare_speed_groups` |
+| `volcanic_signal_demo.py` | No | `maritime_aggregate_track_speeds`, `maritime_compare_speed_groups` (Laki eruption, E/W ratio, seasonal amplitude, spatial variation) |
 | `timeline_demo.py` | No | `maritime_get_timeline`, `maritime_search_voyages` |
 | `ukho_global_wrecks_demo.py` | No | `maritime_search_wrecks`, `maritime_get_wreck`, `maritime_get_statistics`, `maritime_export_geojson` (UKHO flag/type/depth filters) |
 | `noaa_us_wrecks_demo.py` | No | `maritime_search_wrecks`, `maritime_get_wreck`, `maritime_export_geojson` (NOAA GP quality, Gulf, Great Lakes) |
@@ -348,6 +359,9 @@ All tools accept an optional `output_mode` parameter (`"json"` default, or `"tex
 | `maritime_export_geojson` | Export | GeoJSON wreck position export |
 | `maritime_get_statistics` | Export | Aggregate loss statistics |
 | `maritime_search_narratives` | Narratives | Full-text search across all narrative fields |
+| `maritime_compute_track_speeds` | Analytics | Compute daily sailing speeds for a CLIWOC voyage |
+| `maritime_aggregate_track_speeds` | Analytics | Aggregate track speeds by decade, year, month, direction, or nationality |
+| `maritime_compare_speed_groups` | Analytics | Compare speed distributions between two time periods (Mann-Whitney U) |
 | `maritime_capabilities` | Discovery | Server capabilities and reference data |
 
 ### maritime_search_narratives
@@ -517,6 +531,10 @@ All tools accept an optional `output_mode` parameter (`"json"` default, or `"tex
   "year_start": 1780,                             # optional, earliest year
   "year_end": 1800,                               # optional, latest year
   "ship_name": "BATAVIA",                         # optional, substring match (CLIWOC 2.1 Full)
+  "lat_min": -50,                                 # optional, bounding box min latitude
+  "lat_max": -30,                                 # optional, bounding box max latitude
+  "lon_min": 15,                                  # optional, bounding box min longitude
+  "lon_max": 110,                                 # optional, bounding box max longitude
   "max_results": 50,                              # optional, default 50, max 500
   "cursor": null                                  # optional, from previous next_cursor
 }
@@ -547,6 +565,53 @@ All tools accept an optional `output_mode` parameter (`"json"` default, or `"tex
 ```python
 {
   "ship_type": "retourschip"                     # ship type code
+}
+```
+
+### maritime_compute_track_speeds
+
+```python
+{
+  "voyage_id": 118,                               # required, CLIWOC voyage ID
+  "lat_min": -50,                                 # optional, bounding box
+  "lat_max": -30,
+  "lon_min": 15,
+  "lon_max": 110,
+  "min_speed_km_day": 5.0,                        # optional, filter slow/anchored
+  "max_speed_km_day": 400.0                        # optional, filter errors
+}
+```
+
+### maritime_aggregate_track_speeds
+
+```python
+{
+  "group_by": "decade",                            # "decade", "year", "month", "direction", "nationality"
+  "lat_min": -50,                                  # optional, bounding box
+  "lat_max": -30,
+  "lon_min": 15,
+  "lon_max": 110,
+  "nationality": "NL",                             # optional, filter by nationality
+  "year_start": 1750,                              # optional
+  "year_end": 1800,                                # optional
+  "direction": "eastbound",                        # optional, "eastbound" or "westbound"
+  "min_speed_km_day": 5.0,                         # optional
+  "max_speed_km_day": 400.0                        # optional
+}
+```
+
+### maritime_compare_speed_groups
+
+```python
+{
+  "group1_years": "1750/1789",                     # required, first period
+  "group2_years": "1820/1859",                     # required, second period
+  "lat_min": -50,                                  # optional, bounding box
+  "lat_max": -30,
+  "lon_min": 15,
+  "lon_max": 110,
+  "nationality": "NL",                             # optional
+  "direction": "eastbound"                         # optional
 }
 ```
 
@@ -731,10 +796,10 @@ Built on top of chuk-mcp-server, this server uses:
 - **Indexed Lookups**: Lazy-built in-memory indexes for large datasets (774K crew records)
 - **Cross-Archive Linking**: Unified voyage view with wreck, vessel, hull profile, and CLIWOC track linking
 - **Multi-Archive Dispatch**: 8 archives across 5 nations (Dutch, English, Portuguese, Spanish, Swedish) with unified query interface
-- **Dual Output**: All 30 tools support `output_mode="text"` for human-readable responses
+- **Dual Output**: All 33 tools support `output_mode="text"` for human-readable responses
 - **Domain Reference Data**: ~160 place gazetteer, 8 routes, 6 hull profiles, 215 speed profiles, ~261K ship positions, 22 regions, 7 navigation eras
 - **Cursor-Based Pagination**: All 8 search tools support `cursor` / `next_cursor` / `has_more` for paging through large result sets
-- **616 Tests**: Across 13 test modules with 97%+ branch coverage
+- **762 Tests**: Across 13 test modules with 97%+ branch coverage
 
 ### Supported Archives
 
@@ -841,9 +906,16 @@ See [ROADMAP.md](ROADMAP.md) for the development roadmap and planned features.
 - **10 archives across 6 nations**: added NOAA as wrecks-only archive with US coverage (1600-2024)
 - **New search filter**: `gp_quality` for NOAA position accuracy codes
 - **2 new US regions**: `gulf_of_mexico`, `great_lakes`
-- **30 MCP tools** across 16 categories (added narrative search)
+- **30 MCP tools** across 17 categories (added narrative search)
 - **Full-text narrative search**: `maritime_search_narratives` searches voyage `particulars`, wreck `particulars`, and `loss_location` across all 10 archives with phrase matching, relevance ranking, and snippet extraction
 - 647 tests, 97%+ branch coverage
+
+### Completed (v0.14.0)
+
+- **33 MCP tools** across 18 categories (added track analytics)
+- **Track analytics**: `maritime_compute_track_speeds`, `maritime_aggregate_track_speeds`, `maritime_compare_speed_groups` for server-side speed computation, aggregation by decade/year/month/direction/nationality, and Mann-Whitney U statistical testing
+- **Geographic search**: `maritime_search_tracks` now supports lat/lon bounding box filtering
+- 762 tests, 97%+ branch coverage
 
 ### Planned
 

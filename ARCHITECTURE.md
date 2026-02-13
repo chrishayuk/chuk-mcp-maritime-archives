@@ -133,7 +133,7 @@ All data files in `data/` are produced by scripts in `scripts/`:
 
 ### 11. Test Coverage -- 97%+
 
-All modules maintain 97%+ branch coverage (647 tests across 13 test modules). Tests use
+All modules maintain 97%+ branch coverage (762 tests across 14 test modules). Tests use
 `pytest-asyncio` and mock at the client data boundary (`_load_json`), not at the manager
 level, to exercise the full data flow from tool to client.
 
@@ -156,6 +156,7 @@ level, to exercise the full data flow from tool to client.
                         |  speed/ timeline/   |
                         |  position/ export/  |
                         |  narratives/        |
+                        |  analytics/         |
                         |  discovery/         |
                         +---------------------+
                                     |
@@ -221,6 +222,9 @@ server.py                           # CLI entry point (sync)
   |     +-- tools/position/api.py         # maritime_assess_position
   |     +-- tools/export/api.py           # maritime_export_geojson, maritime_get_statistics
   |     +-- tools/narratives/api.py       # maritime_search_narratives
+  |     +-- tools/analytics/api.py       # maritime_compute_track_speeds,
+  |     |                                #   maritime_aggregate_track_speeds,
+  |     |                                #   maritime_compare_speed_groups
   |     +-- tools/discovery/api.py        # maritime_capabilities
   |     +-- core/archive_manager.py       # Central orchestrator, multi-archive dispatch
   |           +-- core/clients/das_client.py       # DAS voyages + vessels (local JSON)
@@ -297,6 +301,7 @@ src/chuk_mcp_maritime_archives/
     +-- position/      # maritime_assess_position
     +-- export/        # maritime_export_geojson, maritime_get_statistics
     +-- narratives/    # maritime_search_narratives
+    +-- analytics/     # maritime_compute_track_speeds, aggregate, compare
     +-- discovery/     # maritime_capabilities
 ```
 
@@ -330,7 +335,7 @@ Falls back silently if the store is unavailable or any download fails.
 ### `async_server.py`
 
 Creates the `ChukMCPServer` MCP instance, instantiates `ArchiveManager`, and registers
-all tool groups (16 categories, 30 tools). Each tool module receives the MCP instance
+all tool groups (18 categories, 33 tools). Each tool module receives the MCP instance
 and the shared `ArchiveManager`.
 
 ### `core/archive_manager.py`
@@ -459,7 +464,12 @@ with ship names, company, DAS numbers, and ship types. Provides: `search_tracks(
 nationality/year/ship name filters, `get_track()` for full position history,
 `nearby_tracks()` for proximity search using haversine distance,
 `get_track_by_das_number()` and `find_track_for_voyage()` for cross-archive linking.
-Useful for finding contextual ship traffic around wreck sites and incidents.
+Also provides track analytics: `compute_track_speeds()` for single-voyage haversine-based
+daily speeds, `aggregate_track_speeds()` for bulk speed computation with grouping by
+decade/year/month/direction/nationality and descriptive statistics, and
+`compare_speed_groups()` for Mann-Whitney U significance testing between time periods.
+Useful for finding contextual ship traffic around wreck sites and incidents, and for
+climate proxy research using ship speed as a wind strength indicator.
 
 ### `models/maritime.py`
 

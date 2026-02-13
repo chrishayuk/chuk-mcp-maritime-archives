@@ -1,6 +1,6 @@
 # chuk-mcp-maritime-archives Specification
 
-Version 0.13.0
+Version 0.14.0
 
 ## Overview
 
@@ -10,7 +10,7 @@ crew muster rolls, cargo manifests, and shipwreck databases from the Age of Expl
 through the colonial era and beyond, 1497-2024. Covers Dutch (VOC), English (EIC), Portuguese
 (Carreira da India), Spanish (Manila Galleon), Swedish (SOIC), UK Hydrographic Office (UKHO), and NOAA maritime archives.
 
-- **30 tools** for searching, retrieving, analysing, and exporting maritime archival data
+- **33 tools** for searching, retrieving, analysing, and exporting maritime archival data
 - **Cursor-based pagination** -- all 8 search tools support `cursor` / `next_cursor` / `has_more` for paging through large result sets
 - **Dual output mode** -- all tools return JSON (default) or human-readable text via `output_mode` parameter
 - **Async-first** -- tool entry points are async; sync HTTP I/O runs in thread pools
@@ -663,6 +663,10 @@ positions from 1662-1855, 8 European maritime nations).
 | `year_start` | `int?` | `None` | Earliest year to include |
 | `year_end` | `int?` | `None` | Latest year to include |
 | `ship_name` | `str?` | `None` | Ship name or partial name (case-insensitive; requires CLIWOC 2.1 Full data) |
+| `lat_min` | `float?` | `None` | Minimum latitude for geographic bounding box |
+| `lat_max` | `float?` | `None` | Maximum latitude for geographic bounding box |
+| `lon_min` | `float?` | `None` | Minimum longitude for geographic bounding box |
+| `lon_max` | `float?` | `None` | Maximum longitude for geographic bounding box |
 | `max_results` | `int` | `50` | Maximum results per page (max: 500) |
 | `cursor` | `str?` | `None` | Pagination cursor from a previous result's `next_cursor` field |
 | `output_mode` | `str` | `"json"` | `"json"` or `"text"` |
@@ -794,6 +798,143 @@ and CLIWOC ship tracks automatically in a single call.
 2. **Vessel**: Found by reverse lookup in vessel `voyage_ids` arrays
 3. **Hull profile**: Found by matching voyage `ship_type` to hull profile data
 4. **CLIWOC track**: Found by DAS number (exact match), or ship name + nationality + date overlap (fuzzy match). Nationality mapped from archive: `das`/`eic`→NL/UK, `carreira`→PT, `galleon`→ES, `soic`→SE
+
+---
+
+### Track Analytics Tools
+
+#### `maritime_compute_track_speeds`
+
+Compute daily sailing speeds for a single CLIWOC voyage. Calculates haversine distance
+between consecutive daily logbook positions and returns speed in km/day. Optionally filters
+by geographic bounding box and speed bounds.
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `voyage_id` | `int` | *required* | CLIWOC voyage ID (from `maritime_search_tracks`) |
+| `lat_min` | `float?` | `None` | Minimum latitude for position filtering |
+| `lat_max` | `float?` | `None` | Maximum latitude for position filtering |
+| `lon_min` | `float?` | `None` | Minimum longitude for position filtering |
+| `lon_max` | `float?` | `None` | Maximum longitude for position filtering |
+| `min_speed_km_day` | `float` | `5.0` | Minimum speed to include (filters out anchored/drifting) |
+| `max_speed_km_day` | `float` | `400.0` | Maximum speed to include (filters out data errors) |
+
+**Response:** `TrackSpeedsResponse`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `voyage_id` | `int` | CLIWOC voyage identifier |
+| `ship_name` | `str?` | Ship name (if available) |
+| `nationality` | `str?` | Two-letter nationality code |
+| `observation_count` | `int` | Number of daily speed observations |
+| `mean_km_day` | `float` | Mean speed in km/day |
+| `speeds` | `DailySpeed[]` | Daily speed observations |
+| `message` | `str` | Result message |
+
+**DailySpeed fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `date` | `str` | Observation date (YYYY-MM-DD) |
+| `lat` | `float` | Latitude of position |
+| `lon` | `float` | Longitude of position |
+| `km_day` | `float` | Speed in km/day |
+
+---
+
+#### `maritime_aggregate_track_speeds`
+
+Aggregate daily sailing speeds across all matching CLIWOC tracks. Computes haversine-based
+daily speeds from consecutive logbook positions, filters by geographic region, and aggregates
+by the requested dimension.
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `group_by` | `str` | `"decade"` | Grouping dimension: `"decade"`, `"year"`, `"month"`, `"direction"`, `"nationality"` |
+| `lat_min` | `float?` | `None` | Minimum latitude for position bounding box |
+| `lat_max` | `float?` | `None` | Maximum latitude for position bounding box |
+| `lon_min` | `float?` | `None` | Minimum longitude for position bounding box |
+| `lon_max` | `float?` | `None` | Maximum longitude for position bounding box |
+| `nationality` | `str?` | `None` | Filter tracks by nationality code (NL, UK, ES, FR, etc.) |
+| `year_start` | `int?` | `None` | Filter tracks starting from this year |
+| `year_end` | `int?` | `None` | Filter tracks ending at this year |
+| `direction` | `str?` | `None` | Filter by `"eastbound"` or `"westbound"` |
+| `min_speed_km_day` | `float` | `5.0` | Minimum speed filter |
+| `max_speed_km_day` | `float` | `400.0` | Maximum speed filter |
+
+**Response:** `TrackSpeedAggregationResponse`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `total_observations` | `int` | Total speed observations across all groups |
+| `total_voyages` | `int` | Total voyages contributing data |
+| `group_by` | `str` | Grouping dimension used |
+| `groups` | `SpeedAggregationGroup[]` | Per-group statistics |
+| `latitude_band` | `str?` | Latitude filter applied |
+| `longitude_band` | `str?` | Longitude filter applied |
+| `direction_filter` | `str?` | Direction filter applied |
+| `nationality_filter` | `str?` | Nationality filter applied |
+| `message` | `str` | Result message |
+
+**SpeedAggregationGroup fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `group_key` | `str` | Group identifier (e.g., `"1750"`, `"January"`, `"eastbound"`) |
+| `n` | `int` | Number of observations in group |
+| `mean_km_day` | `float` | Mean speed in km/day |
+| `median_km_day` | `float` | Median speed in km/day |
+| `std_km_day` | `float` | Standard deviation |
+| `ci_lower` | `float` | 95% confidence interval lower bound |
+| `ci_upper` | `float` | 95% confidence interval upper bound |
+| `p25_km_day` | `float?` | 25th percentile speed |
+| `p75_km_day` | `float?` | 75th percentile speed |
+
+---
+
+#### `maritime_compare_speed_groups`
+
+Compare sailing speed distributions between two time periods. Computes daily speeds for
+each period, then runs a Mann-Whitney U test to determine if the difference is statistically
+significant. Also returns Cohen's d effect size.
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `group1_years` | `str` | *required* | First period as `"YYYY/YYYY"` (e.g., `"1750/1789"`) |
+| `group2_years` | `str` | *required* | Second period as `"YYYY/YYYY"` (e.g., `"1820/1859"`) |
+| `lat_min` | `float?` | `None` | Minimum latitude for position bounding box |
+| `lat_max` | `float?` | `None` | Maximum latitude for position bounding box |
+| `lon_min` | `float?` | `None` | Minimum longitude for position bounding box |
+| `lon_max` | `float?` | `None` | Maximum longitude for position bounding box |
+| `nationality` | `str?` | `None` | Filter tracks by nationality code |
+| `direction` | `str?` | `None` | Filter by `"eastbound"` or `"westbound"` |
+| `min_speed_km_day` | `float` | `5.0` | Minimum speed filter |
+| `max_speed_km_day` | `float` | `400.0` | Maximum speed filter |
+
+**Response:** `SpeedComparisonResponse`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `group1_label` | `str` | First period label (e.g., `"1750-1789"`) |
+| `group1_n` | `int` | Observations in first period |
+| `group1_mean` | `float` | Mean speed in first period |
+| `group1_std` | `float` | Standard deviation in first period |
+| `group2_label` | `str` | Second period label |
+| `group2_n` | `int` | Observations in second period |
+| `group2_mean` | `float` | Mean speed in second period |
+| `group2_std` | `float` | Standard deviation in second period |
+| `mann_whitney_u` | `float` | Mann-Whitney U statistic |
+| `z_score` | `float` | Z-score (large-sample normal approximation) |
+| `p_value` | `float` | Two-tailed p-value |
+| `significant` | `bool` | Whether p < 0.05 |
+| `effect_size` | `float` | Cohen's d effect size |
+| `message` | `str` | Result message |
 
 ---
 

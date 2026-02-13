@@ -302,7 +302,7 @@ Expanded to 33 tools across 17 categories. Server-side speed computation, aggreg
 
 **New tools:**
 - `maritime_compute_track_speeds` -- compute daily sailing speeds (haversine) for a single CLIWOC voyage
-- `maritime_aggregate_track_speeds` -- aggregate daily speeds across all matching tracks by decade, month, direction, or nationality
+- `maritime_aggregate_track_speeds` -- aggregate daily speeds across all matching tracks by decade, year, month, direction, or nationality
 - `maritime_compare_speed_groups` -- Mann-Whitney U test comparing speed distributions between two time periods
 
 **Enhanced tools:**
@@ -322,8 +322,12 @@ Expanded to 33 tools across 17 categories. Server-side speed computation, aggreg
 - "Is the speed difference between 1750s and 1850s statistically significant?" (Mann-Whitney U)
 - Full climate proxy analysis workflow via mcp-cli without pre-computed data
 
+**Example demos:**
+- `climate_proxy_demo.py` -- full climate proxy analysis using live analytics tools (decadal, monthly, directional, nationality trends + Mann-Whitney U tests)
+- `volcanic_signal_demo.py` -- four novel research analyses: Laki 1783 volcanic signal detection, E/W speed ratio as wind vs technology decomposition, seasonal amplitude evolution, western vs eastern Indian Ocean spatial variation
+
 **Quality:**
-- 761 tests across 13 test modules, 96%+ branch coverage
+- 762 tests across 13 test modules, 96%+ branch coverage
 
 ---
 
@@ -439,7 +443,7 @@ This server is the data layer in a composable stack of MCP servers:
 
 | Server | Tools | Tests | Role |
 |--------|-------|-------|------|
-| chuk-mcp-maritime-archives | 33 | 761 | Voyage, wreck, vessel, crew, cargo, analytics |
+| chuk-mcp-maritime-archives | 33 | 762 | Voyage, wreck, vessel, crew, cargo, analytics |
 | chuk-mcp-ocean-drift | 10 | 235 | Forward/backtrack/Monte Carlo drift |
 | chuk-mcp-dem | 4 | 711 | Bathymetry and elevation data |
 | chuk-mcp-stac | 5 | 382 | Satellite imagery via STAC catalogues |
@@ -447,7 +451,7 @@ This server is the data layer in a composable stack of MCP servers:
 | chuk-mcp-tides | 8 | 717 | Tidal current data |
 | chuk-mcp-physics | 66 | 240 | Fluid dynamics computations |
 | chuk-mcp-open-meteo | 6 | 22 | Weather and wind data |
-| **Total** | **139** | **3,311** | |
+| **Total** | **139** | **3,312** | |
 
 All servers follow the same patterns: Pydantic v2 models, dual output mode, chuk-artifacts storage.
 
