@@ -13,7 +13,7 @@ from typing import Literal
 
 class ServerConfig(str, Enum):
     NAME = "chuk-mcp-maritime-archives"
-    VERSION = "0.13.0"
+    VERSION = "0.14.0"
     DESCRIPTION = "Historical Maritime Archives"
 
 
@@ -529,3 +529,6 @@ class SuccessMessages:
     EXPORT_COMPLETE = "Exported {} wreck positions to GeoJSON"
     STATISTICS_COMPLETE = "Statistics for {} losses across {} years"
     NARRATIVES_FOUND = "Found {} narrative matches for '{}'"
+    TRACK_SPEEDS_COMPUTED = "Computed {} daily speed observations for voyage {}"
+    SPEEDS_AGGREGATED = "Aggregated {} observations across {} voyages by {}"
+    SPEED_GROUPS_COMPARED = "Compared {} vs {} observations (z={:.2f}, p={:.4f})"

@@ -22,6 +22,7 @@ from typing import Any
 
 from chuk_mcp_maritime_archives.core.archive_manager import ArchiveManager
 from chuk_mcp_maritime_archives.tools import (
+    register_analytics_tools,
     register_archive_tools,
     register_cargo_tools,
     register_crew_tools,
@@ -101,6 +102,7 @@ class ToolRunner:
         register_speed_tools(self._mcp, self.manager)
         register_timeline_tools(self._mcp, self.manager)
         register_narrative_tools(self._mcp, self.manager)
+        register_analytics_tools(self._mcp, self.manager)
         register_discovery_tools(self._mcp, self.manager)
 
     @property

@@ -1,5 +1,6 @@
 """MCP tool registration for chuk-mcp-maritime-archives."""
 
+from .analytics.api import register_analytics_tools
 from .archives.api import register_archive_tools
 from .cargo.api import register_cargo_tools
 from .crew.api import register_crew_tools
@@ -18,6 +19,7 @@ from .voyages.api import register_voyage_tools
 from .wrecks.api import register_wreck_tools
 
 __all__ = [
+    "register_analytics_tools",
     "register_archive_tools",
     "register_cargo_tools",
     "register_crew_tools",

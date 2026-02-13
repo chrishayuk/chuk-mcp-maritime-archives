@@ -208,6 +208,26 @@ def register_discovery_tools(mcp: object, manager: object) -> None:
                     description="Get aggregate statistics across archives",
                 ),
                 ToolInfo(
+                    name="maritime_search_narratives",
+                    category="narratives",
+                    description="Search narrative text across all archives",
+                ),
+                ToolInfo(
+                    name="maritime_compute_track_speeds",
+                    category="analytics",
+                    description="Compute daily sailing speeds for a single voyage",
+                ),
+                ToolInfo(
+                    name="maritime_aggregate_track_speeds",
+                    category="analytics",
+                    description="Aggregate track speeds by decade, month, direction, or nationality",
+                ),
+                ToolInfo(
+                    name="maritime_compare_speed_groups",
+                    category="analytics",
+                    description="Compare speed distributions between two time periods (Mann-Whitney U)",
+                ),
+                ToolInfo(
                     name="maritime_capabilities",
                     category="discovery",
                     description="List full server capabilities",

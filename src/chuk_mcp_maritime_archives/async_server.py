@@ -10,6 +10,7 @@ from chuk_mcp_server import ChukMCPServer
 from .constants import ServerConfig
 from .core.archive_manager import ArchiveManager
 from .tools import (
+    register_analytics_tools,
     register_archive_tools,
     register_cargo_tools,
     register_crew_tools,
@@ -47,4 +48,5 @@ register_linking_tools(mcp, manager)
 register_speed_tools(mcp, manager)
 register_timeline_tools(mcp, manager)
 register_narrative_tools(mcp, manager)
+register_analytics_tools(mcp, manager)
 register_discovery_tools(mcp, manager)

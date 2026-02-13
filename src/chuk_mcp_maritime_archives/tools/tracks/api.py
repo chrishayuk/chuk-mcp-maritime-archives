@@ -32,6 +32,10 @@ def register_tracks_tools(mcp: object, manager: object) -> None:
         year_start: int | None = None,
         year_end: int | None = None,
         ship_name: str | None = None,
+        lat_min: float | None = None,
+        lat_max: float | None = None,
+        lon_min: float | None = None,
+        lon_max: float | None = None,
         max_results: int = 50,
         cursor: str | None = None,
         output_mode: str = "json",
@@ -42,7 +46,7 @@ def register_tracks_tools(mcp: object, manager: object) -> None:
         Returns voyage track summaries from ~261K daily logbook observations
         recorded by 8 European maritime nations. Each track represents one
         voyage with dated lat/lon positions from the ship's logbook.
-        Supports cursor-based pagination.
+        Supports cursor-based pagination and geographic bounding box filtering.
 
         Args:
             nationality: Two-letter nationality code to filter by.
@@ -52,6 +56,11 @@ def register_tracks_tools(mcp: object, manager: object) -> None:
             year_end: Latest year to include (e.g., 1750)
             ship_name: Ship name or partial name (case-insensitive; requires
                 CLIWOC 2.1 Full data)
+            lat_min: Minimum latitude — track must have at least one position
+                in the bounding box (e.g., -50 for Roaring Forties south bound)
+            lat_max: Maximum latitude (e.g., -30 for Roaring Forties north bound)
+            lon_min: Minimum longitude (e.g., 15 for Indian Ocean west bound)
+            lon_max: Maximum longitude (e.g., 110 for Indian Ocean east bound)
             max_results: Maximum results per page (default: 50, max: 500)
             cursor: Pagination cursor from a previous result's next_cursor field
             output_mode: Response format - "json" (default) or "text"
@@ -62,6 +71,8 @@ def register_tracks_tools(mcp: object, manager: object) -> None:
         Tips for LLMs:
             - Use nationality filter to find ships of a specific nation
             - Combine year_start/year_end to narrow to a specific period
+            - Use lat_min/lat_max/lon_min/lon_max to find tracks passing through
+              a geographic region (e.g., lat_min=-50, lat_max=-30 for Roaring Forties)
             - Results show track summaries (start/end dates, position count)
             - If has_more is true, pass next_cursor as cursor to get the next page
             - Follow up with maritime_get_track to get full position data
@@ -76,6 +87,10 @@ def register_tracks_tools(mcp: object, manager: object) -> None:
                 year_end=year_end,
                 ship_name=ship_name,
                 max_results=999_999,
+                lat_min=lat_min,
+                lat_max=lat_max,
+                lon_min=lon_min,
+                lon_max=lon_max,
             )
 
             if not all_results:

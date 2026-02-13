@@ -294,13 +294,42 @@ Full-text search across all free-text narrative content in all 10 archives.
 - Wreck `loss_location`: all 7 wreck archives
 
 **Quality:**
-- 647 tests across 13 test modules, 97%+ branch coverage
+- 727 tests across 13 test modules, 96%+ branch coverage
+
+### v0.14.0 -- Track Analytics
+
+Expanded to 33 tools across 17 categories. Server-side speed computation, aggregation, and statistical testing on CLIWOC track data.
+
+**New tools:**
+- `maritime_compute_track_speeds` -- compute daily sailing speeds (haversine) for a single CLIWOC voyage
+- `maritime_aggregate_track_speeds` -- aggregate daily speeds across all matching tracks by decade, month, direction, or nationality
+- `maritime_compare_speed_groups` -- Mann-Whitney U test comparing speed distributions between two time periods
+
+**Enhanced tools:**
+- `maritime_search_tracks` -- added `lat_min`, `lat_max`, `lon_min`, `lon_max` optional params for geographic bounding box filtering
+
+**Architecture:**
+- `_compute_daily_speeds()` computes haversine distances between consecutive logbook positions, filters by lat/lon band and speed bounds
+- `aggregate_track_speeds()` bulk-computes speeds across all matching tracks, groups by dimension, returns n/mean/median/std/95% CI/percentiles per group
+- `compare_speed_groups()` implements Mann-Whitney U with large-sample normal approximation (no scipy dependency) + Cohen's d effect size
+- `_infer_direction()` determines eastbound/westbound from longitude change (handles 180° wrap)
+- New response models: `DailySpeed`, `TrackSpeedsResponse`, `SpeedAggregationGroup`, `TrackSpeedAggregationResponse`, `SpeedComparisonResponse`
+- `tools/analytics/api.py` with `register_analytics_tools()`
+
+**Enables:**
+- "Find all tracks passing through the Roaring Forties" (lat/lon bounding box search)
+- "Compute decadal speed trends in the Southern Ocean" (server-side aggregation)
+- "Is the speed difference between 1750s and 1850s statistically significant?" (Mann-Whitney U)
+- Full climate proxy analysis workflow via mcp-cli without pre-computed data
+
+**Quality:**
+- 761 tests across 13 test modules, 96%+ branch coverage
 
 ---
 
 ## Planned
 
-### v0.14.0 -- Dutch Ships and Sailors (Linked Data)
+### v0.15.0 -- Dutch Ships and Sailors (Linked Data)
 
 Integrate the DSS Linked Data Cloud -- four curated Dutch maritime datasets as five-star linked data, hosted by Huygens ING and VU Amsterdam.
 
@@ -312,7 +341,7 @@ Integrate the DSS Linked Data Cloud -- four curated Dutch maritime datasets as f
 - `scripts/download_dss.py` -- SPARQL CONSTRUCT queries to extract and cache locally as JSON
 - Fallback to local cache when SPARQL endpoint is unavailable (consistent with local-first pattern)
 
-### v0.15.0 -- Improved Cross-Archive Entity Resolution
+### v0.16.0 -- Improved Cross-Archive Entity Resolution
 
 Improve the CLIWOC-DAS linking hit rate and add entity resolution scoring across all archives.
 
@@ -324,7 +353,7 @@ Improve the CLIWOC-DAS linking hit rate and add entity resolution scoring across
 - Currently 48 direct DAS-CLIWOC links via DAS number; target: 200+ fuzzy-matched links with scored confidence
 - `is_curated` field on expanded archive records (Carreira, Galleon, SOIC) to distinguish hand-curated from programmatically generated entries
 
-### v0.16.0 -- Additional Sailing Routes
+### v0.17.0 -- Additional Sailing Routes
 
 Extend the route library beyond the 8 existing VOC routes to cover all archive nations.
 
@@ -337,7 +366,7 @@ Extend the route library beyond the 8 existing VOC routes to cover all archive n
 - `maritime_estimate_position` works with all new route IDs
 - Enables position estimation for EIC, Carreira, Galleon, and SOIC voyages (currently only VOC routes supported)
 
-### v0.17.0 -- Crew Demographics & Network Analysis
+### v0.18.0 -- Crew Demographics & Network Analysis
 
 Analytical tools built on the 774K crew records cross-referenced with voyage data.
 
@@ -353,7 +382,7 @@ Analytical tools built on the 774K crew records cross-referenced with voyage dat
 Stable release with frozen tool signatures and response models.
 
 - Semantic versioning commitment: no breaking changes within v1.x
-- Published JSON Schema for all 30+ tool input/output models
+- Published JSON Schema for all 33+ tool input/output models
 - OpenAPI-compatible specification for HTTP mode
 - Comprehensive migration guide from v0.x
 - Performance benchmarks for all search tools across full dataset sizes
@@ -380,14 +409,6 @@ Real-time updates for interactive exploration.
 - Subscribe to search refinements
 - Progressive result loading
 - Live position tracking during route estimation
-
-### Climate Proxy Analysis Tools
-
-The CLIWOC speed profiles are a proxy dataset for historical wind patterns. Dedicated analysis tools could formalise the relationship between sailing speeds and wind strength demonstrated in the climate proxy research.
-
-- `maritime_climate_proxy` -- compute decadal speed trends by route segment as wind proxies
-- Correlation with ice core records from Antarctica
-- Seasonal monsoon timing analysis from Indian Ocean route speeds
 
 ### Wreck Probability Surfaces
 
@@ -418,7 +439,7 @@ This server is the data layer in a composable stack of MCP servers:
 
 | Server | Tools | Tests | Role |
 |--------|-------|-------|------|
-| chuk-mcp-maritime-archives | 30 | 647 | Voyage, wreck, vessel, crew, cargo records |
+| chuk-mcp-maritime-archives | 33 | 761 | Voyage, wreck, vessel, crew, cargo, analytics |
 | chuk-mcp-ocean-drift | 10 | 235 | Forward/backtrack/Monte Carlo drift |
 | chuk-mcp-dem | 4 | 711 | Bathymetry and elevation data |
 | chuk-mcp-stac | 5 | 382 | Satellite imagery via STAC catalogues |
@@ -426,7 +447,7 @@ This server is the data layer in a composable stack of MCP servers:
 | chuk-mcp-tides | 8 | 717 | Tidal current data |
 | chuk-mcp-physics | 66 | 240 | Fluid dynamics computations |
 | chuk-mcp-open-meteo | 6 | 22 | Weather and wind data |
-| **Total** | **136** | **3,197** | |
+| **Total** | **139** | **3,311** | |
 
 All servers follow the same patterns: Pydantic v2 models, dual output mode, chuk-artifacts storage.
 
@@ -470,7 +491,7 @@ Current and potential data sources for the project.
 
 | Source | Records | Format | Access | Target Version |
 |--------|---------|--------|--------|----------------|
-| [Dutch Ships and Sailors](https://datasets.iisg.amsterdam/dataverse/dss) | Linked data (4 datasets) | RDF/SPARQL | Open access, live triple store | v0.14.0 |
+| [Dutch Ships and Sailors](https://datasets.iisg.amsterdam/dataverse/dss) | Linked data (4 datasets) | RDF/SPARQL | Open access, live triple store | v0.15.0 |
 
 ### Potential
 

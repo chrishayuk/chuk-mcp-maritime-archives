@@ -957,6 +957,120 @@ class NearbyTracksResponse(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# Track analytics responses
+# ---------------------------------------------------------------------------
+
+
+class DailySpeed(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    date: str
+    lat: float
+    lon: float
+    km_day: float
+
+
+class TrackSpeedsResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    voyage_id: int
+    ship_name: str | None = None
+    nationality: str | None = None
+    observation_count: int
+    mean_km_day: float
+    speeds: list[DailySpeed]
+    message: str = ""
+
+    def to_text(self) -> str:
+        lines = [
+            self.message,
+            f"Voyage {self.voyage_id}: {self.observation_count} observations, "
+            f"mean {self.mean_km_day:.1f} km/day",
+            "",
+        ]
+        for s in self.speeds[:20]:
+            lines.append(f"  {s.date}  {s.lat:7.2f}N  {s.lon:7.2f}E  {s.km_day:.1f} km/day")
+        if len(self.speeds) > 20:
+            lines.append(f"  ... and {len(self.speeds) - 20} more observations")
+        return "\n".join(lines)
+
+
+class SpeedAggregationGroup(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    group_key: str
+    n: int
+    mean_km_day: float
+    median_km_day: float
+    std_km_day: float
+    ci_lower: float
+    ci_upper: float
+    p25_km_day: float | None = None
+    p75_km_day: float | None = None
+
+
+class TrackSpeedAggregationResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    total_observations: int
+    total_voyages: int
+    group_by: str
+    groups: list[SpeedAggregationGroup]
+    latitude_band: list[float] | None = None
+    longitude_band: list[float] | None = None
+    direction_filter: str | None = None
+    nationality_filter: str | None = None
+    message: str = ""
+
+    def to_text(self) -> str:
+        lines = [self.message, f"Grouped by: {self.group_by}", ""]
+        for g in self.groups:
+            lines.append(
+                f"  {g.group_key:>12s}: {g.mean_km_day:6.1f} km/day "
+                f"(median {g.median_km_day:.1f}, std {g.std_km_day:.1f}, n={g.n})"
+            )
+        lines.append(
+            f"\nTotal: {self.total_observations} observations, {self.total_voyages} voyages"
+        )
+        return "\n".join(lines)
+
+
+class SpeedComparisonResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    group1_label: str
+    group1_n: int
+    group1_mean: float
+    group1_std: float
+    group2_label: str
+    group2_n: int
+    group2_mean: float
+    group2_std: float
+    mann_whitney_u: float
+    z_score: float
+    p_value: float
+    significant: bool
+    effect_size: float
+    message: str = ""
+
+    def to_text(self) -> str:
+        sig = "SIGNIFICANT" if self.significant else "not significant"
+        lines = [
+            self.message,
+            f"Group 1 ({self.group1_label}): n={self.group1_n}, "
+            f"mean={self.group1_mean:.1f} km/day, std={self.group1_std:.1f}",
+            f"Group 2 ({self.group2_label}): n={self.group2_n}, "
+            f"mean={self.group2_mean:.1f} km/day, std={self.group2_std:.1f}",
+            "",
+            f"Mann-Whitney U = {self.mann_whitney_u:.1f}",
+            f"z = {self.z_score:.4f}",
+            f"p = {self.p_value:.6f} ({sig} at p<0.05)",
+            f"Cohen's d = {self.effect_size:.3f}",
+        ]
+        return "\n".join(lines)
+
+
+# ---------------------------------------------------------------------------
 # Position assessment
 # ---------------------------------------------------------------------------
 

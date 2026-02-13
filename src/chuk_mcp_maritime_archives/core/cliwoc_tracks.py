@@ -17,6 +17,9 @@ from __future__ import annotations
 import json
 import logging
 import math
+import statistics
+from collections import defaultdict
+from datetime import date
 from pathlib import Path
 from typing import Any
 
@@ -86,9 +89,13 @@ def search_tracks(
     year_end: int | None = None,
     ship_name: str | None = None,
     max_results: int = 50,
+    lat_min: float | None = None,
+    lat_max: float | None = None,
+    lon_min: float | None = None,
+    lon_max: float | None = None,
 ) -> list[dict[str, Any]]:
     """
-    Search CLIWOC ship tracks by nationality, date range, and/or ship name.
+    Search CLIWOC ship tracks by nationality, date range, ship name, and/or region.
 
     Returns track summaries (without positions) for matching voyages.
 
@@ -98,8 +105,13 @@ def search_tracks(
         year_end: Latest year to include
         ship_name: Ship name or partial name (case-insensitive; requires CLIWOC 2.1 Full data)
         max_results: Maximum results to return (default: 50)
+        lat_min: Minimum latitude (track must have at least one position in bbox)
+        lat_max: Maximum latitude
+        lon_min: Minimum longitude
+        lon_max: Maximum longitude
     """
     _load_tracks()
+    has_bbox = any(v is not None for v in (lat_min, lat_max, lon_min, lon_max))
     results = []
 
     for track in _TRACKS:
@@ -113,6 +125,8 @@ def search_tracks(
             track_ship = track.get("ship_name", "")
             if not track_ship or ship_name.upper() not in track_ship.upper():
                 continue
+        if has_bbox and not _track_in_bbox(track, lat_min, lat_max, lon_min, lon_max):
+            continue
         # Return summary without positions
         results.append(_track_summary(track))
         if len(results) >= max_results:
@@ -312,6 +326,438 @@ def _haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
         + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon / 2) ** 2
     )
     return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+
+def _track_in_bbox(
+    track: dict[str, Any],
+    lat_min: float | None,
+    lat_max: float | None,
+    lon_min: float | None,
+    lon_max: float | None,
+) -> bool:
+    """Check if any position in a track falls within a bounding box."""
+    for pos in track.get("positions", []):
+        lat, lon = pos.get("lat"), pos.get("lon")
+        if lat is None or lon is None:
+            continue
+        if lat_min is not None and lat < lat_min:
+            continue
+        if lat_max is not None and lat > lat_max:
+            continue
+        if lon_min is not None and lon < lon_min:
+            continue
+        if lon_max is not None and lon > lon_max:
+            continue
+        return True
+    return False
+
+
+def _pos_in_bbox(
+    lat: float,
+    lon: float,
+    lat_min: float | None,
+    lat_max: float | None,
+    lon_min: float | None,
+    lon_max: float | None,
+) -> bool:
+    """Check if a single position falls within a bounding box."""
+    if lat_min is not None and lat < lat_min:
+        return False
+    if lat_max is not None and lat > lat_max:
+        return False
+    if lon_min is not None and lon < lon_min:
+        return False
+    if lon_max is not None and lon > lon_max:
+        return False
+    return True
+
+
+def _infer_direction(lon1: float, lon2: float) -> str:
+    """Infer sailing direction from longitude change, handling 180° wrap."""
+    dlon = lon2 - lon1
+    # Handle antimeridian wrap
+    if dlon > 180:
+        dlon -= 360
+    elif dlon < -180:
+        dlon += 360
+    return "eastbound" if dlon >= 0 else "westbound"
+
+
+def _parse_date(d: str) -> date | None:
+    """Parse a YYYY-MM-DD string to a date object."""
+    try:
+        parts = d.split("-")
+        if len(parts) == 3:
+            return date(int(parts[0]), int(parts[1]), int(parts[2]))
+    except (ValueError, IndexError):
+        pass
+    return None
+
+
+def _compute_daily_speeds(
+    track: dict[str, Any],
+    lat_min: float | None = None,
+    lat_max: float | None = None,
+    lon_min: float | None = None,
+    lon_max: float | None = None,
+    min_speed: float = 5.0,
+    max_speed: float = 400.0,
+) -> list[dict[str, Any]]:
+    """Compute daily speeds from consecutive positions in a track.
+
+    Returns list of dicts with: date, lat, lon, km_day, direction.
+    Filters by bounding box and speed bounds.
+    """
+    positions = track.get("positions", [])
+    if len(positions) < 2:
+        return []
+
+    has_bbox = any(v is not None for v in (lat_min, lat_max, lon_min, lon_max))
+    speeds: list[dict[str, Any]] = []
+
+    for i in range(1, len(positions)):
+        p1, p2 = positions[i - 1], positions[i]
+        lat1, lon1 = p1.get("lat"), p1.get("lon")
+        lat2, lon2 = p2.get("lat"), p2.get("lon")
+        if lat1 is None or lon1 is None or lat2 is None or lon2 is None:
+            continue
+
+        # Use midpoint for position filtering
+        mid_lat = (lat1 + lat2) / 2
+        mid_lon = (lon1 + lon2) / 2
+        if has_bbox and not _pos_in_bbox(mid_lat, mid_lon, lat_min, lat_max, lon_min, lon_max):
+            continue
+
+        d1 = _parse_date(p1.get("date", ""))
+        d2 = _parse_date(p2.get("date", ""))
+        if d1 is None or d2 is None:
+            continue
+
+        days = (d2 - d1).days
+        if days <= 0:
+            continue
+
+        dist = _haversine_km(lat1, lon1, lat2, lon2)
+        km_day = dist / days
+
+        if km_day < min_speed or km_day > max_speed:
+            continue
+
+        speeds.append(
+            {
+                "date": p2.get("date", ""),
+                "lat": round(mid_lat, 2),
+                "lon": round(mid_lon, 2),
+                "km_day": round(km_day, 1),
+                "direction": _infer_direction(lon1, lon2),
+            }
+        )
+
+    return speeds
+
+
+def _group_key(obs: dict[str, Any], group_by: str, track: dict[str, Any]) -> str | None:
+    """Compute a group key for an observation."""
+    if group_by == "decade":
+        d = _parse_date(obs["date"])
+        if d is None:
+            return None
+        return str((d.year // 10) * 10)
+    if group_by == "year":
+        d = _parse_date(obs["date"])
+        if d is None:
+            return None
+        return str(d.year)
+    if group_by == "month":
+        d = _parse_date(obs["date"])
+        if d is None:
+            return None
+        return str(d.month)
+    if group_by == "direction":
+        return obs.get("direction")
+    if group_by == "nationality":
+        return track.get("nationality")
+    return None
+
+
+def _compute_group_stats(values: list[float]) -> dict[str, Any]:
+    """Compute descriptive statistics for a list of speed values."""
+    n = len(values)
+    if n == 0:
+        return {"n": 0, "mean_km_day": 0, "median_km_day": 0, "std_km_day": 0}
+
+    mean = statistics.mean(values)
+    med = statistics.median(values)
+    std = statistics.stdev(values) if n > 1 else 0.0
+    sorted_vals = sorted(values)
+
+    # 95% confidence interval for the mean
+    se = std / math.sqrt(n) if n > 0 else 0.0
+    ci_lower = mean - 1.96 * se
+    ci_upper = mean + 1.96 * se
+
+    # Percentiles
+    p25_idx = max(0, int(n * 0.25) - 1)
+    p75_idx = min(n - 1, int(n * 0.75))
+
+    return {
+        "n": n,
+        "mean_km_day": round(mean, 1),
+        "median_km_day": round(med, 1),
+        "std_km_day": round(std, 1),
+        "ci_lower": round(ci_lower, 1),
+        "ci_upper": round(ci_upper, 1),
+        "p25_km_day": round(sorted_vals[p25_idx], 1),
+        "p75_km_day": round(sorted_vals[p75_idx], 1),
+    }
+
+
+# ---------------------------------------------------------------------------
+# Track Analytics — Public API
+# ---------------------------------------------------------------------------
+
+
+def compute_track_speeds(
+    voyage_id: int,
+    lat_min: float | None = None,
+    lat_max: float | None = None,
+    lon_min: float | None = None,
+    lon_max: float | None = None,
+    min_speed: float = 5.0,
+    max_speed: float = 400.0,
+) -> dict[str, Any] | None:
+    """Compute daily sailing speeds for a single voyage.
+
+    Returns dict with voyage metadata and list of daily speed observations,
+    or None if voyage not found.
+    """
+    _load_tracks()
+    track = _TRACK_INDEX.get(voyage_id)
+    if track is None:
+        return None
+
+    speeds = _compute_daily_speeds(track, lat_min, lat_max, lon_min, lon_max, min_speed, max_speed)
+    km_values = [s["km_day"] for s in speeds]
+    mean_speed = statistics.mean(km_values) if km_values else 0.0
+
+    return {
+        "voyage_id": voyage_id,
+        "ship_name": track.get("ship_name"),
+        "nationality": track.get("nationality"),
+        "observation_count": len(speeds),
+        "mean_km_day": round(mean_speed, 1),
+        "speeds": speeds,
+    }
+
+
+def aggregate_track_speeds(
+    group_by: str = "decade",
+    lat_min: float | None = None,
+    lat_max: float | None = None,
+    lon_min: float | None = None,
+    lon_max: float | None = None,
+    nationality: str | None = None,
+    year_start: int | None = None,
+    year_end: int | None = None,
+    direction: str | None = None,
+    min_speed: float = 5.0,
+    max_speed: float = 400.0,
+) -> dict[str, Any]:
+    """Aggregate daily sailing speeds across all matching tracks by dimension.
+
+    Args:
+        group_by: Grouping dimension — "decade", "month", "direction", "nationality"
+        lat_min/lat_max/lon_min/lon_max: Bounding box for position filtering
+        nationality: Filter tracks by nationality code
+        year_start/year_end: Filter tracks by year range
+        direction: Filter observations by "eastbound" or "westbound"
+        min_speed/max_speed: Speed bounds in km/day
+
+    Returns:
+        Dict with total_observations, total_voyages, groups list, methodology.
+    """
+    _load_tracks()
+    groups: dict[str, list[float]] = defaultdict(list)
+    voyage_ids: set[int] = set()
+    total_obs = 0
+
+    for track in _TRACKS:
+        # Apply track-level filters
+        if nationality and track.get("nationality") != nationality.upper():
+            continue
+        if year_start and (track.get("year_start") or 9999) < year_start:
+            continue
+        if year_end and (track.get("year_end") or 0) > year_end:
+            continue
+
+        speeds = _compute_daily_speeds(
+            track, lat_min, lat_max, lon_min, lon_max, min_speed, max_speed
+        )
+        if not speeds:
+            continue
+
+        for obs in speeds:
+            # Apply direction filter
+            if direction and obs.get("direction") != direction:
+                continue
+
+            key = _group_key(obs, group_by, track)
+            if key is None:
+                continue
+
+            groups[key].append(obs["km_day"])
+            voyage_ids.add(track["voyage_id"])
+            total_obs += 1
+
+    # Compute stats per group
+    group_results = []
+    for key in sorted(groups.keys(), key=lambda k: (k.isdigit(), int(k) if k.isdigit() else 0, k)):
+        stats = _compute_group_stats(groups[key])
+        stats["group_key"] = key
+        group_results.append(stats)
+
+    return {
+        "total_observations": total_obs,
+        "total_voyages": len(voyage_ids),
+        "group_by": group_by,
+        "groups": group_results,
+        "latitude_band": [lat_min, lat_max] if lat_min is not None or lat_max is not None else None,
+        "longitude_band": [lon_min, lon_max]
+        if lon_min is not None or lon_max is not None
+        else None,
+        "direction_filter": direction,
+        "nationality_filter": nationality,
+    }
+
+
+def compare_speed_groups(
+    group1_years: str,
+    group2_years: str,
+    lat_min: float | None = None,
+    lat_max: float | None = None,
+    lon_min: float | None = None,
+    lon_max: float | None = None,
+    nationality: str | None = None,
+    direction: str | None = None,
+    min_speed: float = 5.0,
+    max_speed: float = 400.0,
+) -> dict[str, Any]:
+    """Compare speed distributions between two time periods using Mann-Whitney U.
+
+    Args:
+        group1_years: First period as "YYYY/YYYY" (e.g., "1750/1789")
+        group2_years: Second period as "YYYY/YYYY" (e.g., "1820/1859")
+        Other args: same as aggregate_track_speeds
+
+    Returns:
+        Dict with group statistics, Mann-Whitney U, z-score, p-value, effect size.
+    """
+    _load_tracks()
+
+    def _parse_year_range(s: str) -> tuple[int, int]:
+        parts = s.split("/")
+        return int(parts[0]), int(parts[1])
+
+    y1_start, y1_end = _parse_year_range(group1_years)
+    y2_start, y2_end = _parse_year_range(group2_years)
+
+    def _collect_speeds(yr_start: int, yr_end: int) -> list[float]:
+        values: list[float] = []
+        for track in _TRACKS:
+            if nationality and track.get("nationality") != nationality.upper():
+                continue
+            t_start = track.get("year_start") or 9999
+            t_end = track.get("year_end") or 0
+            if t_start > yr_end or t_end < yr_start:
+                continue
+
+            speeds = _compute_daily_speeds(
+                track, lat_min, lat_max, lon_min, lon_max, min_speed, max_speed
+            )
+            for obs in speeds:
+                if direction and obs.get("direction") != direction:
+                    continue
+                d = _parse_date(obs["date"])
+                if d and yr_start <= d.year <= yr_end:
+                    values.append(obs["km_day"])
+        return values
+
+    g1 = _collect_speeds(y1_start, y1_end)
+    g2 = _collect_speeds(y2_start, y2_end)
+
+    n1, n2 = len(g1), len(g2)
+    g1_mean = statistics.mean(g1) if g1 else 0.0
+    g2_mean = statistics.mean(g2) if g2 else 0.0
+    g1_std = statistics.stdev(g1) if len(g1) > 1 else 0.0
+    g2_std = statistics.stdev(g2) if len(g2) > 1 else 0.0
+
+    # Mann-Whitney U test (large-sample normal approximation)
+    u_stat, z_score, p_value = _mann_whitney_u(g1, g2)
+
+    # Cohen's d effect size
+    pooled_std = math.sqrt(((n1 - 1) * g1_std**2 + (n2 - 1) * g2_std**2) / max(n1 + n2 - 2, 1))
+    cohens_d = (g2_mean - g1_mean) / pooled_std if pooled_std > 0 else 0.0
+
+    return {
+        "group1_label": group1_years,
+        "group1_n": n1,
+        "group1_mean": round(g1_mean, 1),
+        "group1_std": round(g1_std, 1),
+        "group2_label": group2_years,
+        "group2_n": n2,
+        "group2_mean": round(g2_mean, 1),
+        "group2_std": round(g2_std, 1),
+        "mann_whitney_u": round(u_stat, 1),
+        "z_score": round(z_score, 4),
+        "p_value": round(p_value, 6),
+        "significant": p_value < 0.05,
+        "effect_size": round(cohens_d, 3),
+    }
+
+
+def _mann_whitney_u(x: list[float], y: list[float]) -> tuple[float, float, float]:
+    """Mann-Whitney U test with large-sample normal approximation.
+
+    Returns (U, z, p_value). No scipy dependency.
+    """
+    n1, n2 = len(x), len(y)
+    if n1 == 0 or n2 == 0:
+        return 0.0, 0.0, 1.0
+
+    # Rank all observations combined
+    combined = [(v, 0) for v in x] + [(v, 1) for v in y]
+    combined.sort(key=lambda t: t[0])
+
+    # Assign ranks (average ties)
+    ranks: list[float] = [0.0] * len(combined)
+    i = 0
+    while i < len(combined):
+        j = i
+        while j < len(combined) and combined[j][0] == combined[i][0]:
+            j += 1
+        avg_rank = (i + j + 1) / 2  # 1-based average rank
+        for k in range(i, j):
+            ranks[k] = avg_rank
+        i = j
+
+    # Sum of ranks for group 1
+    r1 = sum(ranks[k] for k in range(len(combined)) if combined[k][1] == 0)
+
+    # U statistic
+    u1 = r1 - n1 * (n1 + 1) / 2
+
+    # Normal approximation
+    mean_u = n1 * n2 / 2
+    std_u = math.sqrt(n1 * n2 * (n1 + n2 + 1) / 12)
+    if std_u == 0:
+        return u1, 0.0, 1.0
+
+    z = (u1 - mean_u) / std_u
+
+    # Two-tailed p-value from normal distribution (no scipy needed)
+    p = math.erfc(abs(z) / math.sqrt(2))
+
+    return u1, z, p
 
 
 # Load on import

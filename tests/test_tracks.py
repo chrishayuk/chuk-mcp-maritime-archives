@@ -7,6 +7,10 @@ import pytest
 from chuk_mcp_maritime_archives.core.cliwoc_tracks import (
     _TRACKS,
     _haversine_km,
+    _mann_whitney_u,
+    aggregate_track_speeds,
+    compare_speed_groups,
+    compute_track_speeds,
     get_date_range,
     get_position_count,
     get_track,
@@ -458,3 +462,436 @@ class TestTrackTools:
             result = await fn(lat=0, lon=0, date="2000-01-01")
         parsed = json.loads(result)
         assert "fail" in parsed["error"]
+
+
+# ---------------------------------------------------------------------------
+# Geographic bounding box search
+# ---------------------------------------------------------------------------
+
+
+class TestSearchTracksBBox:
+    def test_search_with_lat_bounds(self):
+        # Southern hemisphere tracks (e.g., Roaring Forties area)
+        results = search_tracks(lat_min=-60, lat_max=-20, max_results=10)
+        assert len(results) >= 1
+        # All returned tracks have at least one position in the bbox
+        for r in results:
+            track = get_track(r["voyage_id"])
+            assert track is not None
+            has_pos_in_range = any(-60 <= p["lat"] <= -20 for p in track.get("positions", []))
+            assert has_pos_in_range
+
+    def test_search_with_full_bbox(self):
+        # Indian Ocean region
+        results = search_tracks(lat_min=-50, lat_max=-30, lon_min=15, lon_max=110, max_results=10)
+        assert isinstance(results, list)
+        # All results must have positions in the bbox
+        for r in results:
+            track = get_track(r["voyage_id"])
+            assert track is not None
+            has_pos = any(
+                -50 <= p["lat"] <= -30 and 15 <= p["lon"] <= 110 for p in track.get("positions", [])
+            )
+            assert has_pos
+
+    def test_bbox_no_results(self):
+        # Middle of Pacific with tight bounds — unlikely to find tracks
+        results = search_tracks(lat_min=60, lat_max=70, lon_min=-170, lon_max=-160, max_results=10)
+        assert isinstance(results, list)
+
+    def test_bbox_combined_with_nationality(self):
+        results = search_tracks(nationality="NL", lat_min=-50, lat_max=-30, max_results=10)
+        for r in results:
+            assert r["nationality"] == "NL"
+
+
+# ---------------------------------------------------------------------------
+# Compute track speeds
+# ---------------------------------------------------------------------------
+
+
+class TestComputeTrackSpeeds:
+    def _get_first_voyage_id(self):
+        results = search_tracks(max_results=1)
+        return results[0]["voyage_id"] if results else None
+
+    def test_compute_speeds_basic(self):
+        vid = self._get_first_voyage_id()
+        if vid is None:
+            pytest.skip("No tracks loaded")
+        result = compute_track_speeds(vid)
+        assert result is not None
+        assert result["voyage_id"] == vid
+        assert isinstance(result["speeds"], list)
+        assert result["observation_count"] == len(result["speeds"])
+        assert result["mean_km_day"] >= 0
+
+    def test_compute_speeds_not_found(self):
+        result = compute_track_speeds(999999)
+        assert result is None
+
+    def test_compute_speeds_with_bbox(self):
+        # Find a track with positions in Southern Ocean
+        tracks = search_tracks(lat_min=-50, lat_max=-30, max_results=1)
+        if not tracks:
+            pytest.skip("No tracks in Roaring Forties region")
+        vid = tracks[0]["voyage_id"]
+        result = compute_track_speeds(vid, lat_min=-50, lat_max=-30)
+        assert result is not None
+        # All returned positions should have mid-lat in range
+        for s in result["speeds"]:
+            assert -55 <= s["lat"] <= -25  # Some tolerance for midpoint
+
+    def test_speed_bounds_filter(self):
+        vid = self._get_first_voyage_id()
+        if vid is None:
+            pytest.skip("No tracks loaded")
+        result = compute_track_speeds(vid, min_speed=50, max_speed=200)
+        assert result is not None
+        for s in result["speeds"]:
+            assert 50 <= s["km_day"] <= 200
+
+    def test_speeds_have_direction(self):
+        vid = self._get_first_voyage_id()
+        if vid is None:
+            pytest.skip("No tracks loaded")
+        result = compute_track_speeds(vid)
+        assert result is not None
+        for s in result["speeds"]:
+            assert s.get("direction") in ("eastbound", "westbound")
+
+
+# ---------------------------------------------------------------------------
+# Aggregate track speeds
+# ---------------------------------------------------------------------------
+
+
+class TestAggregateTrackSpeeds:
+    def test_aggregate_by_decade(self):
+        result = aggregate_track_speeds(
+            group_by="decade",
+            lat_min=-50,
+            lat_max=-30,
+            lon_min=15,
+            lon_max=110,
+        )
+        assert result["total_observations"] > 0
+        assert result["total_voyages"] > 0
+        assert len(result["groups"]) > 0
+        for g in result["groups"]:
+            assert g["n"] > 0
+            assert g["mean_km_day"] > 0
+            assert "group_key" in g
+            # Decade keys should be numeric strings
+            assert g["group_key"].isdigit()
+
+    def test_aggregate_by_month(self):
+        result = aggregate_track_speeds(
+            group_by="month",
+            lat_min=-50,
+            lat_max=-30,
+        )
+        assert len(result["groups"]) > 0
+        for g in result["groups"]:
+            month = int(g["group_key"])
+            assert 1 <= month <= 12
+
+    def test_aggregate_by_direction(self):
+        result = aggregate_track_speeds(
+            group_by="direction",
+            lat_min=-50,
+            lat_max=-30,
+        )
+        assert len(result["groups"]) > 0
+        keys = {g["group_key"] for g in result["groups"]}
+        assert keys <= {"eastbound", "westbound"}
+
+    def test_aggregate_by_nationality(self):
+        result = aggregate_track_speeds(
+            group_by="nationality",
+            lat_min=-50,
+            lat_max=-30,
+        )
+        assert len(result["groups"]) > 0
+        for g in result["groups"]:
+            assert len(g["group_key"]) == 2  # Two-letter nationality code
+
+    def test_aggregate_with_direction_filter(self):
+        result = aggregate_track_speeds(
+            group_by="decade",
+            lat_min=-50,
+            lat_max=-30,
+            direction="eastbound",
+        )
+        assert result["direction_filter"] == "eastbound"
+        assert result["total_observations"] > 0
+
+    def test_aggregate_with_nationality_filter(self):
+        result = aggregate_track_speeds(
+            group_by="decade",
+            lat_min=-50,
+            lat_max=-30,
+            nationality="NL",
+        )
+        assert result["nationality_filter"] == "NL"
+
+    def test_aggregate_stats_structure(self):
+        result = aggregate_track_speeds(
+            group_by="decade",
+            lat_min=-50,
+            lat_max=-30,
+        )
+        for g in result["groups"]:
+            assert "n" in g
+            assert "mean_km_day" in g
+            assert "median_km_day" in g
+            assert "std_km_day" in g
+            assert "ci_lower" in g
+            assert "ci_upper" in g
+            assert g["ci_lower"] <= g["mean_km_day"] <= g["ci_upper"]
+
+    def test_aggregate_by_year(self):
+        result = aggregate_track_speeds(
+            group_by="year",
+            lat_min=-50,
+            lat_max=-30,
+            lon_min=15,
+            lon_max=110,
+        )
+        assert result["total_observations"] > 0
+        assert len(result["groups"]) > 0
+        for g in result["groups"]:
+            assert g["group_key"].isdigit()
+            year = int(g["group_key"])
+            assert 1662 <= year <= 1855
+            assert g["n"] > 0
+            assert g["mean_km_day"] > 0
+
+    def test_aggregate_empty_region(self):
+        result = aggregate_track_speeds(
+            group_by="decade",
+            lat_min=85,
+            lat_max=89,  # Deep Arctic — no CLIWOC tracks here
+            lon_min=170,
+            lon_max=180,
+        )
+        assert result["total_observations"] == 0
+        assert len(result["groups"]) == 0
+
+
+# ---------------------------------------------------------------------------
+# Compare speed groups
+# ---------------------------------------------------------------------------
+
+
+class TestCompareSpeedGroups:
+    def test_compare_two_periods(self):
+        result = compare_speed_groups(
+            group1_years="1750/1789",
+            group2_years="1820/1859",
+            lat_min=-50,
+            lat_max=-30,
+        )
+        assert result["group1_n"] > 0
+        assert result["group2_n"] > 0
+        assert result["group1_label"] == "1750/1789"
+        assert result["group2_label"] == "1820/1859"
+        assert isinstance(result["mann_whitney_u"], float)
+        assert isinstance(result["z_score"], float)
+        assert isinstance(result["p_value"], float)
+        assert isinstance(result["significant"], bool)
+        assert isinstance(result["effect_size"], float)
+
+    def test_compare_with_direction_filter(self):
+        result = compare_speed_groups(
+            group1_years="1750/1789",
+            group2_years="1820/1859",
+            lat_min=-50,
+            lat_max=-30,
+            direction="eastbound",
+        )
+        assert result["group1_n"] > 0
+        assert result["group2_n"] > 0
+
+    def test_compare_empty_period(self):
+        result = compare_speed_groups(
+            group1_years="1500/1510",
+            group2_years="1520/1530",
+            lat_min=-50,
+            lat_max=-30,
+        )
+        # Should handle gracefully — no data in these periods
+        assert result["group1_n"] == 0
+        assert result["p_value"] == 1.0
+
+
+# ---------------------------------------------------------------------------
+# Mann-Whitney U helper
+# ---------------------------------------------------------------------------
+
+
+class TestMannWhitneyU:
+    def test_identical_groups(self):
+        x = [1.0, 2.0, 3.0, 4.0, 5.0]
+        y = [1.0, 2.0, 3.0, 4.0, 5.0]
+        u, z, p = _mann_whitney_u(x, y)
+        assert abs(z) < 0.5  # Not significant
+        assert p > 0.05
+
+    def test_different_groups(self):
+        x = [1.0, 2.0, 3.0, 4.0, 5.0]
+        y = [10.0, 11.0, 12.0, 13.0, 14.0]
+        u, z, p = _mann_whitney_u(x, y)
+        assert abs(z) > 1.5
+        assert p < 0.05
+
+    def test_empty_group(self):
+        u, z, p = _mann_whitney_u([], [1.0, 2.0, 3.0])
+        assert p == 1.0
+
+    def test_single_element(self):
+        u, z, p = _mann_whitney_u([1.0], [2.0])
+        assert isinstance(u, float)
+        assert isinstance(z, float)
+        assert isinstance(p, float)
+
+
+# ---------------------------------------------------------------------------
+# Analytics MCP tools
+# ---------------------------------------------------------------------------
+
+
+class TestAnalyticsTools:
+    @pytest.fixture(autouse=True)
+    def _register(self):
+        from unittest.mock import MagicMock
+
+        from chuk_mcp_maritime_archives.tools.analytics.api import register_analytics_tools
+
+        self.mcp = MockMCPServer()
+        self.mgr = MagicMock()
+        register_analytics_tools(self.mcp, self.mgr)
+
+    @pytest.mark.asyncio
+    async def test_compute_track_speeds_success(self):
+        # Use a known voyage ID from the loaded data
+        tracks = search_tracks(max_results=1)
+        if not tracks:
+            pytest.skip("No tracks loaded")
+        vid = tracks[0]["voyage_id"]
+
+        fn = self.mcp.get_tool("maritime_compute_track_speeds")
+        result = await fn(voyage_id=vid)
+        parsed = json.loads(result)
+        assert "voyage_id" in parsed
+        assert "observation_count" in parsed
+        assert "speeds" in parsed
+
+    @pytest.mark.asyncio
+    async def test_compute_track_speeds_not_found(self):
+        fn = self.mcp.get_tool("maritime_compute_track_speeds")
+        result = await fn(voyage_id=999999)
+        parsed = json.loads(result)
+        assert "error" in parsed
+
+    @pytest.mark.asyncio
+    async def test_compute_track_speeds_text_mode(self):
+        tracks = search_tracks(max_results=1)
+        if not tracks:
+            pytest.skip("No tracks loaded")
+        vid = tracks[0]["voyage_id"]
+
+        fn = self.mcp.get_tool("maritime_compute_track_speeds")
+        result = await fn(voyage_id=vid, output_mode="text")
+        assert "Voyage" in result
+        assert "km/day" in result
+
+    @pytest.mark.asyncio
+    async def test_aggregate_track_speeds_success(self):
+        fn = self.mcp.get_tool("maritime_aggregate_track_speeds")
+        result = await fn(
+            group_by="decade",
+            lat_min=-50,
+            lat_max=-30,
+        )
+        parsed = json.loads(result)
+        assert "total_observations" in parsed
+        assert "groups" in parsed
+        assert parsed["total_observations"] > 0
+
+    @pytest.mark.asyncio
+    async def test_aggregate_track_speeds_text_mode(self):
+        fn = self.mcp.get_tool("maritime_aggregate_track_speeds")
+        result = await fn(
+            group_by="direction",
+            lat_min=-50,
+            lat_max=-30,
+            output_mode="text",
+        )
+        assert "km/day" in result
+
+    @pytest.mark.asyncio
+    async def test_compare_speed_groups_success(self):
+        fn = self.mcp.get_tool("maritime_compare_speed_groups")
+        result = await fn(
+            group1_years="1750/1789",
+            group2_years="1820/1859",
+            lat_min=-50,
+            lat_max=-30,
+        )
+        parsed = json.loads(result)
+        assert "mann_whitney_u" in parsed
+        assert "z_score" in parsed
+        assert "p_value" in parsed
+        assert "significant" in parsed
+
+    @pytest.mark.asyncio
+    async def test_compare_speed_groups_text_mode(self):
+        fn = self.mcp.get_tool("maritime_compare_speed_groups")
+        result = await fn(
+            group1_years="1750/1789",
+            group2_years="1820/1859",
+            lat_min=-50,
+            lat_max=-30,
+            output_mode="text",
+        )
+        assert "Mann-Whitney" in result
+
+    @pytest.mark.asyncio
+    async def test_compute_track_speeds_error(self):
+        from unittest.mock import patch
+
+        fn = self.mcp.get_tool("maritime_compute_track_speeds")
+        with patch(
+            "chuk_mcp_maritime_archives.tools.analytics.api.compute_track_speeds",
+            side_effect=RuntimeError("boom"),
+        ):
+            result = await fn(voyage_id=1)
+        parsed = json.loads(result)
+        assert "boom" in parsed["error"]
+
+    @pytest.mark.asyncio
+    async def test_aggregate_error(self):
+        from unittest.mock import patch
+
+        fn = self.mcp.get_tool("maritime_aggregate_track_speeds")
+        with patch(
+            "chuk_mcp_maritime_archives.tools.analytics.api.aggregate_track_speeds",
+            side_effect=RuntimeError("fail"),
+        ):
+            result = await fn(group_by="decade")
+        parsed = json.loads(result)
+        assert "fail" in parsed["error"]
+
+    @pytest.mark.asyncio
+    async def test_compare_error(self):
+        from unittest.mock import patch
+
+        fn = self.mcp.get_tool("maritime_compare_speed_groups")
+        with patch(
+            "chuk_mcp_maritime_archives.tools.analytics.api.compare_speed_groups",
+            side_effect=RuntimeError("crash"),
+        ):
+            result = await fn(group1_years="1750/1789", group2_years="1820/1859")
+        parsed = json.loads(result)
+        assert "crash" in parsed["error"]
