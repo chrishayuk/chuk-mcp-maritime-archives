@@ -11,7 +11,8 @@
     "cargo_description": "tea and porcelain",
     "fate": "completed",
     "particulars": "First expedition of the Swedish East India Company. Departed Gothenburg under command of Carl Henrik Anckarhielm. Reached Canton via the Cape of Good Hope and Sunda Strait. Returned with a cargo of tea and porcelain that sold for enormous profit, securing the company's future.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0002",
@@ -25,7 +26,8 @@
     "cargo_description": "tea, silk, and porcelain",
     "fate": "completed",
     "particulars": "Second SOIC expedition. The Fredericus Rex Sueciae departed again under Anckarhielm. Successful round trip to Canton with large tea cargo. Stopped at Cadiz on the outward voyage for provisions.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0003",
@@ -39,7 +41,8 @@
     "cargo_description": "tea (bohea and hyson), porcelain services",
     "fate": "completed",
     "particulars": "Third expedition. The Calmar sailed under Henrik Konig. Made a successful voyage to Canton, carrying silver coin outward and returning with fine bohea tea and porcelain services.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0004",
@@ -53,7 +56,8 @@
     "cargo_description": "tea, spices, and porcelain",
     "fate": "completed",
     "particulars": "Fourth expedition under af Trolle. Uneventful outward passage via the Cape. Loaded a large cargo of tea in Canton. Returned safely to Gothenburg.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0005",
@@ -67,7 +71,8 @@
     "cargo_description": "tea (congou and pekoe), rhubarb, and silk",
     "fate": "completed",
     "particulars": "Fifth expedition aboard the Suecia. Sailed to Canton with stops at Cadiz for provisions. Returned with congou tea, silk, and medicinal rhubarb.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0006",
@@ -81,7 +86,8 @@
     "cargo_description": "tea, porcelain, and silk brocade",
     "fate": "completed",
     "particulars": "First voyage of the Gotheborg, the largest and most famous SOIC vessel. Successfully sailed to Canton and returned with an extensive cargo of tea, fine porcelain, and silk.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0007",
@@ -95,7 +101,8 @@
     "cargo_description": "silk, lacquerware, and tea",
     "fate": "completed",
     "particulars": "The Riddaren (Knight) under Hassel made a successful voyage to Canton. Carried a cargo of Swedish iron and bar copper outward. Returned laden with silk and lacquerware.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0008",
@@ -109,7 +116,8 @@
     "cargo_description": "tea (bohea), porcelain, and silk",
     "fate": "completed",
     "particulars": "Second voyage of the Gotheborg. Extended stay in Canton for trading. Heavy cargo of bohea tea and Chinese porcelain. Uneventful return passage.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0009",
@@ -123,7 +131,8 @@
     "cargo_description": "tea, porcelain, and camphor",
     "fate": "completed",
     "particulars": "The Calmar's second voyage under Konig. Successful round trip with minor delays at the Cape for repair of rigging.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0010",
@@ -137,7 +146,8 @@
     "cargo_description": "bulk tea, chinaware, and silk piece goods",
     "fate": "completed",
     "particulars": "The veteran Fredericus Rex Sueciae departed on her fifth China voyage. Large bulk tea cargo returned safely.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0011",
@@ -151,7 +161,8 @@
     "cargo_description": "tea and silk textiles",
     "fate": "completed",
     "particulars": "The Riddaren departed under Askbom. Smooth passage to Canton via the Cape. Loaded tea and silk textiles for the European market.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0012",
@@ -165,7 +176,8 @@
     "cargo_description": "tea (bohea and congou), porcelain, lacquerware",
     "fate": "wrecked",
     "particulars": "Third and final voyage of the Gotheborg. After a successful stay in Canton loading approximately 700 tons of tea, porcelain, and silk, the ship struck the Hunnebadan rock at the very entrance to Gothenburg harbor on 12 September 1745 and sank rapidly. All crew survived. Approximately one-third of the cargo was salvaged, still fetching enough at auction to cover the cost of the entire expedition. The most famous Swedish shipwreck.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0013",
@@ -179,7 +191,8 @@
     "cargo_description": "tea, porcelain dinner services, and silk brocade",
     "fate": "completed",
     "particulars": "The Enigheten under Ekeberg, who would become one of the most experienced SOIC captains. Successful trading voyage to Canton.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0014",
@@ -193,7 +206,8 @@
     "cargo_description": "tea, arrack, and silk",
     "fate": "completed",
     "particulars": "The Drottningen af Sverige (Queen of Sweden) on her first China voyage. Carried Swedish iron outward and returned with a profitable cargo of tea and silk.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0015",
@@ -207,7 +221,8 @@
     "cargo_description": "tea (hyson), sugar candy, and porcelain",
     "fate": "completed",
     "particulars": "The aging Fredericus Rex Sueciae on what would prove one of her final voyages. Successful tea trade with Canton.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0016",
@@ -221,7 +236,8 @@
     "cargo_description": "tea, silk, and porcelain",
     "fate": "completed",
     "particulars": "First voyage of the Adolph Friedrich, named after the Swedish crown prince. Fine passage and profitable return cargo.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0017",
@@ -235,7 +251,8 @@
     "cargo_description": "porcelain, silk, and tea (bohea)",
     "fate": "completed",
     "particulars": "The Calmar on another routine Canton voyage. Westerman navigated successfully despite heavy weather off the Cape.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0018",
@@ -249,7 +266,8 @@
     "cargo_description": "tea (pekoe), silk, and tutenag",
     "fate": "completed",
     "particulars": "First voyage of the Prins Carl (Prince Carl). A large, well-armed vessel that made several successful Canton voyages.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0019",
@@ -263,7 +281,8 @@
     "cargo_description": "tea, chinaware, and nankeen cloth",
     "fate": "completed",
     "particulars": "The Hoppet (Hope) on her maiden Canton voyage. Returned with fashionable nankeen cloth alongside the standard tea cargo.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0020",
@@ -277,7 +296,8 @@
     "cargo_description": "tea (bulk hyson), porcelain, and silk",
     "fate": "completed",
     "particulars": "Ekeberg in command of the Drottningen af Sverige. Extensive naturalist observations made during the voyage. Large hyson tea cargo.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0021",
@@ -291,7 +311,8 @@
     "cargo_description": "tea, porcelain, and mother of pearl",
     "fate": "completed",
     "particulars": "The Riddaren under veteran captain Hassel. Stopped at Cadiz on the outward voyage. Fine mother of pearl acquired at Canton alongside the standard tea cargo.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0022",
@@ -305,7 +326,8 @@
     "cargo_description": "silk, tea (souchong), and spices",
     "fate": "completed",
     "particulars": "The Adolph Friedrich's second successful voyage. Bredberg secured fine souchong tea at favorable prices.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0023",
@@ -319,7 +341,8 @@
     "cargo_description": "tea, porcelain, and lacquered cabinets",
     "fate": "completed",
     "particulars": "First voyage of the Terra Nova. Carried a cargo of Swedish iron and copper to trade in Canton. Returned with fine lacquered cabinets alongside the usual tea and porcelain.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0024",
@@ -333,7 +356,8 @@
     "cargo_description": "tea and porcelain",
     "fate": "completed",
     "particulars": "First voyage of the Lovisa Ulrica, named after the Prussian-born Queen of Sweden. Smooth passage to Canton and back with a large tea cargo.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0025",
@@ -347,7 +371,8 @@
     "cargo_description": "tea, silk, and porcelain",
     "fate": "completed",
     "particulars": "Second voyage of the Prins Carl. Kryger encountered heavy weather in the Indian Ocean but arrived safely at Canton.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0026",
@@ -361,7 +386,8 @@
     "cargo_description": "tea (bohea and hyson), porcelain services",
     "fate": "completed",
     "particulars": "The Enigheten (Unity) on her second Canton voyage. Carried mixed bohea and fine hyson tea on the return.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0027",
@@ -375,7 +401,8 @@
     "cargo_description": "tea, porcelain, and silk brocade",
     "fate": "completed",
     "particulars": "The Oster-Gothland on her first Canton voyage. Named after the Swedish province. Returned with a rich assortment of silk brocade.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0028",
@@ -389,7 +416,8 @@
     "cargo_description": "tea and silk (intended)",
     "fate": "captured",
     "particulars": "The Lovisa Ulrica was captured by a British privateer in the English Channel during the Seven Years' War, reflecting the dangers of neutral Swedish shipping in wartime waters. Ship and cargo seized as prize.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0029",
@@ -403,7 +431,8 @@
     "cargo_description": "tea, spices, and porcelain",
     "fate": "completed",
     "particulars": "The Adolph Friedrich made a circuitous passage avoiding British naval patrols during the Seven Years' War. Successfully reached Canton and returned.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0030",
@@ -417,7 +446,8 @@
     "cargo_description": "tea (congou and pekoe), rhubarb, and silk",
     "fate": "completed",
     "particulars": "Ekeberg commanded the Stockholm on this wartime voyage. Made detailed observations of Chinese natural history during the extended stay in Canton.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0031",
@@ -431,7 +461,8 @@
     "cargo_description": "tea, porcelain, and silk",
     "fate": "completed",
     "particulars": "First voyage of the Kronprinsen (Crown Prince). A well-armed vessel built for the wartime China trade.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0032",
@@ -445,7 +476,8 @@
     "cargo_description": "tea, silk textiles, and lacquerware",
     "fate": "completed",
     "particulars": "The Terra Nova on her second Canton voyage. Despite the ongoing Seven Years' War, reached Canton without incident.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0033",
@@ -459,7 +491,8 @@
     "cargo_description": "tea (intended cargo)",
     "fate": "captured",
     "particulars": "The Drottningen af Sverige was intercepted and captured by a Royal Navy frigate off the coast of Portugal during the Seven Years' War. Condemned as prize at a British admiralty court.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0034",
@@ -473,7 +506,8 @@
     "cargo_description": "tea (bohea), porcelain, and silk",
     "fate": "completed",
     "particulars": "Third voyage of the Prins Carl. Kryger navigated through wartime hazards and returned with a valuable tea cargo.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0035",
@@ -487,7 +521,8 @@
     "cargo_description": "porcelain, tea, and lacquered cabinets",
     "fate": "completed",
     "particulars": "Second voyage of the Oster-Gothland. Returned with fine lacquered cabinets for the Swedish aristocracy.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0036",
@@ -501,7 +536,8 @@
     "cargo_description": "tea, silk, and porcelain",
     "fate": "completed",
     "particulars": "The Stockholm under the celebrated Ekeberg. This was among the final voyages under the first SOIC charter (1731-1766). Ekeberg published detailed accounts of the China trade.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0037",
@@ -515,7 +551,8 @@
     "cargo_description": "tea (hyson), silk, and porcelain",
     "fate": "completed",
     "particulars": "First voyage under the renewed second charter. The Stockholm under Ekeberg inaugurated the new charter period.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0038",
@@ -529,7 +566,8 @@
     "cargo_description": "tea and porcelain",
     "fate": "completed",
     "particulars": "First voyage of the Sophia Magdalena, named after the Danish-born princess. Successful trading at Canton.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0039",
@@ -543,7 +581,8 @@
     "cargo_description": "tea, silk, and spices",
     "fate": "completed",
     "particulars": "First voyage of the Konung Gustaf (King Gustav). A new, large vessel built for the expanded second charter trade.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0040",
@@ -557,7 +596,8 @@
     "cargo_description": "tea, arrack, and silk",
     "fate": "completed",
     "particulars": "The veteran Adolph Friedrich under Braad. Late-career voyage for both ship and captain. Successful return.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0041",
@@ -571,7 +611,8 @@
     "cargo_description": "tea (bulk hyson), porcelain, and silk",
     "fate": "completed",
     "particulars": "Jakob Wallenberg sailed as chaplain and chronicler aboard the Prins Carl. His journal 'Min Son pa Galejan' became a classic of Swedish literature.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0042",
@@ -585,7 +626,8 @@
     "cargo_description": "tea (intended cargo)",
     "fate": "wrecked",
     "particulars": "The Finland was wrecked off the Faroe Islands in heavy storms on the outward passage to Canton, March 1771. Most of the crew were rescued by local Faroese fishermen. The ship broke apart on the rocks within hours.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0043",
@@ -599,7 +641,8 @@
     "cargo_description": "tea, porcelain dinner services, and silk brocade",
     "fate": "completed",
     "particulars": "Second successful voyage of the Sophia Magdalena. Hahr negotiated favorable tea prices in Canton.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0044",
@@ -613,7 +656,8 @@
     "cargo_description": "tea, silk, and porcelain",
     "fate": "completed",
     "particulars": "The Cron-Prinsen Gustaf (Crown Prince Gustav) completed a textbook Canton voyage. Extended stay for trading.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0045",
@@ -627,7 +671,8 @@
     "cargo_description": "tea (bohea and congou), porcelain, lacquerware",
     "fate": "completed",
     "particulars": "The Konung Gustaf under Gotheen on her second voyage. Stopped at Surat on the Indian coast for additional trade.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0046",
@@ -641,7 +686,8 @@
     "cargo_description": "tea, porcelain, and silk textiles",
     "fate": "completed",
     "particulars": "First voyage of the Gustaf III, named after the reigning king. A modern, large vessel purpose-built for the China trade.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0047",
@@ -655,7 +701,8 @@
     "cargo_description": "tea (intended cargo)",
     "fate": "wrecked",
     "particulars": "The aging Enigheten was caught in a violent storm in the North Sea and driven onto the coast of Jutland, Denmark. The crew abandoned ship and were rescued. The vessel was a total loss.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0048",
@@ -669,7 +716,8 @@
     "cargo_description": "tea (hyson), sugar candy, and porcelain",
     "fate": "completed",
     "particulars": "First voyage of the Sophia Albertina. Named after Princess Sophia Albertina, sister of Gustaf III.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0049",
@@ -683,7 +731,8 @@
     "cargo_description": "tea, silk, and porcelain",
     "fate": "completed",
     "particulars": "First voyage of the Riksens Stander (Estates of the Realm). A large, well-appointed vessel for the Canton trade.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0050",
@@ -697,7 +746,8 @@
     "cargo_description": "tea, chinaware, and silk piece goods",
     "fate": "completed",
     "particulars": "Second voyage of the Gustaf III. Tersmeden demonstrated skilled seamanship in difficult monsoon conditions.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0051",
@@ -711,7 +761,8 @@
     "cargo_description": "tea, porcelain, and lacquered cabinets",
     "fate": "completed",
     "particulars": "The Konung Gustaf on her third Canton voyage. Fine lacquered cabinets acquired for the Swedish court.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0052",
@@ -725,7 +776,8 @@
     "cargo_description": "tea (intended cargo)",
     "fate": "captured",
     "particulars": "The Sophia Albertina was seized by a British warship in the Atlantic during Anglo-Swedish tensions arising from the League of Armed Neutrality. Ship was taken as prize to a British port.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0053",
@@ -739,7 +791,8 @@
     "cargo_description": "tea, silk, and spices",
     "fate": "completed",
     "particulars": "The Riksens Stander navigated cautiously during wartime. Stopped at Cadiz and took a wide Atlantic route to avoid British patrols.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0054",
@@ -753,7 +806,8 @@
     "cargo_description": "tea (bohea), porcelain, and silk brocade",
     "fate": "completed",
     "particulars": "Third voyage of the Gustaf III. Despite the American War of Independence raging, neutral Swedish shipping continued. Profitable return cargo.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0055",
@@ -767,7 +821,8 @@
     "cargo_description": "tea (intended cargo)",
     "fate": "wrecked",
     "particulars": "The Cron-Prinsen Gustaf was wrecked on the Scottish coast near the Orkney Islands in severe winter storms during the outward passage. Crew saved but ship and outward cargo lost.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0056",
@@ -781,7 +836,8 @@
     "cargo_description": "tea, porcelain, and nankeen cloth",
     "fate": "completed",
     "particulars": "The Sophia Magdalena on her third successful Canton voyage. Hahr proved to be one of the most reliable SOIC captains.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0057",
@@ -795,7 +851,8 @@
     "cargo_description": "tea, silk, and porcelain",
     "fate": "completed",
     "particulars": "Gadd commanded the Konung Gustaf after the loss of the Finland. Successful and uneventful voyage.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0058",
@@ -809,7 +866,8 @@
     "cargo_description": "tea (congou and pekoe), rhubarb, and silk",
     "fate": "completed",
     "particulars": "The Gustaf III on a peacetime voyage following the end of the American war. Large tea cargo returned safely.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0059",
@@ -823,7 +881,8 @@
     "cargo_description": "tea, porcelain, and silk",
     "fate": "completed",
     "particulars": "Third voyage of the Riksens Stander. Falander's experienced crew made excellent time on both legs of the voyage.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0060",
@@ -837,7 +896,8 @@
     "cargo_description": "tea, silk, and porcelain",
     "fate": "wrecked",
     "particulars": "The aging Prins Carl reached Canton successfully but was wrecked on the return voyage off the coast of Madagascar when she struck an uncharted reef. Part of the tea cargo was salvaged by a passing Danish vessel. Crew rescued.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0061",
@@ -851,7 +911,8 @@
     "cargo_description": "tea, porcelain, and silk textiles",
     "fate": "completed",
     "particulars": "First voyage of the Wasa. A new generation vessel for the declining years of the SOIC China trade.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0062",
@@ -865,7 +926,8 @@
     "cargo_description": "tea (hyson and bohea), porcelain, and silk",
     "fate": "completed",
     "particulars": "The Gustaf III on her fifth Canton voyage. Tersmeden noted increasing competition from British country traders.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0063",
@@ -879,7 +941,8 @@
     "cargo_description": "tea (intended cargo)",
     "fate": "captured",
     "particulars": "The Sophia Magdalena was captured by a Russian naval vessel in the Baltic Sea during the Russo-Swedish War (1788-1790). Ship and cargo confiscated. Later released but in poor condition.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0064",
@@ -893,7 +956,8 @@
     "cargo_description": "tea, silk, and porcelain",
     "fate": "completed",
     "particulars": "First voyage of the Norrkoeping. Sailed despite the ongoing Russo-Swedish War. Took a western route to avoid Russian naval patrols.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0065",
@@ -907,7 +971,8 @@
     "cargo_description": "tea, porcelain, and silk brocade",
     "fate": "completed",
     "particulars": "The Riksens Stander under Wahlberg during the final years of steady SOIC trade. Profitable return cargo.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0066",
@@ -921,7 +986,8 @@
     "cargo_description": "tea, porcelain dinner services, and silk",
     "fate": "completed",
     "particulars": "The Gustaf III on her sixth voyage. The assassination of Gustaf III in March 1792 cast a shadow over the return. Ship retained her name nonetheless.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0067",
@@ -935,7 +1001,8 @@
     "cargo_description": "tea, silk, and lacquerware",
     "fate": "completed",
     "particulars": "The Wasa on her second Canton voyage. French Revolutionary Wars beginning to disrupt European trade, but Swedish neutrality still held.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0068",
@@ -949,7 +1016,8 @@
     "cargo_description": "tea (intended cargo)",
     "fate": "wrecked",
     "particulars": "The Norrkoeping was wrecked on the coast of South Africa near the Cape of Good Hope during a severe storm. The vessel dragged her anchors in Table Bay and was driven ashore. Most crew survived.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0069",
@@ -963,7 +1031,8 @@
     "cargo_description": "tea (bohea and congou), porcelain, and silk",
     "fate": "completed",
     "particulars": "The Riksens Stander navigated through the chaos of the early French Revolutionary Wars. Neutral Swedish flag largely respected at this stage.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0070",
@@ -977,7 +1046,8 @@
     "cargo_description": "tea, silk, and porcelain",
     "fate": "completed",
     "particulars": "Seventh and penultimate voyage of the Gustaf III. Declining profits as British dominance of the tea trade increased. Tea prices in Canton rising.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0071",
@@ -991,7 +1061,8 @@
     "cargo_description": "tea, porcelain, and nankeen cloth",
     "fate": "completed",
     "particulars": "The Wasa on her third voyage. The SOIC trade was slowing but still profitable on a per-voyage basis.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0072",
@@ -1005,7 +1076,8 @@
     "cargo_description": "tea (intended cargo)",
     "fate": "captured",
     "particulars": "The Gustaf III was seized by a French privateer near the Canary Islands during the French Revolutionary Wars. The ship was condemned as a prize at a French colonial port. Last voyage of this famous vessel.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0073",
@@ -1019,7 +1091,8 @@
     "cargo_description": "tea, silk, and porcelain",
     "fate": "completed",
     "particulars": "One of the final large-scale SOIC voyages. Falander completed the long passage without major incident despite widespread naval warfare in European waters.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0074",
@@ -1033,7 +1106,8 @@
     "cargo_description": "tea, porcelain, and silk",
     "fate": "completed",
     "particulars": "The Wasa on her fourth and final voyage. Swedish trade with Canton was becoming economically marginal in the face of British East India Company dominance.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0075",
@@ -1047,7 +1121,8 @@
     "cargo_description": "tea (intended cargo)",
     "fate": "captured",
     "particulars": "The Riksens Stander was captured by a British squadron enforcing the blockade against the League of Armed Neutrality nations. Ship seized and taken to a British port as prize. Later released but the voyage was abandoned.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0076",
@@ -1061,7 +1136,8 @@
     "cargo_description": "tea, silk, and porcelain",
     "fate": "completed",
     "particulars": "A rare late-period SOIC voyage during the brief Peace of Amiens. Gadd made the most of the temporary peace to conduct trade in Canton.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0077",
@@ -1075,7 +1151,8 @@
     "cargo_description": "tea, silk, and porcelain",
     "fate": "wrecked",
     "particulars": "A replacement vessel also named Norrkoeping. Reached Canton but on the return voyage was wrecked during a typhoon in the South China Sea. Crew took to the boats and were rescued by a passing American vessel.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0078",
@@ -1089,7 +1166,8 @@
     "cargo_description": "tea and porcelain",
     "fate": "completed",
     "particulars": "One of the last SOIC voyages. Diminishing returns and Napoleonic Wars disruptions made the China trade increasingly difficult for the small Swedish company.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0079",
@@ -1103,7 +1181,8 @@
     "cargo_description": "tea and silk",
     "fate": "completed",
     "particulars": "Penultimate SOIC expedition. The Continental System and British naval dominance made the voyage hazardous. Gadd navigated cautiously and returned safely.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0080",
@@ -1117,7 +1196,8 @@
     "cargo_description": "tea (bohea), porcelain, and silk",
     "fate": "completed",
     "particulars": "The final documented voyage of the Swedish East India Company. The SOIC charter expired in 1813 and was not renewed. Swedish direct trade with China ended, displaced by British and American competition. The company was formally dissolved.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0081",
@@ -1131,7 +1211,8 @@
     "cargo_description": "tea, porcelain, and silk",
     "fate": "completed",
     "particulars": "First voyage of the Gustaf Adolph. Departed Gothenburg in the same season as the Wasa. The two vessels sailed in loose convoy as far as the Cape of Good Hope for mutual protection in uncertain times.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0082",
@@ -1145,7 +1226,8 @@
     "cargo_description": "tea (bohea and hyson), porcelain services",
     "fate": "completed",
     "particulars": "First voyage of the Drottning Sophia Magdalena, a new vessel named in honor of the dowager queen. Tham proved an able commander on this maiden voyage to Canton.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0083",
@@ -1159,7 +1241,8 @@
     "cargo_description": "tea, silk, and lacquerware",
     "fate": "completed",
     "particulars": "The Riksens Stander departed shortly before France declared war on Britain and the Netherlands. Falander navigated carefully and completed the round trip before the full naval war engulfed European waters.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0084",
@@ -1173,7 +1256,8 @@
     "cargo_description": "tea, porcelain dinner services, and silk brocade",
     "fate": "completed",
     "particulars": "Second voyage of the Gustaf Adolph under Bladh. The French Revolutionary Wars had begun, and Swedish neutrality was tested as French privateers began ranging across the Atlantic.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0085",
@@ -1187,7 +1271,8 @@
     "cargo_description": "tea (intended cargo)",
     "fate": "wrecked",
     "particulars": "The Drottning Sophia Magdalena encountered a violent gale in the Bay of Biscay on the outward passage. Sustained severe hull damage and began taking on water. Tham attempted to reach Lisbon but the vessel foundered off the Portuguese coast. All crew rescued by Portuguese fishermen.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0086",
@@ -1201,7 +1286,8 @@
     "cargo_description": "tea (congou and pekoe), rhubarb, and silk",
     "fate": "completed",
     "particulars": "The Gustaf III embarked on what would prove one of her last successful voyages. Wahlberg took a wide westerly route across the Atlantic to avoid French privateers known to operate near the Azores.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0087",
@@ -1215,7 +1301,8 @@
     "cargo_description": "tea, porcelain, and nankeen cloth",
     "fate": "completed",
     "particulars": "The Wasa on her fifth Canton voyage. Extended stay at the Cape for repairs after heavy weather in the Atlantic. Eventually reached Canton and loaded a full cargo of tea.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0088",
@@ -1229,7 +1316,8 @@
     "cargo_description": "tea, silk, and porcelain",
     "fate": "completed",
     "particulars": "Third voyage of the Gustaf Adolph. Hjorth, now one of the senior SOIC captains, made the passage efficiently despite wartime conditions. Swedish neutral flag still afforded some protection.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0089",
@@ -1243,7 +1331,8 @@
     "cargo_description": "tea (intended cargo)",
     "fate": "captured",
     "particulars": "The Sophia Albertina was intercepted by a French frigate off the west coast of Africa. Despite Swedish neutrality, the French captain declared the vessel to be carrying contraband goods bound for British allies. Taken as prize to Mauritius (Ile de France).",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0090",
@@ -1257,7 +1346,8 @@
     "cargo_description": "tea (hyson), sugar candy, and porcelain",
     "fate": "completed",
     "particulars": "First voyage of the Tre Kronor (Three Crowns), a newly built vessel for the late-period SOIC trade. Cronstedt made an uneventful passage to Canton and returned with a profitable cargo.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0091",
@@ -1271,7 +1361,8 @@
     "cargo_description": "tea, silk, and spices",
     "fate": "completed",
     "particulars": "First voyage of the Carolina. Bergius commanded this smaller vessel on a successful Canton voyage. Delayed at the Cape due to British naval presence but eventually allowed to proceed as a neutral.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0092",
@@ -1285,7 +1376,8 @@
     "cargo_description": "tea (bohea), porcelain, and silk brocade",
     "fate": "completed",
     "particulars": "Fourth voyage of the Gustaf Adolph. Bladh reported increasing difficulty trading in Canton as British country traders dominated the market. Swedish tea purchases were constrained.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0093",
@@ -1299,7 +1391,8 @@
     "cargo_description": "tea, porcelain, and silk textiles",
     "fate": "completed",
     "particulars": "Fifth voyage of the Riksens Stander. Falander's final command for the SOIC. The aging vessel required extensive caulking at the Cape before continuing to Canton.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0094",
@@ -1313,7 +1406,8 @@
     "cargo_description": "tea, porcelain, and silk",
     "fate": "wrecked",
     "particulars": "The Tre Kronor reached Canton and loaded a full cargo but was wrecked on the return voyage when she struck a submerged rock in the Bangka Strait between Sumatra and Bangka Island. Crew abandoned ship in good order. Some cargo salvaged before the vessel sank.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0095",
@@ -1327,7 +1421,8 @@
     "cargo_description": "tea, silk, and lacquerware",
     "fate": "completed",
     "particulars": "Second voyage of the Carolina. Bergius took a cautious route hugging the Brazilian coast before crossing to the Cape, avoiding French privateers reported near the Azores and Cape Verde Islands.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0096",
@@ -1341,7 +1436,8 @@
     "cargo_description": "tea and porcelain",
     "fate": "completed",
     "particulars": "First voyage of the Jupiter, one of the last new vessels commissioned by the SOIC. Tham, having survived the loss of the Drottning Sophia Magdalena, commanded this smaller but sturdy vessel on a successful Canton voyage.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0097",
@@ -1355,7 +1451,8 @@
     "cargo_description": "tea (bohea and congou), porcelain, lacquerware",
     "fate": "completed",
     "particulars": "Fifth voyage of the Gustaf Adolph. Delayed departure and extended stay at Canton due to monsoon timing. Hjorth noted the dwindling profitability of the trade in his journal.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0098",
@@ -1369,7 +1466,8 @@
     "cargo_description": "tea (intended cargo)",
     "fate": "captured",
     "particulars": "First voyage of the Oster-Gothland II. The vessel was captured by a British warship enforcing the blockade of the Armed Neutrality nations in the North Sea. Taken to Leith as prize. Later released but the voyage was abandoned and the delay proved costly.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0099",
@@ -1383,7 +1481,8 @@
     "cargo_description": "tea, porcelain, and silk",
     "fate": "completed",
     "particulars": "Third voyage of the Carolina. Bladh assumed command for this voyage. Despite the volatile political situation in Europe, the Carolina completed her round trip safely.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0100",
@@ -1397,7 +1496,8 @@
     "cargo_description": "tea (hyson and bohea), porcelain, and silk",
     "fate": "completed",
     "particulars": "Centenary expedition of the SOIC by count of voyages. The Jupiter under Bergius completed a profitable voyage during a brief respite in European hostilities.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0101",
@@ -1411,7 +1511,8 @@
     "cargo_description": "tea, silk, and porcelain",
     "fate": "completed",
     "particulars": "Second voyage of the Oster-Gothland II after her release from British detention. Palmqvist took the long western route to avoid further trouble with the Royal Navy.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0102",
@@ -1425,7 +1526,8 @@
     "cargo_description": "tea, porcelain dinner services, and silk brocade",
     "fate": "completed",
     "particulars": "Sixth voyage of the Gustaf Adolph during the Peace of Amiens. Tham took advantage of the temporary peace to make a swift and profitable round trip.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0103",
@@ -1439,7 +1541,8 @@
     "cargo_description": "tea, silk, and spices",
     "fate": "completed",
     "particulars": "A replacement vessel also named Tre Kronor was acquired after the loss of the original. Cronstedt commanded this new vessel on a successful Canton voyage during the final months of peace.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0104",
@@ -1453,7 +1556,8 @@
     "cargo_description": "tea (pekoe), silk, and tutenag",
     "fate": "completed",
     "particulars": "Fourth voyage of the Carolina. The resumption of war between Britain and France (May 1803) complicated the return passage, but Bergius navigated safely.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0105",
@@ -1467,7 +1571,8 @@
     "cargo_description": "tea (intended cargo)",
     "fate": "captured",
     "particulars": "The Jupiter was captured by a French privateer in the South Atlantic near St. Helena. Bladh protested Swedish neutrality but the French captain insisted the cargo manifest showed British goods. Condemned at a French admiralty court on Reunion.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0106",
@@ -1481,7 +1586,8 @@
     "cargo_description": "tea, porcelain, and silk",
     "fate": "completed",
     "particulars": "Seventh voyage of the Gustaf Adolph. Hjorth's final command for the SOIC. The veteran captain completed a careful passage to Canton and back, noting the increased danger from French and British men-of-war.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0107",
@@ -1495,7 +1601,8 @@
     "cargo_description": "tea (bohea), porcelain, and silk",
     "fate": "completed",
     "particulars": "Third voyage of the Oster-Gothland II. Extended stay at Canton waiting for favorable monsoon winds. The Battle of Trafalgar (October 1805) occurred during the outward leg, reshaping the naval situation.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0108",
@@ -1509,7 +1616,8 @@
     "cargo_description": "tea, chinaware, and silk piece goods",
     "fate": "completed",
     "particulars": "The Tre Kronor under Tham. After Trafalgar, British naval supremacy reduced the French privateer threat but increased the risk of British interference with neutral shipping. Tham completed the voyage successfully.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0109",
@@ -1523,7 +1631,8 @@
     "cargo_description": "tea (intended cargo)",
     "fate": "wrecked",
     "particulars": "The Carolina was wrecked in the Indian Ocean east of Madagascar when she struck the Cargados Carajos shoals in poor visibility. The crew took to the boats and reached Mauritius after five days at sea. Total loss of vessel and outward cargo.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0110",
@@ -1537,7 +1646,8 @@
     "cargo_description": "tea, silk, and porcelain",
     "fate": "completed",
     "particulars": "Eighth and final voyage of the Gustaf Adolph. Cronstedt took command after Hjorth's retirement. The Continental System was tightening European trade, making the Canton commerce one of the few profitable outlets.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0111",
@@ -1551,7 +1661,8 @@
     "cargo_description": "tea (intended cargo)",
     "fate": "captured",
     "particulars": "The Oster-Gothland II was seized by a British frigate in the North Sea shortly after departure from Gothenburg. Britain was enforcing strict controls on neutral trade under the Orders in Council. Ship detained at Yarmouth. Eventually released but too late for the Canton season.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0112",
@@ -1565,7 +1676,8 @@
     "cargo_description": "tea (congou and pekoe), rhubarb, and silk",
     "fate": "completed",
     "particulars": "The Tre Kronor under Tham. One of the last profitable SOIC voyages. Tham took a Brazilian coastal route to avoid the heavy British patrols off the European coast.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0113",
@@ -1579,7 +1691,8 @@
     "cargo_description": "tea, porcelain, and silk",
     "fate": "completed",
     "particulars": "A replacement vessel also named Jupiter was acquired after the loss of the original. Bladh commanded this new vessel to Canton. The Russo-Swedish War of 1808-1809 complicated the return to Gothenburg.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0114",
@@ -1593,7 +1706,8 @@
     "cargo_description": "tea, silk, and porcelain",
     "fate": "completed",
     "particulars": "Ninth voyage of the Gustaf Adolph. Sweden was at war with Russia and Denmark, making the passage out of the Baltic particularly dangerous. Cronstedt took the vessel through the Oresund at night to avoid Danish batteries.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0115",
@@ -1607,7 +1721,8 @@
     "cargo_description": "tea (intended cargo)",
     "fate": "wrecked",
     "particulars": "The Oster-Gothland II departed in poor autumn weather and was dismasted in a North Sea gale. Palmqvist attempted to reach the Norwegian coast under jury rig but the vessel grounded on the Jeren coast south of Stavanger. Crew rescued by Norwegian pilots. Total loss.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0116",
@@ -1621,7 +1736,8 @@
     "cargo_description": "tea and porcelain",
     "fate": "completed",
     "particulars": "The Tre Kronor on another Canton voyage. Sweden had lost Finland to Russia and the economy was strained. The SOIC continued trading but with diminished capital.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0117",
@@ -1635,7 +1751,8 @@
     "cargo_description": "tea, silk, and lacquerware",
     "fate": "completed",
     "particulars": "The Jupiter under Bergius. With the SOIC's fortunes declining, this was one of only a handful of vessels still making the Canton run. Bergius returned with a modest but profitable cargo of tea and silk.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0118",
@@ -1649,7 +1766,8 @@
     "cargo_description": "tea (intended cargo)",
     "fate": "captured",
     "particulars": "The Gustaf Adolph was captured by a Danish privateer in the Kattegat. Denmark, allied with Napoleon, was at war with Sweden. The vessel was taken to Copenhagen as prize. A humiliating loss for the SOIC so close to home waters.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0119",
@@ -1663,7 +1781,8 @@
     "cargo_description": "tea, porcelain, and silk",
     "fate": "completed",
     "particulars": "One of the very last SOIC voyages. Tham navigated through multiple war zones. The return cargo fetched modest prices in a Europe disrupted by the Continental System and economic depression.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0120",
@@ -1677,7 +1796,8 @@
     "cargo_description": "tea (bohea and congou), porcelain, lacquerware",
     "fate": "completed",
     "particulars": "The Jupiter on her fourth voyage. Bergius made the most of the declining trade. Tea prices in Canton had risen sharply while European markets were depressed.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0121",
@@ -1691,7 +1811,8 @@
     "cargo_description": "tea (intended cargo)",
     "fate": "wrecked",
     "particulars": "A replacement vessel also named Carolina. Lost in the Sunda Strait on the outward voyage when she struck a reef near Anjer Point in darkness. The crew reached the shore safely with the help of local Javanese boatmen. Ship and cargo a total loss.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0122",
@@ -1705,7 +1826,8 @@
     "cargo_description": "tea, silk, and porcelain",
     "fate": "completed",
     "particulars": "Penultimate documented SOIC expedition. Tham, now the most experienced captain in the company's service, completed a difficult round trip in the final year before the charter expired.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0123",
@@ -1719,7 +1841,8 @@
     "cargo_description": "tea and silk",
     "fate": "completed",
     "particulars": "The very last SOIC voyage to depart and return. Bergius sailed the Jupiter on a final Canton expedition as the company charter was expiring. Returned to Gothenburg in September 1813 to find the SOIC being wound down.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0124",
@@ -1733,7 +1856,8 @@
     "cargo_description": "tea (souchong), silk, and spices",
     "fate": "completed",
     "particulars": "The Riksens Stander sailed concurrently with the Gustaf Adolph and Tre Kronor in the busy 1796 season. Wahlberg secured a cargo of fine souchong tea prized in the Scandinavian market.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0125",
@@ -1747,7 +1871,8 @@
     "cargo_description": "tea, porcelain, and camphor",
     "fate": "completed",
     "particulars": "The Wasa on a concurrent voyage. Gadd loaded an unusual cargo of camphor alongside the standard tea shipment, fetching good prices from Swedish apothecaries.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0126",
@@ -1761,7 +1886,8 @@
     "cargo_description": "tea (intended cargo)",
     "fate": "captured",
     "particulars": "The aging Konung Gustaf was seized by a French privateer near Madeira shortly after the outbreak of the French Revolutionary Wars. Despite Swedish neutrality, the vessel was condemned as prize. End of the Konung Gustaf.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0127",
@@ -1775,7 +1901,8 @@
     "cargo_description": "tea, porcelain, and silk brocade",
     "fate": "completed",
     "particulars": "The Sophia Albertina under veteran Hegardt on a wartime Canton voyage. Took the long route via Brazil to avoid French and British patrols in the eastern Atlantic.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0128",
@@ -1789,7 +1916,8 @@
     "cargo_description": "cotton piece goods, indigo, and spices",
     "fate": "completed",
     "particulars": "One of the rare SOIC voyages to India rather than China. The Drottning Sophia Magdalena sailed to Surat to diversify the company's trade. Returned with Indian cotton textiles, indigo, and spices.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0129",
@@ -1803,7 +1931,8 @@
     "cargo_description": "tea, silk, and porcelain",
     "fate": "completed",
     "particulars": "A concurrent voyage by the Gustaf Adolph during the busy final decade of SOIC operations. Bladh made efficient use of the Peace of Amiens window.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0130",
@@ -1817,7 +1946,8 @@
     "cargo_description": "tea, porcelain, and lacquered cabinets",
     "fate": "completed",
     "particulars": "The Tre Kronor on a concurrent Canton voyage. Cronstedt loaded fine lacquered cabinets and porcelain dinner services alongside the bulk tea cargo.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0131",
@@ -1831,7 +1961,8 @@
     "cargo_description": "tea (intended cargo)",
     "fate": "captured",
     "particulars": "The Sophia Albertina was captured by a British privateer in the South Atlantic. The renewed Napoleonic Wars made the seas increasingly dangerous for neutral shipping. Ship taken to Cape Town as prize. The SOIC filed a formal protest but received no compensation.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "voyage_id": "soic:0132",
@@ -1845,6 +1976,7 @@
     "cargo_description": "tea, silk, and porcelain",
     "fate": "completed",
     "particulars": "One of the last concurrent SOIC voyages. The Oster-Gothland II sailed alongside the Jupiter to Canton. Palmqvist returned safely despite the Russo-Swedish War complicating passage through the Baltic. The declining fortunes of the SOIC were evident in the modest cargo and thin profits.",
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   }
 ]

@@ -1,0 +1,94 @@
+[
+  {
+    "muster_id": "dss_muster:0001",
+    "ship_name": "Middelburg",
+    "ship_type": "retourschip",
+    "tonnage_lasten": 780,
+    "captain": "Jan Pietersz van Hoorn",
+    "muster_date": "1720-03-15",
+    "muster_location": "Batavia",
+    "total_european": 85,
+    "total_asian": 35,
+    "total_crew": 120,
+    "monthly_wages_guilders": 1450,
+    "mean_wage_guilders": 12.1,
+    "ranks_summary": {
+      "schipper": 1,
+      "stuurman": 2,
+      "matroos": 60,
+      "soldaat": 30
+    },
+    "das_voyage_id": "das:1234",
+    "particulars": "Muster taken at Batavia roadstead prior to return voyage.",
+    "archive": "dss"
+  },
+  {
+    "muster_id": "dss_muster:0002",
+    "ship_name": "Zeelandia",
+    "ship_type": "retourschip",
+    "tonnage_lasten": 650,
+    "captain": "Cornelis de Wit",
+    "muster_date": "1735-07-22",
+    "muster_location": "Makassar",
+    "total_european": 70,
+    "total_asian": 40,
+    "total_crew": 110,
+    "monthly_wages_guilders": 1320,
+    "mean_wage_guilders": 12.0,
+    "ranks_summary": {
+      "schipper": 1,
+      "stuurman": 2,
+      "matroos": 55,
+      "soldaat": 25
+    },
+    "das_voyage_id": null,
+    "particulars": "Annual muster at Makassar fort.",
+    "archive": "dss"
+  },
+  {
+    "muster_id": "dss_muster:0003",
+    "ship_name": "Amsterdam",
+    "ship_type": "retourschip",
+    "tonnage_lasten": 850,
+    "captain": "Pieter de Vries",
+    "muster_date": "1750-11-05",
+    "muster_location": "Colombo",
+    "total_european": 90,
+    "total_asian": 30,
+    "total_crew": 120,
+    "monthly_wages_guilders": 1560,
+    "mean_wage_guilders": 13.0,
+    "ranks_summary": {
+      "schipper": 1,
+      "stuurman": 3,
+      "matroos": 65,
+      "soldaat": 28
+    },
+    "das_voyage_id": null,
+    "particulars": "Muster at Colombo prior to Coromandel coast patrol.",
+    "archive": "dss"
+  },
+  {
+    "muster_id": "dss_muster:0004",
+    "ship_name": "Middelburg",
+    "ship_type": "retourschip",
+    "tonnage_lasten": 780,
+    "captain": "Willem Janssen",
+    "muster_date": "1760-04-18",
+    "muster_location": "Batavia",
+    "total_european": 75,
+    "total_asian": 45,
+    "total_crew": 120,
+    "monthly_wages_guilders": 1680,
+    "mean_wage_guilders": 14.0,
+    "ranks_summary": {
+      "schipper": 1,
+      "stuurman": 2,
+      "matroos": 58,
+      "soldaat": 35
+    },
+    "das_voyage_id": "das:5678",
+    "particulars": "Muster taken at Batavia, crew includes Javanese sailors.",
+    "archive": "dss"
+  }
+]

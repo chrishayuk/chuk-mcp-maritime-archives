@@ -2058,6 +2058,7 @@ def build_voyages() -> list[dict]:
             "fate": v["fate"],
             "particulars": v["particulars"],
             "archive": ARCHIVE,
+            "is_curated": True,
         }
         voyages.append(rec)
 
@@ -2514,6 +2515,7 @@ def build_wrecks() -> list[dict]:
             "depth_estimate_m": w["depth_m"],
             "tonnage": w["tonnage"],
             "archive": ARCHIVE,
+            "is_curated": True,
         }
         wrecks.append(rec)
 

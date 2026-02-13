@@ -175,6 +175,43 @@ SAMPLE_NARRATIVE_HITS = [
     },
 ]
 
+SAMPLE_MUSTERS = [
+    {
+        "muster_id": "dss_muster:0001",
+        "ship_name": "Middelburg",
+        "captain": "Jan Pietersz van Hoorn",
+        "muster_date": "1720-03-15",
+        "muster_location": "Batavia",
+        "total_crew": 120,
+        "das_voyage_id": "das:1234",
+        "archive": "dss",
+        "mean_wage_guilders": 12.1,
+    },
+    {
+        "muster_id": "dss_muster:0002",
+        "ship_name": "Zeelandia",
+        "captain": "Cornelis de Wit",
+        "muster_date": "1735-07-22",
+        "muster_location": "Makassar",
+        "total_crew": 110,
+        "das_voyage_id": None,
+        "archive": "dss",
+        "mean_wage_guilders": 12.0,
+    },
+]
+
+SAMPLE_WAGE_COMPARISON = {
+    "group1_label": "1700-1730",
+    "group1_n": 5,
+    "group1_mean_wage": 11.5,
+    "group1_median_wage": 11.2,
+    "group2_label": "1731-1760",
+    "group2_n": 8,
+    "group2_mean_wage": 13.0,
+    "group2_median_wage": 12.8,
+    "difference_pct": 13.0,
+}
+
 SAMPLE_WRECKS = [
     {
         "wreck_id": "maarer:VOC-0789",

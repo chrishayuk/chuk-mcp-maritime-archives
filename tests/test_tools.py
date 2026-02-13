@@ -11,9 +11,11 @@ from .conftest import (
     MockMCPServer,
     SAMPLE_CARGO,
     SAMPLE_CREW,
+    SAMPLE_MUSTERS,
     SAMPLE_NARRATIVE_HITS,
     SAMPLE_VESSELS,
     SAMPLE_VOYAGES,
+    SAMPLE_WAGE_COMPARISON,
     SAMPLE_WRECKS,
 )
 
@@ -43,6 +45,9 @@ def mock_manager() -> MagicMock:
     mgr.get_crew_member = AsyncMock(return_value=SAMPLE_CREW[0])
     mgr.search_cargo = AsyncMock(return_value=_paginated(SAMPLE_CARGO))
     mgr.get_cargo_manifest = AsyncMock(return_value=SAMPLE_CARGO)
+    mgr.search_musters = AsyncMock(return_value=_paginated(SAMPLE_MUSTERS))
+    mgr.get_muster = AsyncMock(return_value=SAMPLE_MUSTERS[0])
+    mgr.compare_wages = AsyncMock(return_value=SAMPLE_WAGE_COMPARISON)
     mgr.search_narratives = AsyncMock(return_value=_paginated(SAMPLE_NARRATIVE_HITS))
     mgr.assess_position = AsyncMock(
         return_value={
@@ -848,3 +853,117 @@ class TestNarrativeTools:
         assert parsed["total_count"] == 2
         assert parsed["has_more"] is True
         assert parsed["next_cursor"] == "eyJvIjoxfQ"
+
+
+# ---------------------------------------------------------------------------
+# Muster tools
+# ---------------------------------------------------------------------------
+
+
+class TestMusterTools:
+    @pytest.fixture(autouse=True)
+    def _register(self, mock_mcp, mock_manager):
+        from chuk_mcp_maritime_archives.tools.musters.api import register_muster_tools
+
+        register_muster_tools(mock_mcp, mock_manager)
+        self.mcp = mock_mcp
+        self.mgr = mock_manager
+
+    @pytest.mark.asyncio
+    async def test_search_musters_success(self):
+        fn = self.mcp.get_tool("maritime_search_musters")
+        result = await fn()
+        parsed = json.loads(result)
+        assert parsed["muster_count"] == 2
+        assert len(parsed["musters"]) == 2
+
+    @pytest.mark.asyncio
+    async def test_search_musters_no_results(self):
+        self.mgr.search_musters.return_value = _paginated([])
+        fn = self.mcp.get_tool("maritime_search_musters")
+        result = await fn()
+        parsed = json.loads(result)
+        assert "error" in parsed
+
+    @pytest.mark.asyncio
+    async def test_search_musters_text_mode(self):
+        fn = self.mcp.get_tool("maritime_search_musters")
+        result = await fn(output_mode="text")
+        assert "Middelburg" in result
+
+    @pytest.mark.asyncio
+    async def test_search_musters_error(self):
+        self.mgr.search_musters.side_effect = RuntimeError("muster err")
+        fn = self.mcp.get_tool("maritime_search_musters")
+        result = await fn()
+        parsed = json.loads(result)
+        assert "muster err" in parsed["error"]
+
+    @pytest.mark.asyncio
+    async def test_get_muster_success(self):
+        fn = self.mcp.get_tool("maritime_get_muster")
+        result = await fn(muster_id="dss_muster:0001")
+        parsed = json.loads(result)
+        assert "muster" in parsed
+
+    @pytest.mark.asyncio
+    async def test_get_muster_not_found(self):
+        self.mgr.get_muster.return_value = None
+        fn = self.mcp.get_tool("maritime_get_muster")
+        result = await fn(muster_id="dss_muster:9999")
+        parsed = json.loads(result)
+        assert "error" in parsed
+
+    @pytest.mark.asyncio
+    async def test_get_muster_text_mode(self):
+        fn = self.mcp.get_tool("maritime_get_muster")
+        result = await fn(muster_id="dss_muster:0001", output_mode="text")
+        assert "Middelburg" in result
+
+    @pytest.mark.asyncio
+    async def test_get_muster_error(self):
+        self.mgr.get_muster.side_effect = RuntimeError("err")
+        fn = self.mcp.get_tool("maritime_get_muster")
+        result = await fn(muster_id="x")
+        parsed = json.loads(result)
+        assert "err" in parsed["error"]
+
+    @pytest.mark.asyncio
+    async def test_compare_wages_success(self):
+        fn = self.mcp.get_tool("maritime_compare_wages")
+        result = await fn(
+            group1_start=1700,
+            group1_end=1730,
+            group2_start=1731,
+            group2_end=1760,
+        )
+        parsed = json.loads(result)
+        assert parsed["group1_n"] == 5
+        assert parsed["group2_n"] == 8
+        assert parsed["difference_pct"] == 13.0
+
+    @pytest.mark.asyncio
+    async def test_compare_wages_text_mode(self):
+        fn = self.mcp.get_tool("maritime_compare_wages")
+        result = await fn(
+            group1_start=1700,
+            group1_end=1730,
+            group2_start=1731,
+            group2_end=1760,
+            output_mode="text",
+        )
+        assert "1700-1730" in result
+        assert "1731-1760" in result
+
+    @pytest.mark.asyncio
+    async def test_compare_wages_error(self):
+        self.mgr.compare_wages.side_effect = RuntimeError("wage err")
+        fn = self.mcp.get_tool("maritime_compare_wages")
+        result = await fn(
+            group1_start=1700,
+            group1_end=1730,
+            group2_start=1731,
+            group2_end=1760,
+        )
+        parsed = json.loads(result)
+        assert "wage err" in parsed["error"]

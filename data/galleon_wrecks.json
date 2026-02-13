@@ -2,6 +2,7 @@
   {
     "wreck_id": "galleon_wreck:0001",
     "archive": "galleon",
+    "is_curated": true,
     "voyage_id": "galleon:0006",
     "ship_name": "Santa Ana",
     "loss_date": "1587-11-04",
@@ -21,6 +22,7 @@
   {
     "wreck_id": "galleon_wreck:0002",
     "archive": "galleon",
+    "is_curated": true,
     "voyage_id": "galleon:0007",
     "ship_name": "San Felipe",
     "loss_date": "1596-10-19",
@@ -40,6 +42,7 @@
   {
     "wreck_id": "galleon_wreck:0003",
     "archive": "galleon",
+    "is_curated": true,
     "voyage_id": "galleon:0009",
     "ship_name": "San Diego",
     "loss_date": "1600-12-14",
@@ -59,6 +62,7 @@
   {
     "wreck_id": "galleon_wreck:0004",
     "archive": "galleon",
+    "is_curated": true,
     "voyage_id": "galleon:0014",
     "ship_name": "San Francisco",
     "loss_date": "1609-09-30",
@@ -78,6 +82,7 @@
   {
     "wreck_id": "galleon_wreck:0005",
     "archive": "galleon",
+    "is_curated": true,
     "voyage_id": "galleon:0020",
     "ship_name": "Nuestra Senora de la Concepcion",
     "loss_date": "1638-09-20",
@@ -97,6 +102,7 @@
   {
     "wreck_id": "galleon_wreck:0006",
     "archive": "galleon",
+    "is_curated": true,
     "voyage_id": "galleon:0024",
     "ship_name": "Encarnacion",
     "loss_date": "1645-08-15",
@@ -116,6 +122,7 @@
   {
     "wreck_id": "galleon_wreck:0007",
     "archive": "galleon",
+    "is_curated": true,
     "voyage_id": "galleon:0027",
     "ship_name": "San Jose",
     "loss_date": "1651-09-01",
@@ -135,6 +142,7 @@
   {
     "wreck_id": "galleon_wreck:0008",
     "archive": "galleon",
+    "is_curated": true,
     "voyage_id": "galleon:0033",
     "ship_name": "Nuestra Senora de la Victoria",
     "loss_date": "1668-10-01",
@@ -154,6 +162,7 @@
   {
     "wreck_id": "galleon_wreck:0009",
     "archive": "galleon",
+    "is_curated": true,
     "voyage_id": "galleon:0036",
     "ship_name": "Santa Maria Magdalena",
     "loss_date": "1678-08-25",
@@ -173,6 +182,7 @@
   {
     "wreck_id": "galleon_wreck:0010",
     "archive": "galleon",
+    "is_curated": true,
     "voyage_id": "galleon:0100",
     "ship_name": "Nuestra Senora del Pilar",
     "loss_date": "1690-08-10",
@@ -192,6 +202,7 @@
   {
     "wreck_id": "galleon_wreck:0011",
     "archive": "galleon",
+    "is_curated": true,
     "voyage_id": "galleon:0040",
     "ship_name": "Santo Cristo de Burgos",
     "loss_date": "1693-09-01",
@@ -211,6 +222,7 @@
   {
     "wreck_id": "galleon_wreck:0012",
     "archive": "galleon",
+    "is_curated": true,
     "voyage_id": "galleon:0039",
     "ship_name": "San Jose",
     "loss_date": "1694-06-25",
@@ -230,6 +242,7 @@
   {
     "wreck_id": "galleon_wreck:0013",
     "archive": "galleon",
+    "is_curated": true,
     "voyage_id": "galleon:0043",
     "ship_name": "Encarnacion",
     "loss_date": "1705-09-10",
@@ -249,6 +262,7 @@
   {
     "wreck_id": "galleon_wreck:0014",
     "archive": "galleon",
+    "is_curated": true,
     "voyage_id": "galleon:0048",
     "ship_name": "Sacra Familia",
     "loss_date": "1725-09-05",
@@ -268,6 +282,7 @@
   {
     "wreck_id": "galleon_wreck:0015",
     "archive": "galleon",
+    "is_curated": true,
     "voyage_id": "galleon:0051",
     "ship_name": "Nuestra Senora de Covadonga",
     "loss_date": "1743-06-20",
@@ -287,6 +302,7 @@
   {
     "wreck_id": "galleon_wreck:0016",
     "archive": "galleon",
+    "is_curated": true,
     "voyage_id": "galleon:0099",
     "ship_name": "Nuestra Senora de Guia",
     "loss_date": "1755-10-01",
@@ -306,6 +322,7 @@
   {
     "wreck_id": "galleon_wreck:0017",
     "archive": "galleon",
+    "is_curated": true,
     "voyage_id": "galleon:0060",
     "ship_name": "Santisima Trinidad",
     "loss_date": "1762-10-30",
@@ -325,6 +342,7 @@
   {
     "wreck_id": "galleon_wreck:0018",
     "archive": "galleon",
+    "is_curated": true,
     "voyage_id": "galleon:0066",
     "ship_name": "San Carlos",
     "loss_date": "1772-09-15",
@@ -344,6 +362,7 @@
   {
     "wreck_id": "galleon_wreck:0019",
     "archive": "galleon",
+    "is_curated": true,
     "voyage_id": "galleon:0081",
     "ship_name": "San Fernando",
     "loss_date": "1798-10-01",
@@ -363,6 +382,7 @@
   {
     "wreck_id": "galleon_wreck:0020",
     "archive": "galleon",
+    "is_curated": true,
     "voyage_id": "galleon:0017",
     "ship_name": "San Nicolas",
     "loss_date": "1625-09-01",
@@ -382,6 +402,7 @@
   {
     "wreck_id": "galleon_wreck:0021",
     "archive": "galleon",
+    "is_curated": true,
     "voyage_id": null,
     "ship_name": "Pilar de Zaragoza",
     "loss_date": "1750-09-25",
@@ -401,6 +422,7 @@
   {
     "wreck_id": "galleon_wreck:0022",
     "archive": "galleon",
+    "is_curated": true,
     "voyage_id": null,
     "ship_name": "Rosario",
     "loss_date": "1690-09-15",
@@ -420,6 +442,7 @@
   {
     "wreck_id": "galleon_wreck:0023",
     "archive": "galleon",
+    "is_curated": true,
     "voyage_id": null,
     "ship_name": "San Isidro",
     "loss_date": "1735-09-10",
@@ -439,6 +462,7 @@
   {
     "wreck_id": "galleon_wreck:0024",
     "archive": "galleon",
+    "is_curated": true,
     "voyage_id": null,
     "ship_name": "San Cristobal",
     "loss_date": "1600-08-01",
@@ -458,6 +482,7 @@
   {
     "wreck_id": "galleon_wreck:0025",
     "archive": "galleon",
+    "is_curated": true,
     "voyage_id": null,
     "ship_name": "San Antonio de Padua",
     "loss_date": "1710-10-05",
@@ -477,6 +502,7 @@
   {
     "wreck_id": "galleon_wreck:0026",
     "archive": "galleon",
+    "is_curated": false,
     "voyage_id": "galleon:0109",
     "ship_name": "Rosario",
     "loss_date": "1571-11-14",
@@ -496,6 +522,7 @@
   {
     "wreck_id": "galleon_wreck:0027",
     "archive": "galleon",
+    "is_curated": false,
     "voyage_id": "galleon:0119",
     "ship_name": "San Felipe",
     "loss_date": "1576-10-17",
@@ -515,6 +542,7 @@
   {
     "wreck_id": "galleon_wreck:0028",
     "archive": "galleon",
+    "is_curated": false,
     "voyage_id": "galleon:0125",
     "ship_name": "San Vicente",
     "loss_date": "1579-07-20",
@@ -534,6 +562,7 @@
   {
     "wreck_id": "galleon_wreck:0029",
     "archive": "galleon",
+    "is_curated": false,
     "voyage_id": "galleon:0128",
     "ship_name": "Nuestra Senora de Guia",
     "loss_date": "1581-11-23",
@@ -553,6 +582,7 @@
   {
     "wreck_id": "galleon_wreck:0030",
     "archive": "galleon",
+    "is_curated": false,
     "voyage_id": "galleon:0133",
     "ship_name": "Encarnacion",
     "loss_date": "1584-05-26",
@@ -572,6 +602,7 @@
   {
     "wreck_id": "galleon_wreck:0031",
     "archive": "galleon",
+    "is_curated": false,
     "voyage_id": "galleon:0147",
     "ship_name": "Nuestra Senora de Guia",
     "loss_date": "1592-11-06",
@@ -591,6 +622,7 @@
   {
     "wreck_id": "galleon_wreck:0032",
     "archive": "galleon",
+    "is_curated": false,
     "voyage_id": "galleon:0154",
     "ship_name": "Sacramento",
     "loss_date": "1597-11-09",
@@ -610,6 +642,7 @@
   {
     "wreck_id": "galleon_wreck:0033",
     "archive": "galleon",
+    "is_curated": false,
     "voyage_id": "galleon:0160",
     "ship_name": "San Martin",
     "loss_date": "1600-05-12",
@@ -629,6 +662,7 @@
   {
     "wreck_id": "galleon_wreck:0034",
     "archive": "galleon",
+    "is_curated": false,
     "voyage_id": "galleon:0173",
     "ship_name": "Sacramento",
     "loss_date": "1608-11-15",
@@ -648,6 +682,7 @@
   {
     "wreck_id": "galleon_wreck:0035",
     "archive": "galleon",
+    "is_curated": false,
     "voyage_id": "galleon:0180",
     "ship_name": "San Carlos",
     "loss_date": "1613-11-18",
@@ -667,6 +702,7 @@
   {
     "wreck_id": "galleon_wreck:0036",
     "archive": "galleon",
+    "is_curated": false,
     "voyage_id": "galleon:0191",
     "ship_name": "Filipino",
     "loss_date": "1618-10-21",
@@ -686,6 +722,7 @@
   {
     "wreck_id": "galleon_wreck:0037",
     "archive": "galleon",
+    "is_curated": false,
     "voyage_id": "galleon:0195",
     "ship_name": "Nuestra Senora del Pilar",
     "loss_date": "1621-07-24",
@@ -705,6 +742,7 @@
   {
     "wreck_id": "galleon_wreck:0038",
     "archive": "galleon",
+    "is_curated": false,
     "voyage_id": "galleon:0198",
     "ship_name": "Santo Nino",
     "loss_date": "1623-11-27",
@@ -724,6 +762,7 @@
   {
     "wreck_id": "galleon_wreck:0039",
     "archive": "galleon",
+    "is_curated": false,
     "voyage_id": "galleon:0218",
     "ship_name": "Santo Nino",
     "loss_date": "1634-10-07",
@@ -743,6 +782,7 @@
   {
     "wreck_id": "galleon_wreck:0040",
     "archive": "galleon",
+    "is_curated": false,
     "voyage_id": "galleon:0224",
     "ship_name": "San Francisco",
     "loss_date": "1637-07-10",
@@ -762,6 +802,7 @@
   {
     "wreck_id": "galleon_wreck:0041",
     "archive": "galleon",
+    "is_curated": false,
     "voyage_id": "galleon:0226",
     "ship_name": "San Luis",
     "loss_date": "1639-11-13",
@@ -781,6 +822,7 @@
   {
     "wreck_id": "galleon_wreck:0042",
     "archive": "galleon",
+    "is_curated": false,
     "voyage_id": "galleon:0230",
     "ship_name": "San Diego",
     "loss_date": "1642-05-16",

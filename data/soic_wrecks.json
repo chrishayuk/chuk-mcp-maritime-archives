@@ -15,7 +15,8 @@
     },
     "depth_estimate_m": 8,
     "tonnage": 830,
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "wreck_id": "soic_wreck:0002",
@@ -33,7 +34,8 @@
     },
     "depth_estimate_m": null,
     "tonnage": 560,
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "wreck_id": "soic_wreck:0003",
@@ -51,7 +53,8 @@
     },
     "depth_estimate_m": null,
     "tonnage": 550,
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "wreck_id": "soic_wreck:0004",
@@ -69,7 +72,8 @@
     },
     "depth_estimate_m": null,
     "tonnage": 660,
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "wreck_id": "soic_wreck:0005",
@@ -87,7 +91,8 @@
     },
     "depth_estimate_m": null,
     "tonnage": 700,
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "wreck_id": "soic_wreck:0006",
@@ -105,7 +110,8 @@
     },
     "depth_estimate_m": 12,
     "tonnage": 530,
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "wreck_id": "soic_wreck:0007",
@@ -123,7 +129,8 @@
     },
     "depth_estimate_m": null,
     "tonnage": 530,
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "wreck_id": "soic_wreck:0008",
@@ -141,7 +148,8 @@
     },
     "depth_estimate_m": null,
     "tonnage": 680,
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "wreck_id": "soic_wreck:0009",
@@ -159,7 +167,8 @@
     },
     "depth_estimate_m": null,
     "tonnage": 600,
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "wreck_id": "soic_wreck:0010",
@@ -177,7 +186,8 @@
     },
     "depth_estimate_m": null,
     "tonnage": 520,
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "wreck_id": "soic_wreck:0011",
@@ -195,7 +205,8 @@
     },
     "depth_estimate_m": null,
     "tonnage": 500,
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "wreck_id": "soic_wreck:0012",
@@ -213,7 +224,8 @@
     },
     "depth_estimate_m": null,
     "tonnage": 780,
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "wreck_id": "soic_wreck:0013",
@@ -231,7 +243,8 @@
     },
     "depth_estimate_m": null,
     "tonnage": 580,
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "wreck_id": "soic_wreck:0014",
@@ -249,7 +262,8 @@
     },
     "depth_estimate_m": null,
     "tonnage": 540,
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "wreck_id": "soic_wreck:0015",
@@ -267,7 +281,8 @@
     },
     "depth_estimate_m": null,
     "tonnage": 510,
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "wreck_id": "soic_wreck:0016",
@@ -285,7 +300,8 @@
     },
     "depth_estimate_m": null,
     "tonnage": 620,
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "wreck_id": "soic_wreck:0017",
@@ -303,7 +319,8 @@
     },
     "depth_estimate_m": null,
     "tonnage": 720,
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "wreck_id": "soic_wreck:0018",
@@ -321,7 +338,8 @@
     },
     "depth_estimate_m": 15,
     "tonnage": 650,
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "wreck_id": "soic_wreck:0019",
@@ -339,7 +357,8 @@
     },
     "depth_estimate_m": null,
     "tonnage": 690,
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   },
   {
     "wreck_id": "soic_wreck:0020",
@@ -357,6 +376,7 @@
     },
     "depth_estimate_m": null,
     "tonnage": 610,
-    "archive": "soic"
+    "archive": "soic",
+    "is_curated": true
   }
 ]

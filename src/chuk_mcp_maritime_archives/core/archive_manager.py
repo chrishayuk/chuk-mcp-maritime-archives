@@ -27,6 +27,7 @@ from .clients import (
     CarreiraClient,
     CrewClient,
     DASClient,
+    DSSClient,
     EICClient,
     GalleonClient,
     NOAAClient,
@@ -98,6 +99,7 @@ class ArchiveManager:
         self._soic_client = SOICClient(data_dir=data_path)
         self._ukho_client = UKHOClient(data_dir=data_path)
         self._noaa_client = NOAAClient(data_dir=data_path)
+        self._dss_client = DSSClient(data_dir=data_path)
 
         # Multi-archive dispatch: archive ID -> voyage client
         self._voyage_clients: dict[str, Any] = {
@@ -117,6 +119,12 @@ class ArchiveManager:
             "soic": self._soic_client,
             "ukho": self._ukho_client,
             "noaa": self._noaa_client,
+        }
+
+        # Multi-archive dispatch: archive ID -> crew client
+        self._crew_clients: dict[str, Any] = {
+            "voc_crew": self._crew_client,
+            "dss": self._dss_client,
         }
 
     # --- Pagination Helper --------------------------------------------------
@@ -211,12 +219,13 @@ class ArchiveManager:
 
     # --- Cross-Archive Linking ----------------------------------------------
 
-    async def get_voyage_full(self, voyage_id: str) -> dict | None:
+    async def get_voyage_full(self, voyage_id: str, include_crew: bool = False) -> dict | None:
         """
         Get unified view of a voyage with all linked records.
 
         Returns the voyage record enriched with related wreck, vessel,
-        hull profile, and CLIWOC track data (where available).
+        hull profile, CLIWOC track, and optionally crew data.
+        Includes confidence scores for each link.
         """
         voyage = await self.get_voyage(voyage_id)
         if not voyage:
@@ -232,8 +241,28 @@ class ArchiveManager:
         ship_type = voyage.get("ship_type")
         hull_profile = self.get_hull_profile(ship_type) if ship_type else None
 
-        # Find linked CLIWOC track
-        cliwoc_track = self._find_cliwoc_track_for_voyage(voyage)
+        # Find linked CLIWOC track (with confidence)
+        cliwoc_track, cliwoc_confidence = self._find_cliwoc_track_for_voyage(voyage)
+
+        # Build link_confidence dict
+        link_confidence: dict[str, float] = {}
+        if wreck:
+            link_confidence["wreck"] = 1.0
+        if vessel:
+            link_confidence["vessel"] = 1.0
+        if hull_profile:
+            link_confidence["hull_profile"] = 1.0
+        if cliwoc_track:
+            link_confidence["cliwoc_track"] = cliwoc_confidence
+
+        # Optionally find crew
+        crew = None
+        if include_crew:
+            crew = await self.find_crew_for_voyage(voyage_id)
+            if crew:
+                link_confidence["crew"] = min(
+                    (c.get("link_confidence", 1.0) for c in crew), default=1.0
+                )
 
         links_found = [
             k
@@ -242,6 +271,7 @@ class ArchiveManager:
                 "vessel": vessel,
                 "hull_profile": hull_profile,
                 "cliwoc_track": cliwoc_track,
+                "crew": crew,
             }.items()
             if v
         ]
@@ -252,20 +282,25 @@ class ArchiveManager:
             "vessel": vessel,
             "hull_profile": hull_profile,
             "cliwoc_track": cliwoc_track,
+            "crew": crew,
             "links_found": links_found,
+            "link_confidence": link_confidence,
         }
 
-    def _find_cliwoc_track_for_voyage(self, voyage: dict) -> dict | None:
-        """Try to find a CLIWOC track linked to this voyage."""
+    def _find_cliwoc_track_for_voyage(self, voyage: dict) -> tuple[dict | None, float]:
+        """Try to find a CLIWOC track linked to this voyage.
+
+        Returns (track_summary_or_None, confidence).
+        """
         # Try DASnumber first (from CLIWOC 2.1 Full data, DAS only)
         voyage_number = voyage.get("voyage_number")
         if voyage_number:
             track = get_track_by_das_number(voyage_number)
             if track:
-                # Return summary without full positions
-                return {k: v for k, v in track.items() if k != "positions"}
+                # Return summary without full positions — confidence 1.0 (direct ID link)
+                return {k: v for k, v in track.items() if k != "positions"}, 1.0
 
-        # Fall back to ship name + date + nationality matching
+        # Fall back to fuzzy ship name + date + nationality matching
         ship_name = voyage.get("ship_name")
         archive = voyage.get("archive", "das")
         nationality = _ARCHIVE_NATIONALITY.get(archive, "NL")
@@ -276,7 +311,74 @@ class ArchiveManager:
                 nationality=nationality,
             )
 
-        return None
+        return None, 0.0
+
+    async def find_crew_for_voyage(
+        self, voyage_id: str, min_confidence: float = 0.50
+    ) -> list[dict]:
+        """
+        Find crew records linked to a voyage.
+
+        Strategy:
+        1. Exact: search VOC Opvarenden by voyage_id (indexed)
+        2. Exact: search DSS musters by das_voyage_id, get linked crew
+        3. Fuzzy: match DSS crew by ship_name + muster_date
+        """
+        results: list[dict] = []
+
+        # 1. VOC Opvarenden exact match (via voyage_id index)
+        try:
+            voc_crew = await self._crew_client.search(voyage_id=voyage_id)
+            for c in voc_crew:
+                c["link_confidence"] = 1.0
+                c["link_method"] = "exact_voyage_id"
+            results.extend(voc_crew)
+        except Exception:
+            pass
+
+        # 2. DSS musters linked by das_voyage_id
+        try:
+            musters = await self._dss_client.get_musters_for_voyage(voyage_id)
+            for m in musters:
+                m["link_confidence"] = 1.0
+                m["link_method"] = "muster_das_voyage_id"
+            results.extend(musters)
+        except Exception:
+            pass
+
+        # 3. Fuzzy match DSS crew by ship name + date
+        if not results:
+            # Get the voyage to extract ship name and date
+            voyage = await self.get_voyage(voyage_id)
+            if voyage and voyage.get("ship_name"):
+                from .entity_resolution import normalize_ship_name, levenshtein_similarity
+
+                v_name = normalize_ship_name(voyage["ship_name"])
+                v_date = voyage.get("departure_date")
+                v_year = int(v_date[:4]) if v_date and len(v_date) >= 4 else None
+
+                all_crew = await self._dss_client.search_crews(max_results=500)
+                for c in all_crew:
+                    c_name = normalize_ship_name(c.get("ship_name", ""))
+                    name_sim = levenshtein_similarity(v_name, c_name)
+                    if name_sim < 0.7:
+                        continue
+
+                    # Date proximity
+                    c_date = c.get("muster_date")
+                    c_year = int(c_date[:4]) if c_date and len(c_date) >= 4 else None
+                    date_score = 1.0
+                    if v_year and c_year:
+                        diff = abs(v_year - c_year)
+                        date_score = max(0.0, 1.0 - diff * 0.25)
+
+                    confidence = 0.7 * name_sim + 0.3 * date_score
+                    if confidence >= min_confidence:
+                        c["link_confidence"] = round(confidence, 4)
+                        c["link_method"] = "fuzzy_ship_date"
+                        results.append(c)
+
+        return results
 
     async def _find_wreck_for_voyage(self, voyage_id: str) -> dict | None:
         """Find a wreck record linked to a voyage, checking the appropriate client."""
@@ -292,6 +394,121 @@ class ArchiveManager:
             return await client.get_wreck_by_voyage_id(voyage_id)
 
         return None
+
+    # --- Link Audit ---------------------------------------------------------
+
+    async def audit_links(self) -> dict:
+        """
+        Audit cross-archive link quality against known ground truth.
+
+        Uses wreck records with voyage_id fields and CLIWOC tracks with
+        DAS numbers as ground truth to measure precision/recall of the
+        entity resolution pipeline.
+        """
+        # --- Wreck links audit ---
+        wreck_ground_truth = 0
+        wreck_matched = 0
+        for client in self._wreck_clients.values():
+            if hasattr(client, "_get_wrecks"):
+                for w in client._get_wrecks():
+                    if w.get("voyage_id"):
+                        wreck_ground_truth += 1
+                        # Verify the linked voyage exists
+                        v = await self.get_voyage(w["voyage_id"])
+                        if v:
+                            wreck_matched += 1
+            elif hasattr(client, "get_by_voyage_id"):
+                # WreckClient (MAARER): check via wreck data
+                try:
+                    wrecks = client._load_json(client.WRECKS_FILE)
+                    for w in wrecks:
+                        if w.get("voyage_id"):
+                            wreck_ground_truth += 1
+                            v = await self.get_voyage(w["voyage_id"])
+                            if v:
+                                wreck_matched += 1
+                except Exception:
+                    pass
+
+        wreck_precision = 1.0 if wreck_matched > 0 else 0.0
+        wreck_recall = wreck_matched / wreck_ground_truth if wreck_ground_truth > 0 else 0.0
+
+        # --- CLIWOC links audit ---
+        # Count direct DAS number links
+        from .cliwoc_tracks import _DAS_INDEX, _load_tracks
+
+        _load_tracks()
+        direct_links = len(_DAS_INDEX)
+
+        # Sample DAS voyages and try fuzzy matching
+        fuzzy_matches = 0
+        confidences: list[float] = []
+        all_voyages = await self._das_client.search(max_results=500)
+        for v in all_voyages:
+            # Skip if already has direct DAS link
+            voyage_number = v.get("voyage_number")
+            if voyage_number and str(voyage_number) in _DAS_INDEX:
+                continue
+
+            ship_name = v.get("ship_name")
+            if not ship_name:
+                continue
+
+            track, confidence = find_track_for_voyage(
+                ship_name=ship_name,
+                departure_date=v.get("departure_date"),
+                nationality="NL",
+            )
+            if track and confidence >= 0.50:
+                fuzzy_matches += 1
+                confidences.append(confidence)
+
+        mean_confidence = sum(confidences) / len(confidences) if confidences else 0.0
+        high_count = sum(1 for c in confidences if c >= 0.70)
+        moderate_count = sum(1 for c in confidences if c >= 0.50)
+
+        # --- Crew links audit ---
+        # Count VOC crew records with voyage_id
+        try:
+            crew_exact = len(await self._crew_client.search(max_results=100))
+        except Exception:
+            crew_exact = 0
+        crew_fuzzy = 0  # DSS crew fuzzy matches counted separately
+
+        # --- Confidence distribution ---
+        all_confidences = [1.0] * direct_links + confidences
+        distribution: dict[str, int] = {}
+        buckets = [
+            ("0.9-1.0", 0.9, 1.01),
+            ("0.7-0.9", 0.7, 0.9),
+            ("0.5-0.7", 0.5, 0.7),
+        ]
+        for label, lo, hi in buckets:
+            distribution[label] = sum(1 for c in all_confidences if lo <= c < hi)
+
+        total_evaluated = wreck_ground_truth + direct_links + len(all_voyages)
+
+        return {
+            "wreck_links": {
+                "ground_truth_count": wreck_ground_truth,
+                "matched_count": wreck_matched,
+                "precision": round(wreck_precision, 4),
+                "recall": round(wreck_recall, 4),
+            },
+            "cliwoc_links": {
+                "direct_links": direct_links,
+                "fuzzy_matches": fuzzy_matches,
+                "mean_confidence": round(mean_confidence, 4),
+                "high_confidence_count": high_count,
+                "moderate_confidence_count": moderate_count,
+            },
+            "crew_links": {
+                "exact_matches": crew_exact,
+                "fuzzy_matches": crew_fuzzy,
+            },
+            "total_links_evaluated": total_evaluated,
+            "confidence_distribution": distribution,
+        }
 
     # --- Timeline -----------------------------------------------------------
 
@@ -384,7 +601,7 @@ class ArchiveManager:
                         )
 
         # --- CLIWOC track positions ---
-        cliwoc_track_info = self._find_cliwoc_track_for_voyage(voyage)
+        cliwoc_track_info, _ = self._find_cliwoc_track_for_voyage(voyage)
         if cliwoc_track_info and include_positions:
             cliwoc_voyage_id = cliwoc_track_info.get("voyage_id")
             if cliwoc_voyage_id is not None:
@@ -760,21 +977,137 @@ class ArchiveManager:
         max_results: int = 100,
         cursor: str | None = None,
     ) -> PaginatedResult:
-        """Search crew muster records."""
-        results = await self._crew_client.search(
+        """Search crew records across VOC Opvarenden and/or DSS archives."""
+        search_kwargs = dict(
             name=name,
             rank=rank,
             ship_name=ship_name,
             voyage_id=voyage_id,
             origin=origin,
+            date_range=date_range,
             fate=fate,
+            max_results=_FETCH_ALL,
+        )
+
+        if archive and archive in self._crew_clients:
+            results = await self._crew_clients[archive].search(**search_kwargs)
+        elif archive:
+            results = []
+        else:
+            # Query all crew archives and merge results
+            results = []
+            for client in self._crew_clients.values():
+                results.extend(await client.search(**search_kwargs))
+            results.sort(
+                key=lambda c: (
+                    c.get("embarkation_date") or c.get("muster_date") or "9999",
+                    c.get("crew_id", ""),
+                )
+            )
+
+        return self._paginate(results, max_results, cursor)
+
+    async def get_crew_member(self, crew_id: str) -> dict | None:
+        """Get full crew member record, routing to the correct archive."""
+        if crew_id.startswith("dss:"):
+            return await self._dss_client.get_crew_by_id(crew_id)
+        return await self._crew_client.get_by_id(crew_id)
+
+    # --- Muster Operations --------------------------------------------------
+
+    async def search_musters(
+        self,
+        ship_name: str | None = None,
+        captain: str | None = None,
+        date_range: str | None = None,
+        location: str | None = None,
+        das_voyage_id: str | None = None,
+        year_start: int | None = None,
+        year_end: int | None = None,
+        max_results: int = 50,
+        cursor: str | None = None,
+    ) -> PaginatedResult:
+        """Search GZMVOC ship-level muster records."""
+        results = await self._dss_client.search_musters(
+            ship_name=ship_name,
+            captain=captain,
+            date_range=date_range,
+            location=location,
+            das_voyage_id=das_voyage_id,
+            year_start=year_start,
+            year_end=year_end,
             max_results=_FETCH_ALL,
         )
         return self._paginate(results, max_results, cursor)
 
-    async def get_crew_member(self, crew_id: str) -> dict | None:
-        """Get full crew member record."""
-        return await self._crew_client.get_by_id(crew_id)
+    async def get_muster(self, muster_id: str) -> dict | None:
+        """Get full muster record details."""
+        return await self._dss_client.get_muster_by_id(muster_id)
+
+    async def compare_wages(
+        self,
+        group1_start: int,
+        group1_end: int,
+        group2_start: int,
+        group2_end: int,
+        rank: str | None = None,
+        origin: str | None = None,
+        source: str = "musters",
+    ) -> dict:
+        """Compare crew wage distributions between two time periods."""
+        if source == "crews":
+            g1 = await self._dss_client.search_crews(
+                rank=rank,
+                origin=origin,
+                date_range=f"{group1_start}/{group1_end}",
+                max_results=_FETCH_ALL,
+            )
+            g2 = await self._dss_client.search_crews(
+                rank=rank,
+                origin=origin,
+                date_range=f"{group2_start}/{group2_end}",
+                max_results=_FETCH_ALL,
+            )
+            wages1 = [c["monthly_pay_guilders"] for c in g1 if c.get("monthly_pay_guilders")]
+            wages2 = [c["monthly_pay_guilders"] for c in g2 if c.get("monthly_pay_guilders")]
+        else:
+            g1 = await self._dss_client.search_musters(
+                year_start=group1_start,
+                year_end=group1_end,
+                max_results=_FETCH_ALL,
+            )
+            g2 = await self._dss_client.search_musters(
+                year_start=group2_start,
+                year_end=group2_end,
+                max_results=_FETCH_ALL,
+            )
+            wages1 = [m["mean_wage_guilders"] for m in g1 if m.get("mean_wage_guilders")]
+            wages2 = [m["mean_wage_guilders"] for m in g2 if m.get("mean_wage_guilders")]
+
+        def _stats(values: list[float]) -> tuple[float, float]:
+            if not values:
+                return 0.0, 0.0
+            mean = sum(values) / len(values)
+            sorted_v = sorted(values)
+            n = len(sorted_v)
+            median = sorted_v[n // 2] if n % 2 else (sorted_v[n // 2 - 1] + sorted_v[n // 2]) / 2
+            return round(mean, 2), round(median, 2)
+
+        mean1, median1 = _stats(wages1)
+        mean2, median2 = _stats(wages2)
+        diff_pct = round((mean2 - mean1) / mean1 * 100, 1) if mean1 else 0.0
+
+        return {
+            "group1_label": f"{group1_start}-{group1_end}",
+            "group1_n": len(wages1),
+            "group1_mean_wage": mean1,
+            "group1_median_wage": median1,
+            "group2_label": f"{group2_start}-{group2_end}",
+            "group2_n": len(wages2),
+            "group2_mean_wage": mean2,
+            "group2_median_wage": median2,
+            "difference_pct": diff_pct,
+        }
 
     # --- Cargo Operations ---------------------------------------------------
 

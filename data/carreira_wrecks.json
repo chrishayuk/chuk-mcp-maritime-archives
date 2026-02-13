@@ -16,7 +16,8 @@
     "depth_estimate_m": null,
     "tonnage": 400,
     "archive": "carreira",
-    "particulars": "One of the most famous Portuguese shipwrecks. Captain Sepulveda, his wife Leonor, and children died during the overland march. Central to the Historia Tragico-Maritima."
+    "particulars": "One of the most famous Portuguese shipwrecks. Captain Sepulveda, his wife Leonor, and children died during the overland march. Central to the Historia Tragico-Maritima.",
+    "is_curated": true
   },
   {
     "wreck_id": "carreira_wreck:0002",
@@ -35,7 +36,8 @@
     "depth_estimate_m": null,
     "tonnage": 500,
     "archive": "carreira",
-    "particulars": "Wrecked on the Natal coast. Survivors endured months of overland march to reach Mozambique. Account by Manuel de Mesquita Perestrelo published in the Historia Tragico-Maritima."
+    "particulars": "Wrecked on the Natal coast. Survivors endured months of overland march to reach Mozambique. Account by Manuel de Mesquita Perestrelo published in the Historia Tragico-Maritima.",
+    "is_curated": true
   },
   {
     "wreck_id": "carreira_wreck:0003",
@@ -54,7 +56,8 @@
     "depth_estimate_m": null,
     "tonnage": 400,
     "archive": "carreira",
-    "particulars": "Possibly the richest shipwreck in history. Carried the treasure of the Sultan of Malacca after Albuquerque's conquest, including perhaps 60 tons of gold. Albuquerque barely escaped. Despite many search expeditions, she remains unfound."
+    "particulars": "Possibly the richest shipwreck in history. Carried the treasure of the Sultan of Malacca after Albuquerque's conquest, including perhaps 60 tons of gold. Albuquerque barely escaped. Despite many search expeditions, she remains unfound.",
+    "is_curated": true
   },
   {
     "wreck_id": "carreira_wreck:0004",
@@ -73,7 +76,8 @@
     "depth_estimate_m": null,
     "tonnage": 1600,
     "archive": "carreira",
-    "particulars": "Captured by English fleet including Sir Walter Raleigh's ships. Her enormous cargo of pepper, cloves, cinnamon, silk, calico, gold, silver, pearls, and jewels was worth half the English Treasury. This capture directly inspired the founding of the EIC."
+    "particulars": "Captured by English fleet including Sir Walter Raleigh's ships. Her enormous cargo of pepper, cloves, cinnamon, silk, calico, gold, silver, pearls, and jewels was worth half the English Treasury. This capture directly inspired the founding of the EIC.",
+    "is_curated": true
   },
   {
     "wreck_id": "carreira_wreck:0005",
@@ -92,7 +96,8 @@
     "depth_estimate_m": null,
     "tonnage": 300,
     "archive": "carreira",
-    "particulars": "Lost rounding the Cape in Cabral's fleet (1500). Part of the same storm that killed Bartolomeu Dias. All hands lost."
+    "particulars": "Lost rounding the Cape in Cabral's fleet (1500). Part of the same storm that killed Bartolomeu Dias. All hands lost.",
+    "is_curated": true
   },
   {
     "wreck_id": "carreira_wreck:0006",
@@ -111,7 +116,8 @@
     "depth_estimate_m": null,
     "tonnage": 250,
     "archive": "carreira",
-    "particulars": "Disappeared in the Atlantic in Cabral's fleet. Exact location unknown. Bartolomeu Dias, discoverer of the Cape, also perished when another ship sank in the same storm."
+    "particulars": "Disappeared in the Atlantic in Cabral's fleet. Exact location unknown. Bartolomeu Dias, discoverer of the Cape, also perished when another ship sank in the same storm.",
+    "is_curated": true
   },
   {
     "wreck_id": "carreira_wreck:0007",
@@ -130,7 +136,8 @@
     "depth_estimate_m": null,
     "tonnage": 500,
     "archive": "carreira",
-    "particulars": "Fleet commander Aguiar's ship lost in a storm near Mozambique."
+    "particulars": "Fleet commander Aguiar's ship lost in a storm near Mozambique.",
+    "is_curated": true
   },
   {
     "wreck_id": "carreira_wreck:0008",
@@ -149,7 +156,8 @@
     "depth_estimate_m": null,
     "tonnage": 500,
     "archive": "carreira",
-    "particulars": "Wrecked on a reef off Sumatra in 1561. Survivors built a boat from the wreckage -- one of the great survival stories of the era."
+    "particulars": "Wrecked on a reef off Sumatra in 1561. Survivors built a boat from the wreckage -- one of the great survival stories of the era.",
+    "is_curated": true
   },
   {
     "wreck_id": "carreira_wreck:0009",
@@ -168,7 +176,8 @@
     "depth_estimate_m": null,
     "tonnage": 700,
     "archive": "carreira",
-    "particulars": "Wrecked on the return voyage from India. Another Natal coast wreck from the Historia Tragico-Maritima."
+    "particulars": "Wrecked on the return voyage from India. Another Natal coast wreck from the Historia Tragico-Maritima.",
+    "is_curated": true
   },
   {
     "wreck_id": "carreira_wreck:0010",
@@ -187,7 +196,8 @@
     "depth_estimate_m": null,
     "tonnage": 2000,
     "archive": "carreira",
-    "particulars": "Enormous 2,000-ton carrack attacked by English raiders. Caught fire and exploded. Over 600 died. One of the greatest maritime disasters of the era."
+    "particulars": "Enormous 2,000-ton carrack attacked by English raiders. Caught fire and exploded. Over 600 died. One of the greatest maritime disasters of the era.",
+    "is_curated": true
   },
   {
     "wreck_id": "carreira_wreck:0011",
@@ -206,7 +216,8 @@
     "depth_estimate_m": 10,
     "tonnage": 600,
     "archive": "carreira",
-    "particulars": "Wrecked almost within sight of Lisbon at the Tagus bar. Archaeologically excavated in 1996-2001. Important source of information on Carreira cargo and ship construction."
+    "particulars": "Wrecked almost within sight of Lisbon at the Tagus bar. Archaeologically excavated in 1996-2001. Important source of information on Carreira cargo and ship construction.",
+    "is_curated": true
   },
   {
     "wreck_id": "carreira_wreck:0012",
@@ -225,7 +236,8 @@
     "depth_estimate_m": null,
     "tonnage": 700,
     "archive": "carreira",
-    "particulars": "Lost in a storm in the Mozambique Channel."
+    "particulars": "Lost in a storm in the Mozambique Channel.",
+    "is_curated": true
   },
   {
     "wreck_id": "carreira_wreck:0013",
@@ -244,7 +256,8 @@
     "depth_estimate_m": null,
     "tonnage": 600,
     "archive": "carreira",
-    "particulars": "Wrecked on the Natal coast. Yet another tragedy of the South African coast. Account in the Historia Tragico-Maritima."
+    "particulars": "Wrecked on the Natal coast. Yet another tragedy of the South African coast. Account in the Historia Tragico-Maritima.",
+    "is_curated": true
   },
   {
     "wreck_id": "carreira_wreck:0014",
@@ -263,7 +276,8 @@
     "depth_estimate_m": 8,
     "tonnage": 800,
     "archive": "carreira",
-    "particulars": "Wrecked off Schoenmakerskop. One of the earliest South African wreck sites to be archaeologically investigated (1977)."
+    "particulars": "Wrecked off Schoenmakerskop. One of the earliest South African wreck sites to be archaeologically investigated (1977).",
+    "is_curated": true
   },
   {
     "wreck_id": "carreira_wreck:0015",
@@ -282,7 +296,8 @@
     "depth_estimate_m": 15,
     "tonnage": 700,
     "archive": "carreira",
-    "particulars": "Major warship/cargo vessel lost near Mozambique. The wreck site has been approximately located."
+    "particulars": "Major warship/cargo vessel lost near Mozambique. The wreck site has been approximately located.",
+    "is_curated": true
   },
   {
     "wreck_id": "carreira_wreck:0016",
@@ -301,7 +316,8 @@
     "depth_estimate_m": null,
     "tonnage": 400,
     "archive": "carreira",
-    "particulars": "Lost in the aftermath of the Great Lisbon Earthquake (1755). Harbor infrastructure destroyed."
+    "particulars": "Lost in the aftermath of the Great Lisbon Earthquake (1755). Harbor infrastructure destroyed.",
+    "is_curated": true
   },
   {
     "wreck_id": "carreira_wreck:0017",
@@ -320,7 +336,8 @@
     "depth_estimate_m": 15,
     "tonnage": 600,
     "archive": "carreira",
-    "particulars": "Wrecked off Peniche on the Portuguese coast. Cargo included valuables from Goa. Wreck located and studied."
+    "particulars": "Wrecked off Peniche on the Portuguese coast. Cargo included valuables from Goa. Wreck located and studied.",
+    "is_curated": true
   },
   {
     "wreck_id": "carreira_wreck:0018",
@@ -339,7 +356,8 @@
     "depth_estimate_m": 12,
     "tonnage": 350,
     "archive": "carreira",
-    "particulars": "Slave ship wrecked off the Cape of Good Hope. Archaeological excavation (2010-2015) recovered the first known slave ship artifacts from the Carreira."
+    "particulars": "Slave ship wrecked off the Cape of Good Hope. Archaeological excavation (2010-2015) recovered the first known slave ship artifacts from the Carreira.",
+    "is_curated": true
   },
   {
     "wreck_id": "carreira_wreck:0019",
@@ -358,7 +376,8 @@
     "depth_estimate_m": null,
     "tonnage": 300,
     "archive": "carreira",
-    "particulars": "Captured by a French privateer during the Napoleonic Wars."
+    "particulars": "Captured by a French privateer during the Napoleonic Wars.",
+    "is_curated": true
   },
   {
     "wreck_id": "carreira_wreck:0020",
@@ -377,7 +396,8 @@
     "depth_estimate_m": null,
     "tonnage": 1500,
     "archive": "carreira",
-    "particulars": "Enormous carrack lost near the Azores. One of the largest ships afloat at the time. Significant cargo of spices and valuables."
+    "particulars": "Enormous carrack lost near the Azores. One of the largest ships afloat at the time. Significant cargo of spices and valuables.",
+    "is_curated": true
   },
   {
     "wreck_id": "carreira_wreck:0021",
@@ -396,7 +416,8 @@
     "depth_estimate_m": null,
     "tonnage": 900,
     "archive": "carreira",
-    "particulars": "Captured by the Dutch near Saint Helena. One of the early Dutch seizures of Carreira ships, foreshadowing the loss of the spice trade."
+    "particulars": "Captured by the Dutch near Saint Helena. One of the early Dutch seizures of Carreira ships, foreshadowing the loss of the spice trade.",
+    "is_curated": true
   },
   {
     "wreck_id": "carreira_wreck:0022",
@@ -415,7 +436,8 @@
     "depth_estimate_m": null,
     "tonnage": 600,
     "archive": "carreira",
-    "particulars": "Wrecked on the Bassas da India atoll, a treacherous low-lying reef in the Mozambique Channel. Many Carreira ships lost here."
+    "particulars": "Wrecked on the Bassas da India atoll, a treacherous low-lying reef in the Mozambique Channel. Many Carreira ships lost here.",
+    "is_curated": true
   },
   {
     "wreck_id": "carreira_wreck:0023",
@@ -434,7 +456,8 @@
     "depth_estimate_m": null,
     "tonnage": 500,
     "archive": "carreira",
-    "particulars": "Another ship lost on the treacherous Natal coast."
+    "particulars": "Another ship lost on the treacherous Natal coast.",
+    "is_curated": true
   },
   {
     "wreck_id": "carreira_wreck:0024",
@@ -453,7 +476,8 @@
     "depth_estimate_m": null,
     "tonnage": 500,
     "archive": "carreira",
-    "particulars": "Wrecked on shoals near the coast of Mozambique."
+    "particulars": "Wrecked on shoals near the coast of Mozambique.",
+    "is_curated": true
   },
   {
     "wreck_id": "carreira_wreck:0025",
@@ -472,7 +496,8 @@
     "depth_estimate_m": null,
     "tonnage": 400,
     "archive": "carreira",
-    "particulars": "Lost in a cyclone in the Indian Ocean."
+    "particulars": "Lost in a cyclone in the Indian Ocean.",
+    "is_curated": true
   },
   {
     "wreck_id": "carreira_wreck:0026",
@@ -491,7 +516,8 @@
     "depth_estimate_m": 5,
     "tonnage": 300,
     "archive": "carreira",
-    "particulars": "The 'Diamond Shipwreck' discovered in 2008 during diamond mining operations. Found with gold coins, copper ingots, elephant tusks, and personal effects. Remarkably well preserved."
+    "particulars": "The 'Diamond Shipwreck' discovered in 2008 during diamond mining operations. Found with gold coins, copper ingots, elephant tusks, and personal effects. Remarkably well preserved.",
+    "is_curated": true
   },
   {
     "wreck_id": "carreira_wreck:0027",
@@ -510,7 +536,8 @@
     "depth_estimate_m": null,
     "tonnage": 700,
     "archive": "carreira",
-    "particulars": "Lost on the Bassas da India atoll."
+    "particulars": "Lost on the Bassas da India atoll.",
+    "is_curated": true
   },
   {
     "wreck_id": "carreira_wreck:0028",
@@ -529,7 +556,8 @@
     "depth_estimate_m": null,
     "tonnage": 600,
     "archive": "carreira",
-    "particulars": "Lost in a storm off the coast of Mombasa."
+    "particulars": "Lost in a storm off the coast of Mombasa.",
+    "is_curated": true
   },
   {
     "wreck_id": "carreira_wreck:0029",
@@ -548,7 +576,8 @@
     "depth_estimate_m": null,
     "tonnage": 500,
     "archive": "carreira",
-    "particulars": "Caught fire and burned near Mozambique Island."
+    "particulars": "Caught fire and burned near Mozambique Island.",
+    "is_curated": true
   },
   {
     "wreck_id": "carreira_wreck:0030",
@@ -567,7 +596,8 @@
     "depth_estimate_m": null,
     "tonnage": 400,
     "archive": "carreira",
-    "particulars": "Lost in Table Bay. The Cape was a frequent location for shipwrecks."
+    "particulars": "Lost in Table Bay. The Cape was a frequent location for shipwrecks.",
+    "is_curated": true
   },
   {
     "wreck_id": "carreira_wreck:0031",
@@ -586,7 +616,8 @@
     "depth_estimate_m": null,
     "tonnage": 300,
     "archive": "carreira",
-    "particulars": "Wrecked on the coast near Sofala."
+    "particulars": "Wrecked on the coast near Sofala.",
+    "is_curated": true
   },
   {
     "wreck_id": "carreira_wreck:0032",
@@ -605,7 +636,8 @@
     "depth_estimate_m": null,
     "tonnage": 500,
     "archive": "carreira",
-    "particulars": "Lost in a cyclone near northern Madagascar."
+    "particulars": "Lost in a cyclone near northern Madagascar.",
+    "is_curated": true
   },
   {
     "wreck_id": "carreira_wreck:0033",
@@ -624,7 +656,8 @@
     "depth_estimate_m": null,
     "tonnage": 500,
     "archive": "carreira",
-    "particulars": "Lost in the Mozambique Channel during monsoon."
+    "particulars": "Lost in the Mozambique Channel during monsoon.",
+    "is_curated": true
   },
   {
     "wreck_id": "carreira_wreck:0034",
@@ -643,7 +676,8 @@
     "depth_estimate_m": null,
     "tonnage": 600,
     "archive": "carreira",
-    "particulars": "Lost near Cape Correntes, one of the most dangerous points on the Mozambique coast."
+    "particulars": "Lost near Cape Correntes, one of the most dangerous points on the Mozambique coast.",
+    "is_curated": true
   },
   {
     "wreck_id": "carreira_wreck:0035",
@@ -662,7 +696,8 @@
     "depth_estimate_m": null,
     "tonnage": 300,
     "archive": "carreira",
-    "particulars": "Early Carreira wreck off the East African coast."
+    "particulars": "Early Carreira wreck off the East African coast.",
+    "is_curated": true
   },
   {
     "wreck_id": "carreira_wreck:0036",
@@ -681,7 +716,8 @@
     "depth_estimate_m": null,
     "tonnage": 400,
     "archive": "carreira",
-    "particulars": "Yet another Natal coast wreck. The stretch between the Cape and Mozambique was the most dangerous part of the route."
+    "particulars": "Yet another Natal coast wreck. The stretch between the Cape and Mozambique was the most dangerous part of the route.",
+    "is_curated": true
   },
   {
     "wreck_id": "carreira_wreck:0037",
@@ -700,7 +736,8 @@
     "depth_estimate_m": null,
     "tonnage": 500,
     "archive": "carreira",
-    "particulars": "Lost near the Cape of Good Hope in a winter storm."
+    "particulars": "Lost near the Cape of Good Hope in a winter storm.",
+    "is_curated": true
   },
   {
     "wreck_id": "carreira_wreck:0038",
@@ -719,7 +756,8 @@
     "depth_estimate_m": null,
     "tonnage": 600,
     "archive": "carreira",
-    "particulars": "Wrecked on reefs near Inhambane on the Mozambique coast."
+    "particulars": "Wrecked on reefs near Inhambane on the Mozambique coast.",
+    "is_curated": true
   },
   {
     "wreck_id": "carreira_wreck:0039",
@@ -738,7 +776,8 @@
     "depth_estimate_m": null,
     "tonnage": 400,
     "archive": "carreira",
-    "particulars": "Lost during cyclone season near Madagascar."
+    "particulars": "Lost during cyclone season near Madagascar.",
+    "is_curated": true
   },
   {
     "wreck_id": "carreira_wreck:0040",
@@ -757,7 +796,8 @@
     "depth_estimate_m": null,
     "tonnage": 250,
     "archive": "carreira",
-    "particulars": "Ship of Bartolomeu Dias, first European to round the Cape in 1488. He perished in the same storm that struck Cabral's fleet in 1500, a tragic irony: the man who discovered the Cape route died there."
+    "particulars": "Ship of Bartolomeu Dias, first European to round the Cape in 1488. He perished in the same storm that struck Cabral's fleet in 1500, a tragic irony: the man who discovered the Cape route died there.",
+    "is_curated": true
   },
   {
     "wreck_id": "carreira_wreck:0041",
@@ -776,7 +816,8 @@
     "depth_estimate_m": null,
     "tonnage": 206,
     "archive": "carreira",
-    "particulars": "Lost in heavy seas. Position approximate."
+    "particulars": "Lost in heavy seas. Position approximate.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0042",
@@ -795,7 +836,8 @@
     "depth_estimate_m": null,
     "tonnage": 215,
     "archive": "carreira",
-    "particulars": "Driven ashore in a storm. Crew took to the boats."
+    "particulars": "Driven ashore in a storm. Crew took to the boats.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0043",
@@ -814,7 +856,8 @@
     "depth_estimate_m": null,
     "tonnage": 430,
     "archive": "carreira",
-    "particulars": "Overwhelmed by a cyclone in the Mozambique Channel."
+    "particulars": "Overwhelmed by a cyclone in the Mozambique Channel.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0044",
@@ -833,7 +876,8 @@
     "depth_estimate_m": null,
     "tonnage": 444,
     "archive": "carreira",
-    "particulars": "Overwhelmed by a cyclone in the Mozambique Channel."
+    "particulars": "Overwhelmed by a cyclone in the Mozambique Channel.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0045",
@@ -852,7 +896,8 @@
     "depth_estimate_m": null,
     "tonnage": 453,
     "archive": "carreira",
-    "particulars": "Struck an uncharted reef and foundered rapidly."
+    "particulars": "Struck an uncharted reef and foundered rapidly.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0046",
@@ -871,7 +916,8 @@
     "depth_estimate_m": null,
     "tonnage": 452,
     "archive": "carreira",
-    "particulars": "Wrecked on the coast during monsoon season."
+    "particulars": "Wrecked on the coast during monsoon season.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0047",
@@ -890,7 +936,8 @@
     "depth_estimate_m": null,
     "tonnage": 461,
     "archive": "carreira",
-    "particulars": "Lost in heavy seas. Position approximate."
+    "particulars": "Lost in heavy seas. Position approximate.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0048",
@@ -909,7 +956,8 @@
     "depth_estimate_m": null,
     "tonnage": 460,
     "archive": "carreira",
-    "particulars": "Struck an uncharted reef and foundered rapidly."
+    "particulars": "Struck an uncharted reef and foundered rapidly.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0049",
@@ -928,7 +976,8 @@
     "depth_estimate_m": null,
     "tonnage": 469,
     "archive": "carreira",
-    "particulars": "Lost on the treacherous passage around the Cape of Good Hope."
+    "particulars": "Lost on the treacherous passage around the Cape of Good Hope.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0050",
@@ -947,7 +996,8 @@
     "depth_estimate_m": null,
     "tonnage": 483,
     "archive": "carreira",
-    "particulars": "Lost on the treacherous passage around the Cape of Good Hope."
+    "particulars": "Lost on the treacherous passage around the Cape of Good Hope.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0051",
@@ -966,7 +1016,8 @@
     "depth_estimate_m": null,
     "tonnage": 492,
     "archive": "carreira",
-    "particulars": "Caught fire in the holds. Crew abandoned ship."
+    "particulars": "Caught fire in the holds. Crew abandoned ship.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0052",
@@ -985,7 +1036,8 @@
     "depth_estimate_m": null,
     "tonnage": 491,
     "archive": "carreira",
-    "particulars": "Driven ashore in a storm. Crew took to the boats."
+    "particulars": "Driven ashore in a storm. Crew took to the boats.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0053",
@@ -1004,7 +1056,8 @@
     "depth_estimate_m": null,
     "tonnage": 500,
     "archive": "carreira",
-    "particulars": "Overwhelmed by a cyclone in the Mozambique Channel."
+    "particulars": "Overwhelmed by a cyclone in the Mozambique Channel.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0054",
@@ -1023,7 +1076,8 @@
     "depth_estimate_m": null,
     "tonnage": 514,
     "archive": "carreira",
-    "particulars": "Overwhelmed by a cyclone in the Mozambique Channel."
+    "particulars": "Overwhelmed by a cyclone in the Mozambique Channel.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0055",
@@ -1042,7 +1096,8 @@
     "depth_estimate_m": null,
     "tonnage": 509,
     "archive": "carreira",
-    "particulars": "Struck an uncharted reef and foundered rapidly."
+    "particulars": "Struck an uncharted reef and foundered rapidly.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0056",
@@ -1061,7 +1116,8 @@
     "depth_estimate_m": null,
     "tonnage": 523,
     "archive": "carreira",
-    "particulars": "Struck an uncharted reef and foundered rapidly."
+    "particulars": "Struck an uncharted reef and foundered rapidly.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0057",
@@ -1080,7 +1136,8 @@
     "depth_estimate_m": null,
     "tonnage": 508,
     "archive": "carreira",
-    "particulars": "Wrecked on the coast during monsoon season."
+    "particulars": "Wrecked on the coast during monsoon season.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0058",
@@ -1099,7 +1156,8 @@
     "depth_estimate_m": null,
     "tonnage": 517,
     "archive": "carreira",
-    "particulars": "Lost in heavy seas. Position approximate."
+    "particulars": "Lost in heavy seas. Position approximate.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0059",
@@ -1118,7 +1176,8 @@
     "depth_estimate_m": null,
     "tonnage": 531,
     "archive": "carreira",
-    "particulars": "Lost in heavy seas. Position approximate."
+    "particulars": "Lost in heavy seas. Position approximate.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0060",
@@ -1137,7 +1196,8 @@
     "depth_estimate_m": null,
     "tonnage": 540,
     "archive": "carreira",
-    "particulars": "Driven ashore in a storm. Crew took to the boats."
+    "particulars": "Driven ashore in a storm. Crew took to the boats.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0061",
@@ -1156,7 +1216,8 @@
     "depth_estimate_m": null,
     "tonnage": 539,
     "archive": "carreira",
-    "particulars": "Lost on the treacherous passage around the Cape of Good Hope."
+    "particulars": "Lost on the treacherous passage around the Cape of Good Hope.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0062",
@@ -1175,7 +1236,8 @@
     "depth_estimate_m": null,
     "tonnage": 548,
     "archive": "carreira",
-    "particulars": "Caught fire in the holds. Crew abandoned ship."
+    "particulars": "Caught fire in the holds. Crew abandoned ship.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0063",
@@ -1194,7 +1256,8 @@
     "depth_estimate_m": null,
     "tonnage": 547,
     "archive": "carreira",
-    "particulars": "Driven ashore in a storm. Crew took to the boats."
+    "particulars": "Driven ashore in a storm. Crew took to the boats.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0064",
@@ -1213,7 +1276,8 @@
     "depth_estimate_m": null,
     "tonnage": 571,
     "archive": "carreira",
-    "particulars": "Wrecked on the coast during monsoon season."
+    "particulars": "Wrecked on the coast during monsoon season.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0065",
@@ -1232,7 +1296,8 @@
     "depth_estimate_m": null,
     "tonnage": 556,
     "archive": "carreira",
-    "particulars": "Overwhelmed by a cyclone in the Mozambique Channel."
+    "particulars": "Overwhelmed by a cyclone in the Mozambique Channel.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0066",
@@ -1251,7 +1316,8 @@
     "depth_estimate_m": null,
     "tonnage": 570,
     "archive": "carreira",
-    "particulars": "Overwhelmed by a cyclone in the Mozambique Channel."
+    "particulars": "Overwhelmed by a cyclone in the Mozambique Channel.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0067",
@@ -1270,7 +1336,8 @@
     "depth_estimate_m": null,
     "tonnage": 579,
     "archive": "carreira",
-    "particulars": "Struck an uncharted reef and foundered rapidly."
+    "particulars": "Struck an uncharted reef and foundered rapidly.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0068",
@@ -1289,7 +1356,8 @@
     "depth_estimate_m": null,
     "tonnage": 578,
     "archive": "carreira",
-    "particulars": "Wrecked on the coast during monsoon season."
+    "particulars": "Wrecked on the coast during monsoon season.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0069",
@@ -1308,7 +1376,8 @@
     "depth_estimate_m": null,
     "tonnage": 587,
     "archive": "carreira",
-    "particulars": "Lost in heavy seas. Position approximate."
+    "particulars": "Lost in heavy seas. Position approximate.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0070",
@@ -1327,7 +1396,8 @@
     "depth_estimate_m": null,
     "tonnage": 610,
     "archive": "carreira",
-    "particulars": "Driven ashore in a storm. Crew took to the boats."
+    "particulars": "Driven ashore in a storm. Crew took to the boats.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0071",
@@ -1346,7 +1416,8 @@
     "depth_estimate_m": null,
     "tonnage": 595,
     "archive": "carreira",
-    "particulars": "Lost on the treacherous passage around the Cape of Good Hope."
+    "particulars": "Lost on the treacherous passage around the Cape of Good Hope.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0072",
@@ -1365,7 +1436,8 @@
     "depth_estimate_m": null,
     "tonnage": 609,
     "archive": "carreira",
-    "particulars": "Lost on the treacherous passage around the Cape of Good Hope."
+    "particulars": "Lost on the treacherous passage around the Cape of Good Hope.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0073",
@@ -1384,7 +1456,8 @@
     "depth_estimate_m": null,
     "tonnage": 1007,
     "archive": "carreira",
-    "particulars": "Caught fire in the holds. Crew abandoned ship."
+    "particulars": "Caught fire in the holds. Crew abandoned ship.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0074",
@@ -1403,7 +1476,8 @@
     "depth_estimate_m": null,
     "tonnage": 1020,
     "archive": "carreira",
-    "particulars": "Driven ashore in a storm. Crew took to the boats."
+    "particulars": "Driven ashore in a storm. Crew took to the boats.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0075",
@@ -1422,7 +1496,8 @@
     "depth_estimate_m": null,
     "tonnage": 1030,
     "archive": "carreira",
-    "particulars": "Wrecked on the coast during monsoon season."
+    "particulars": "Wrecked on the coast during monsoon season.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0076",
@@ -1441,7 +1516,8 @@
     "depth_estimate_m": null,
     "tonnage": 1029,
     "archive": "carreira",
-    "particulars": "Overwhelmed by a cyclone in the Mozambique Channel."
+    "particulars": "Overwhelmed by a cyclone in the Mozambique Channel.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0077",
@@ -1460,7 +1536,8 @@
     "depth_estimate_m": null,
     "tonnage": 1028,
     "archive": "carreira",
-    "particulars": "Caught fire in the holds. Crew abandoned ship."
+    "particulars": "Caught fire in the holds. Crew abandoned ship.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0078",
@@ -1479,7 +1556,8 @@
     "depth_estimate_m": null,
     "tonnage": 1038,
     "archive": "carreira",
-    "particulars": "Struck an uncharted reef and foundered rapidly."
+    "particulars": "Struck an uncharted reef and foundered rapidly.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0079",
@@ -1498,7 +1576,8 @@
     "depth_estimate_m": null,
     "tonnage": 1037,
     "archive": "carreira",
-    "particulars": "Wrecked on the coast during monsoon season."
+    "particulars": "Wrecked on the coast during monsoon season.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0080",
@@ -1517,7 +1596,8 @@
     "depth_estimate_m": null,
     "tonnage": 1051,
     "archive": "carreira",
-    "particulars": "Wrecked on the coast during monsoon season."
+    "particulars": "Wrecked on the coast during monsoon season.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0081",
@@ -1536,7 +1616,8 @@
     "depth_estimate_m": null,
     "tonnage": 1046,
     "archive": "carreira",
-    "particulars": "Lost in heavy seas. Position approximate."
+    "particulars": "Lost in heavy seas. Position approximate.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0082",
@@ -1555,7 +1636,8 @@
     "depth_estimate_m": null,
     "tonnage": 1059,
     "archive": "carreira",
-    "particulars": "Struck an uncharted reef and foundered rapidly."
+    "particulars": "Struck an uncharted reef and foundered rapidly.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0083",
@@ -1574,7 +1656,8 @@
     "depth_estimate_m": null,
     "tonnage": 1069,
     "archive": "carreira",
-    "particulars": "Driven ashore in a storm. Crew took to the boats."
+    "particulars": "Driven ashore in a storm. Crew took to the boats.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0084",
@@ -1593,7 +1676,8 @@
     "depth_estimate_m": null,
     "tonnage": 1068,
     "archive": "carreira",
-    "particulars": "Lost on the treacherous passage around the Cape of Good Hope."
+    "particulars": "Lost on the treacherous passage around the Cape of Good Hope.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0085",
@@ -1612,7 +1696,8 @@
     "depth_estimate_m": null,
     "tonnage": 1077,
     "archive": "carreira",
-    "particulars": "Caught fire in the holds. Crew abandoned ship."
+    "particulars": "Caught fire in the holds. Crew abandoned ship.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0086",
@@ -1631,7 +1716,8 @@
     "depth_estimate_m": null,
     "tonnage": 1076,
     "archive": "carreira",
-    "particulars": "Driven ashore in a storm. Crew took to the boats."
+    "particulars": "Driven ashore in a storm. Crew took to the boats.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0087",
@@ -1650,7 +1736,8 @@
     "depth_estimate_m": null,
     "tonnage": 1085,
     "archive": "carreira",
-    "particulars": "Overwhelmed by a cyclone in the Mozambique Channel."
+    "particulars": "Overwhelmed by a cyclone in the Mozambique Channel.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0088",
@@ -1669,7 +1756,8 @@
     "depth_estimate_m": null,
     "tonnage": 1099,
     "archive": "carreira",
-    "particulars": "Overwhelmed by a cyclone in the Mozambique Channel."
+    "particulars": "Overwhelmed by a cyclone in the Mozambique Channel.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0089",
@@ -1688,7 +1776,8 @@
     "depth_estimate_m": null,
     "tonnage": 1094,
     "archive": "carreira",
-    "particulars": "Struck an uncharted reef and foundered rapidly."
+    "particulars": "Struck an uncharted reef and foundered rapidly.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0090",
@@ -1707,7 +1796,8 @@
     "depth_estimate_m": null,
     "tonnage": 1107,
     "archive": "carreira",
-    "particulars": "Wrecked on the coast during monsoon season."
+    "particulars": "Wrecked on the coast during monsoon season.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0091",
@@ -1726,7 +1816,8 @@
     "depth_estimate_m": null,
     "tonnage": 1116,
     "archive": "carreira",
-    "particulars": "Lost in heavy seas. Position approximate."
+    "particulars": "Lost in heavy seas. Position approximate.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0092",
@@ -1745,7 +1836,8 @@
     "depth_estimate_m": null,
     "tonnage": 1115,
     "archive": "carreira",
-    "particulars": "Struck an uncharted reef and foundered rapidly."
+    "particulars": "Struck an uncharted reef and foundered rapidly.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0093",
@@ -1764,7 +1856,8 @@
     "depth_estimate_m": null,
     "tonnage": 1125,
     "archive": "carreira",
-    "particulars": "Driven ashore in a storm. Crew took to the boats."
+    "particulars": "Driven ashore in a storm. Crew took to the boats.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0094",
@@ -1783,7 +1876,8 @@
     "depth_estimate_m": null,
     "tonnage": 1124,
     "archive": "carreira",
-    "particulars": "Lost on the treacherous passage around the Cape of Good Hope."
+    "particulars": "Lost on the treacherous passage around the Cape of Good Hope.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0095",
@@ -1802,7 +1896,8 @@
     "depth_estimate_m": null,
     "tonnage": 1138,
     "archive": "carreira",
-    "particulars": "Lost on the treacherous passage around the Cape of Good Hope."
+    "particulars": "Lost on the treacherous passage around the Cape of Good Hope.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0096",
@@ -1821,7 +1916,8 @@
     "depth_estimate_m": null,
     "tonnage": 1133,
     "archive": "carreira",
-    "particulars": "Caught fire in the holds. Crew abandoned ship."
+    "particulars": "Caught fire in the holds. Crew abandoned ship.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0097",
@@ -1840,7 +1936,8 @@
     "depth_estimate_m": null,
     "tonnage": 1147,
     "archive": "carreira",
-    "particulars": "Caught fire in the holds. Crew abandoned ship."
+    "particulars": "Caught fire in the holds. Crew abandoned ship.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0098",
@@ -1859,7 +1956,8 @@
     "depth_estimate_m": null,
     "tonnage": 1146,
     "archive": "carreira",
-    "particulars": "Driven ashore in a storm. Crew took to the boats."
+    "particulars": "Driven ashore in a storm. Crew took to the boats.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0099",
@@ -1878,7 +1976,8 @@
     "depth_estimate_m": null,
     "tonnage": 1156,
     "archive": "carreira",
-    "particulars": "Wrecked on the coast during monsoon season."
+    "particulars": "Wrecked on the coast during monsoon season.",
+    "is_curated": false
   },
   {
     "wreck_id": "carreira_wreck:0100",
@@ -1897,6 +1996,7 @@
     "depth_estimate_m": null,
     "tonnage": 1155,
     "archive": "carreira",
-    "particulars": "Overwhelmed by a cyclone in the Mozambique Channel."
+    "particulars": "Overwhelmed by a cyclone in the Mozambique Channel.",
+    "is_curated": false
   }
 ]

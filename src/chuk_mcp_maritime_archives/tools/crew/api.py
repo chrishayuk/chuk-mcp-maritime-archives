@@ -32,11 +32,12 @@ def register_crew_tools(mcp: object, manager: object) -> None:
         output_mode: str = "json",
     ) -> str:
         """
-        Search for VOC crew members in muster roll records.
+        Search for crew members in muster roll records.
 
-        Queries the VOC Opvarenden database containing 774,200 personnel
-        records from 1633-1794. All search parameters are optional and
-        combined with AND logic. Supports cursor-based pagination.
+        Queries crew databases across multiple archives. By default queries
+        the VOC Opvarenden database (774,200 personnel records, 1633-1794).
+        Set archive="dss" to query MDB individual crew records from northern
+        Dutch provinces (77,043 records, 1803-1837).
 
         Args:
             name: Crew member name or partial name (case-insensitive)
@@ -46,8 +47,9 @@ def register_crew_tools(mcp: object, manager: object) -> None:
             origin: Place of origin or partial name
             date_range: Date range as "YYYY/YYYY" or "YYYY-MM-DD/YYYY-MM-DD"
             fate: Crew fate - survived, died_voyage, died_asia, deserted,
-                discharged
-            archive: Restrict to a specific archive (default: voc_crew)
+                discharged (VOC Opvarenden only)
+            archive: Archive to search - "voc_crew" (default, 1633-1794)
+                or "dss" (MDB northern provinces, 1803-1837)
             max_results: Maximum results per page (default: 100, max: 500)
             cursor: Pagination cursor from a previous result's next_cursor field
             output_mode: Response format - "json" (default) or "text"
@@ -57,11 +59,13 @@ def register_crew_tools(mcp: object, manager: object) -> None:
 
         Tips for LLMs:
             - Use voyage_id to list the complete crew of a specific voyage
-            - Set fate="died_voyage" to find crew lost at sea
+            - Set fate="died_voyage" to find crew lost at sea (VOC only)
             - Names are in historical Dutch spelling; try partial matches
             - If has_more is true, pass next_cursor as cursor to get the next page
             - Follow up with maritime_get_crew_member for full details
               including pay and embarkation date
+            - Set archive="dss" for post-VOC era crew from Groningen,
+              Friesland, Drenthe, Overijssel (1803-1837)
             - Combine with maritime_search_voyages to cross-reference
               ship and voyage information
         """

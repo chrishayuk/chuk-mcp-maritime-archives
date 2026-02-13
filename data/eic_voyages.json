@@ -12,7 +12,8 @@
     "cargo_description": "pepper, cloves, and nutmeg",
     "fate": "completed",
     "particulars": "First EIC voyage. Four ships under Lancaster sailed to Bantam (Java). Captured a rich Portuguese carrack en route. Established first English trading factory in Southeast Asia. Returned with 1,030,000 lbs of pepper.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0002",
@@ -27,7 +28,8 @@
     "cargo_description": "pepper and spices",
     "fate": "completed",
     "particulars": "Accompanied Lancaster's Red Dragon on the first EIC voyage. Smaller vessel that assisted in trading operations at Bantam.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0003",
@@ -42,7 +44,8 @@
     "cargo_description": "pepper, indigo, and cloves",
     "fate": "completed",
     "particulars": "Third EIC voyage under Keeling. Famous for performances of Hamlet and Richard II aboard ship off Sierra Leone in 1607.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0004",
@@ -57,7 +60,8 @@
     "cargo_description": "English cloth, tin, and lead",
     "fate": "wrecked",
     "particulars": "Largest English merchant ship of her time at 1,100 tons. Reached Bantam but was damaged and abandoned there in 1613. Caught fire and burned at her moorings. A catastrophic loss for the early EIC.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0005",
@@ -72,7 +76,8 @@
     "cargo_description": "broadcloth, tin, and English manufactures",
     "fate": "completed",
     "particulars": "Sailed to Japan via Bantam. Established the short-lived English trading factory at Hirado, Japan, in 1613. Carried letters from King James I to the Shogun.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0006",
@@ -87,7 +92,8 @@
     "cargo_description": "English cloth and lead",
     "fate": "completed",
     "particulars": "Tenth EIC voyage. Best defeated a Portuguese fleet off Surat in November 1612, winning trading rights from the Mughal Emperor Jahangir.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0007",
@@ -102,7 +108,8 @@
     "cargo_description": "English manufactures and trade goods",
     "fate": "wrecked",
     "particulars": "Sailed to the Banda Islands (Spice Islands). Courthope defended Run Island against the Dutch for four years before being killed in 1620. Ship lost.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0008",
@@ -117,7 +124,8 @@
     "cargo_description": "English cloth, tin, and iron",
     "fate": "completed",
     "particulars": "Early Surat voyage. The EIC was consolidating its position on the Indian west coast during this period.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0009",
@@ -132,7 +140,8 @@
     "cargo_description": "English manufactures, lead, and quicksilver",
     "fate": "completed",
     "particulars": "Voyage during the Anglo-Dutch rivalry period. Tensions with the VOC in the Spice Islands were escalating.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0010",
@@ -147,7 +156,8 @@
     "cargo_description": "cloth, tin, and iron goods",
     "fate": "completed",
     "particulars": "Baffin, the famous Arctic explorer, sailed as master. He would later be killed at the siege of Qeshm Island in 1622.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0011",
@@ -162,7 +172,8 @@
     "cargo_description": "English broadcloth and metals",
     "fate": "completed",
     "particulars": "Voyage during the period when the EIC was establishing Fort St George (Madras) as a major settlement.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0012",
@@ -177,7 +188,8 @@
     "cargo_description": "English cloth and lead",
     "fate": "completed",
     "particulars": "One of the first English attempts to trade directly with China. Weddell's fleet clashed with Chinese forts at Canton.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0013",
@@ -192,7 +204,8 @@
     "cargo_description": "English cloth and hardware",
     "fate": "completed",
     "particulars": "Routine voyage to the Coromandel Coast during the early development of the EIC Madras settlement.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0014",
@@ -207,7 +220,8 @@
     "cargo_description": "English cloth, tin, and lead",
     "fate": "completed",
     "particulars": "Sailed during the English Civil War period. The EIC maintained operations despite domestic turmoil.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0015",
@@ -222,7 +236,8 @@
     "cargo_description": "English cloth and metals",
     "fate": "completed",
     "particulars": "Post-Civil War voyage. The Commonwealth government renewed the EIC charter.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0016",
@@ -237,7 +252,8 @@
     "cargo_description": "cloth, lead, and English manufactures",
     "fate": "completed",
     "particulars": "Cromwell's government supported the EIC. This period saw expansion of trade in Indian textiles.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0017",
@@ -252,7 +268,8 @@
     "cargo_description": "English cloth, hardware, and metals",
     "fate": "completed",
     "particulars": "Restoration-era voyage. Charles II granted the EIC new privileges including the right to mint money and command fortresses.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0018",
@@ -267,7 +284,8 @@
     "cargo_description": "English cloth, metals, and provisions",
     "fate": "completed",
     "particulars": "Bombay had been transferred to the EIC by Charles II. Aungier would become governor and develop Bombay as the EIC's western headquarters.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0019",
@@ -282,7 +300,8 @@
     "cargo_description": "English cloth, metals, and trade goods",
     "fate": "completed",
     "particulars": "Voyage to the Coromandel Coast during the period of expanding textile trade between India and England.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0020",
@@ -297,7 +316,8 @@
     "cargo_description": "cloth, lead, and bullion",
     "fate": "completed",
     "particulars": "Sailed during the Third Anglo-Dutch War. EIC ships often required naval escort in wartime.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0021",
@@ -312,7 +332,8 @@
     "cargo_description": "broadcloth, lead, and silver",
     "fate": "completed",
     "particulars": "Period of expanding EIC presence on the Coromandel Coast.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0022",
@@ -327,7 +348,8 @@
     "cargo_description": "English cloth and bullion",
     "fate": "completed",
     "particulars": "Pitt would later become Governor of Madras and acquire the famous Pitt Diamond (Regent Diamond), now in the Louvre.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0023",
@@ -342,7 +364,8 @@
     "cargo_description": "cloth, metals, and trade goods",
     "fate": "completed",
     "particulars": "Barlow kept one of the most famous maritime journals of the era, covering decades of seafaring life.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0024",
@@ -357,7 +380,8 @@
     "cargo_description": "English manufactures and bullion",
     "fate": "completed",
     "particulars": "Knox had been a prisoner in Ceylon for 19 years. His account inspired parts of Defoe's Robinson Crusoe.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0025",
@@ -372,7 +396,8 @@
     "cargo_description": "trade goods and naval stores",
     "fate": "captured",
     "particulars": "Captain Kidd, originally commissioned as a privateer, turned pirate and was later captured, tried, and hanged in 1701.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0026",
@@ -387,7 +412,8 @@
     "cargo_description": "broadcloth, lead, and bullion",
     "fate": "completed",
     "particulars": "Hamilton served in the EIC for decades and wrote 'A New Account of the East Indies', one of the best contemporary descriptions.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0027",
@@ -402,7 +428,8 @@
     "cargo_description": "English cloth and metals",
     "fate": "completed",
     "particulars": "War of the Spanish Succession era. EIC ships were vulnerable to French privateers.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0028",
@@ -417,7 +444,8 @@
     "cargo_description": "broadcloth, lead, and bullion",
     "fate": "completed",
     "particulars": "Post-Union voyage. The EIC and the rival 'New East India Company' had been merged in 1708.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0029",
@@ -432,7 +460,8 @@
     "cargo_description": "English cloth and trade goods",
     "fate": "completed",
     "particulars": "Period of the South Sea Bubble era. EIC was one of the great chartered companies.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0030",
@@ -447,7 +476,8 @@
     "cargo_description": "English woolens, lead, and bullion",
     "fate": "completed",
     "particulars": "Early direct China trade. The EIC was beginning to import large quantities of tea from Canton.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0031",
@@ -462,7 +492,8 @@
     "cargo_description": "broadcloth, metals, and bullion",
     "fate": "completed",
     "particulars": "The EIC's Bombay dockyard was becoming a major shipbuilding center.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0032",
@@ -477,7 +508,8 @@
     "cargo_description": "English woolens and silver bullion",
     "fate": "completed",
     "particulars": "The Canton tea trade was rapidly expanding. Tea was becoming Britain's national drink.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0033",
@@ -492,7 +524,8 @@
     "cargo_description": "cloth, metals, and military stores",
     "fate": "completed",
     "particulars": "Routine voyage during a period of relative peace in India.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0034",
@@ -507,7 +540,8 @@
     "cargo_description": "woolens, lead, and bullion",
     "fate": "completed",
     "particulars": "Growing tea imports. Parliament granted the EIC a tea monopoly.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0035",
@@ -522,7 +556,8 @@
     "cargo_description": "English cloth and military stores",
     "fate": "completed",
     "particulars": "First voyage of the Dodington. This ship would later be wrecked.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0036",
@@ -537,7 +572,8 @@
     "cargo_description": "English woolens and silver",
     "fate": "completed",
     "particulars": "War of Jenkins' Ear era. Increasing hostility with Spain.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0037",
@@ -552,7 +588,8 @@
     "cargo_description": "broadcloth, metals, and military stores",
     "fate": "completed",
     "particulars": "War of the Austrian Succession. French and English EIC forces were beginning to clash in India.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0038",
@@ -567,7 +604,8 @@
     "cargo_description": "English manufactures and military stores",
     "fate": "completed",
     "particulars": "Dupleix and the French were threatening Madras.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0039",
@@ -582,7 +620,8 @@
     "cargo_description": "English woolens and bullion",
     "fate": "completed",
     "particulars": "Named after Commodore Anson who had circumnavigated the globe.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0040",
@@ -597,7 +636,8 @@
     "cargo_description": "cloth, military stores, and bullion",
     "fate": "completed",
     "particulars": "Pigot would later become Governor of Madras.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0041",
@@ -612,7 +652,8 @@
     "cargo_description": "military stores, bullion, and gold coins",
     "fate": "wrecked",
     "particulars": "Wrecked on Bird Island, Algoa Bay, South Africa, 17 July 1755 during outward voyage. Carried a chest of gold pagodas for the Madras garrison. Wreck found in 1977 by Dave Allen.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0042",
@@ -627,7 +668,8 @@
     "cargo_description": "military stores and reinforcements",
     "fate": "completed",
     "particulars": "Clive sailed to India where he won the Battle of Plassey (1757), establishing British dominance in Bengal.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0043",
@@ -642,7 +684,8 @@
     "cargo_description": "military stores and bullion",
     "fate": "completed",
     "particulars": "Post-Plassey era. The EIC was becoming the de facto ruler of Bengal.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0044",
@@ -657,7 +700,8 @@
     "cargo_description": "military stores, soldiers, and provisions",
     "fate": "completed",
     "particulars": "Seven Years' War era. EIC and Royal Navy cooperated to take French possessions in India.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0045",
@@ -672,7 +716,8 @@
     "cargo_description": "woolens, metals, and bullion",
     "fate": "completed",
     "particulars": "Growing tea trade with China.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0046",
@@ -687,7 +732,8 @@
     "cargo_description": "English manufactures and bullion",
     "fate": "completed",
     "particulars": "The EIC received the diwani (tax-collecting rights) of Bengal in 1765.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0047",
@@ -702,7 +748,8 @@
     "cargo_description": "broadcloth, metals, and military stores",
     "fate": "completed",
     "particulars": "Expansion of the Bombay marine (EIC's naval force).",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0048",
@@ -717,7 +764,8 @@
     "cargo_description": "military stores, cloth, and bullion",
     "fate": "completed",
     "particulars": "First successful voyage of the Royal Captain.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0049",
@@ -732,7 +780,8 @@
     "cargo_description": "military stores and provisions",
     "fate": "wrecked",
     "particulars": "Wrecked near Robben Island, Cape of Good Hope, 25 August 1773 during a severe storm. All crew saved but ship was a total loss.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0050",
@@ -747,7 +796,8 @@
     "cargo_description": "woolens, lead, and silver bullion",
     "fate": "completed",
     "particulars": "Tea Act of 1773 gave the EIC a monopoly on tea sales to America, triggering the Boston Tea Party.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0051",
@@ -762,7 +812,8 @@
     "cargo_description": "English manufactures and military stores",
     "fate": "completed",
     "particulars": "American War of Independence era. EIC ships were vulnerable to American and French privateers.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0052",
@@ -777,7 +828,8 @@
     "cargo_description": "military stores, bullion, and treasure",
     "fate": "wrecked",
     "particulars": "Wrecked 4 August 1782 on the coast of Pondoland, South Africa. The survivors' terrible overland march is one of the most famous shipwreck narratives. Rumoured to carry the Peacock Throne jewels.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0053",
@@ -792,7 +844,8 @@
     "cargo_description": "military stores and provisions",
     "fate": "wrecked",
     "particulars": "Wrecked 6 January 1786 on the cliffs at Seacombe, Isle of Purbeck, Dorset. Captain Pierce, his two daughters, and ~168 others perished. One of the most widely reported shipwrecks of the 18th century.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0054",
@@ -807,7 +860,8 @@
     "cargo_description": "provisions and supplies for Botany Bay colony",
     "fate": "wrecked",
     "particulars": "Struck an iceberg 13 December 1789 south of the Cape of Good Hope. Riou kept the sinking vessel afloat for weeks until rescued. One of the earliest iceberg collisions on record.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0055",
@@ -822,7 +876,8 @@
     "cargo_description": "military stores and cargo",
     "fate": "wrecked",
     "particulars": "Wrecked 20 August 1792 on a reef off the coast of Madagascar. Most passengers and crew survived but endured months stranded before rescue.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0056",
@@ -837,7 +892,8 @@
     "cargo_description": "English woolens, tin, and bullion",
     "fate": "completed",
     "particulars": "Major China Indiaman. The Canton tea trade was at its peak.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0057",
@@ -852,7 +908,8 @@
     "cargo_description": "English manufactures and military stores",
     "fate": "completed",
     "particulars": "French Revolutionary Wars made the voyage hazardous.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0058",
@@ -867,7 +924,8 @@
     "cargo_description": "military stores and provisions",
     "fate": "completed",
     "particulars": "First successful voyage of the Arniston.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0059",
@@ -882,7 +940,8 @@
     "cargo_description": "woolens, lead, and bullion",
     "fate": "completed",
     "particulars": "Wartime China trade. EIC ships often sailed in convoy with naval escort.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0060",
@@ -897,7 +956,8 @@
     "cargo_description": "English manufactures, tin, and bullion",
     "fate": "completed",
     "particulars": "Captain John Wordsworth, brother of the poet William Wordsworth. First successful voyage of the Earl of Abergavenny.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0061",
@@ -912,7 +972,8 @@
     "cargo_description": "English woolens and silver bullion",
     "fate": "completed",
     "particulars": "Major China Indiaman during the Napoleonic Wars.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0062",
@@ -927,7 +988,8 @@
     "cargo_description": "English woolens, military stores, and bullion",
     "fate": "wrecked",
     "particulars": "Wrecked 5 February 1805 off Weymouth, Dorset, striking the Shambles bank. Captain John Wordsworth and ~260 others drowned. His brother William Wordsworth wrote several poems in his memory. One of the most significant EIC shipwrecks.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0063",
@@ -942,7 +1004,8 @@
     "cargo_description": "English manufactures and military stores",
     "fate": "completed",
     "particulars": "Named after the first Governor-General of India.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0064",
@@ -957,7 +1020,8 @@
     "cargo_description": "English woolens and silver bullion",
     "fate": "completed",
     "particulars": "Large China Indiaman. Growing demand for tea in Britain.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0065",
@@ -972,7 +1036,8 @@
     "cargo_description": "English manufactures and bullion",
     "fate": "completed",
     "particulars": "Napoleonic Wars. EIC ships frequently engaged French privateers.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0066",
@@ -987,7 +1052,8 @@
     "cargo_description": "broadcloth and military stores",
     "fate": "completed",
     "particulars": "Expansion of the Bombay presidency.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0067",
@@ -1002,7 +1068,8 @@
     "cargo_description": "English woolens and bullion",
     "fate": "completed",
     "particulars": "Major China trader during the height of the tea trade.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0068",
@@ -1017,7 +1084,8 @@
     "cargo_description": "military stores and passengers (344 soldiers and invalids)",
     "fate": "wrecked",
     "particulars": "Wrecked 30 May 1815 near Waenhuiskrans (Arniston), South Africa, during a violent storm. Only 6 of 378 aboard survived. The nearby town was renamed Arniston in memory.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0069",
@@ -1032,7 +1100,8 @@
     "cargo_description": "English woolens and silver",
     "fate": "completed",
     "particulars": "Post-Napoleonic War era. The Canton trade system was firmly established.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0070",
@@ -1047,7 +1116,8 @@
     "cargo_description": "English manufactures and hardware",
     "fate": "completed",
     "particulars": "Routine India trade during the post-war period.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0071",
@@ -1062,7 +1132,8 @@
     "cargo_description": "cloth, metals, and manufactured goods",
     "fate": "completed",
     "particulars": "EIC trade was increasingly challenged by private merchants.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0072",
@@ -1077,7 +1148,8 @@
     "cargo_description": "military stores, cargo, and 20 officers with families",
     "fate": "wrecked",
     "particulars": "Caught fire 1 March 1825 in the Bay of Biscay. 81 lives lost of 641 aboard. Most passengers rescued by the brig Cambria. Captain Cobb was among the last to leave the burning ship.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0073",
@@ -1092,7 +1164,8 @@
     "cargo_description": "woolens, metals, and bullion",
     "fate": "completed",
     "particulars": "The opium trade was becoming increasingly important to EIC finances.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0074",
@@ -1107,7 +1180,8 @@
     "cargo_description": "English manufactures and machinery",
     "fate": "completed",
     "particulars": "Named after the EIC chairman. Steam was beginning to appear on Indian rivers.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0075",
@@ -1122,7 +1196,8 @@
     "cargo_description": "English woolens and silver",
     "fate": "completed",
     "particulars": "The China tea trade was at its peak. Opium imports to China growing.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0076",
@@ -1137,7 +1212,8 @@
     "cargo_description": "English manufactures and military stores",
     "fate": "completed",
     "particulars": "Reform era. The EIC's India monopoly was abolished in 1833.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0077",
@@ -1152,7 +1228,8 @@
     "cargo_description": "English woolens and bullion",
     "fate": "completed",
     "particulars": "One of the last EIC monopoly China voyages. The China trade monopoly was abolished in 1834.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0078",
@@ -1167,7 +1244,8 @@
     "cargo_description": "English manufactures and machinery",
     "fate": "completed",
     "particulars": "Post-monopoly era. Private merchants now competed freely.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0079",
@@ -1182,7 +1260,8 @@
     "cargo_description": "English woolens, cotton, and bullion",
     "fate": "completed",
     "particulars": "Named after the Governor-General. Tensions with China over opium trade were escalating.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0080",
@@ -1197,7 +1276,8 @@
     "cargo_description": "military stores and armament",
     "fate": "completed",
     "particulars": "Iron-hulled steamer that played a decisive role in the First Opium War (1839-1842). First iron warship to round the Cape.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0081",
@@ -1212,7 +1292,8 @@
     "cargo_description": "manufactures and military stores",
     "fate": "completed",
     "particulars": "First Opium War era. Hong Kong was ceded to Britain in 1842.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0082",
@@ -1227,7 +1308,8 @@
     "cargo_description": "English manufactures and machinery",
     "fate": "completed",
     "particulars": "Steam and sail co-existed. The Overland Mail route via Suez was reducing passage times.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0083",
@@ -1242,7 +1324,8 @@
     "cargo_description": "manufactured goods and military stores",
     "fate": "completed",
     "particulars": "Period of railway construction beginning in India.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0084",
@@ -1257,7 +1340,8 @@
     "cargo_description": "machinery and manufactured goods",
     "fate": "completed",
     "particulars": "Industrial goods increasingly replacing traditional exports.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0085",
@@ -1272,7 +1356,8 @@
     "cargo_description": "machinery, cloth, and metals",
     "fate": "completed",
     "particulars": "Era of rapid modernization in India.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0086",
@@ -1287,7 +1372,8 @@
     "cargo_description": "manufactured goods and machinery",
     "fate": "completed",
     "particulars": "The Great Exhibition of 1851 showcased Indian goods in London.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0087",
@@ -1302,7 +1388,8 @@
     "cargo_description": "military stores and reinforcements",
     "fate": "completed",
     "particulars": "Crimean War era. Indian troops were deployed to Crimea.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0088",
@@ -1317,7 +1404,8 @@
     "cargo_description": "military stores and reinforcements",
     "fate": "completed",
     "particulars": "Indian Rebellion of 1857 was the defining crisis that led to the dissolution of the EIC.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0089",
@@ -1332,7 +1420,8 @@
     "cargo_description": "English cloth and trade goods",
     "fate": "completed",
     "particulars": "Early Surat trade. Hippon was one of the first EIC agents at Surat.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0090",
@@ -1347,7 +1436,8 @@
     "cargo_description": "English cloth and metals",
     "fate": "completed",
     "particulars": "Pring was a veteran navigator who had explored New England.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0091",
@@ -1362,7 +1452,8 @@
     "cargo_description": "cloth, metals, and trade goods",
     "fate": "completed",
     "particulars": "Baffin's extensive navigational observations contributed to cartography.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0092",
@@ -1377,7 +1468,8 @@
     "cargo_description": "English manufactures",
     "fate": "completed",
     "particulars": "Dutch-English rivalry was intensifying in the Spice Islands.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0093",
@@ -1392,7 +1484,8 @@
     "cargo_description": "cloth and metals",
     "fate": "completed",
     "particulars": "Weddell was one of the most active early EIC captains.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0094",
@@ -1407,7 +1500,8 @@
     "cargo_description": "English broadcloth and metals",
     "fate": "completed",
     "particulars": "Methwold became president of the Surat factory.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0095",
@@ -1422,7 +1516,8 @@
     "cargo_description": "cloth and trade goods",
     "fate": "completed",
     "particulars": "Early Madras trade. Fort St George under construction.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0096",
@@ -1437,7 +1532,8 @@
     "cargo_description": "cloth, metals, and provisions",
     "fate": "completed",
     "particulars": "English Civil War era. Parliament and Royalists both claimed EIC revenues.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0097",
@@ -1452,7 +1548,8 @@
     "cargo_description": "English manufactures and trade goods",
     "fate": "completed",
     "particulars": "Bantam remained an important EIC trading post.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0098",
@@ -1467,7 +1564,8 @@
     "cargo_description": "cloth and bullion",
     "fate": "completed",
     "particulars": "Commonwealth period. Cromwell supported East India trade expansion.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0099",
@@ -1482,7 +1580,8 @@
     "cargo_description": "cloth, metals, and military stores",
     "fate": "completed",
     "particulars": "Last years of the Commonwealth. The Restoration was imminent.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0100",
@@ -1497,7 +1596,8 @@
     "cargo_description": "English manufactures and bullion",
     "fate": "completed",
     "particulars": "Early Restoration period. Charles II was expanding EIC privileges.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0101",
@@ -1512,7 +1612,8 @@
     "cargo_description": "provisions and military stores",
     "fate": "completed",
     "particulars": "Bombay was being developed as a major EIC base.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0102",
@@ -1527,7 +1628,8 @@
     "cargo_description": "cloth and trade goods",
     "fate": "completed",
     "particulars": "Madras textile trade expanding rapidly.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0103",
@@ -1542,7 +1644,8 @@
     "cargo_description": "English broadcloth and metals",
     "fate": "completed",
     "particulars": "Period of expanding calico imports from India.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0104",
@@ -1557,7 +1660,8 @@
     "cargo_description": "cloth and bullion",
     "fate": "completed",
     "particulars": "Tensions with the Mughal Empire increasing.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0105",
@@ -1572,7 +1676,8 @@
     "cargo_description": "English cloth, metals, and bullion",
     "fate": "completed",
     "particulars": "EIC was fortifying its Indian settlements.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0106",
@@ -1587,7 +1692,8 @@
     "cargo_description": "military stores and provisions",
     "fate": "completed",
     "particulars": "Glorious Revolution era. New charter granted by William III.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0107",
@@ -1602,7 +1708,8 @@
     "cargo_description": "English cloth and bullion",
     "fate": "completed",
     "particulars": "Bowrey was a notable chronicler of Asian maritime trade.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0108",
@@ -1617,7 +1724,8 @@
     "cargo_description": "cloth, metals, and trade goods",
     "fate": "completed",
     "particulars": "Annesley served in the EIC for decades in various capacities.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0109",
@@ -1632,7 +1740,8 @@
     "cargo_description": "English manufactures and military stores",
     "fate": "completed",
     "particulars": "War of the Spanish Succession era.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0110",
@@ -1647,7 +1756,8 @@
     "cargo_description": "English woolens and lead",
     "fate": "completed",
     "particulars": "Early Canton direct trade.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0111",
@@ -1662,7 +1772,8 @@
     "cargo_description": "cloth and trade goods",
     "fate": "completed",
     "particulars": "Queen Anne's reign. EIC and 'New Company' recently merged.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0112",
@@ -1677,7 +1788,8 @@
     "cargo_description": "English manufactures and bullion",
     "fate": "completed",
     "particulars": "Calcutta was growing as the EIC's eastern headquarters.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0113",
@@ -1692,7 +1804,8 @@
     "cargo_description": "English woolens and metals",
     "fate": "completed",
     "particulars": "Growing Canton tea trade.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0114",
@@ -1707,7 +1820,8 @@
     "cargo_description": "cloth and manufactured goods",
     "fate": "completed",
     "particulars": "Bengal textile exports were enormous.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0115",
@@ -1722,7 +1836,8 @@
     "cargo_description": "broadcloth and metals",
     "fate": "completed",
     "particulars": "Macrae had been governor of Madras.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0116",
@@ -1737,7 +1852,8 @@
     "cargo_description": "English woolens and silver bullion",
     "fate": "completed",
     "particulars": "Major China trader. Tea imports approaching 4 million lbs annually.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0117",
@@ -1752,7 +1868,8 @@
     "cargo_description": "woolens, metals, and bullion",
     "fate": "completed",
     "particulars": "Post-war China trade resumption.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0118",
@@ -1767,7 +1884,8 @@
     "cargo_description": "English manufactures and military stores",
     "fate": "completed",
     "particulars": "Named after the EIC fortress in Calcutta.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0119",
@@ -1782,7 +1900,8 @@
     "cargo_description": "military stores and reinforcements",
     "fate": "completed",
     "particulars": "Seven Years' War. Major reinforcements for India.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0120",
@@ -1797,7 +1916,8 @@
     "cargo_description": "woolens and silver bullion",
     "fate": "completed",
     "particulars": "Post-war China trade expansion. Treaty of Paris (1763).",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0121",
@@ -1812,7 +1932,8 @@
     "cargo_description": "woolens, lead, and silver",
     "fate": "completed",
     "particulars": "Father of the future Earl of Abergavenny captain.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0122",
@@ -1827,7 +1948,8 @@
     "cargo_description": "English manufactures and bullion",
     "fate": "completed",
     "particulars": "Growing Bengal indigo trade.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0123",
@@ -1842,7 +1964,8 @@
     "cargo_description": "woolens and silver bullion",
     "fate": "completed",
     "particulars": "American Revolution era. EIC ships required convoy protection.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0124",
@@ -1857,7 +1980,8 @@
     "cargo_description": "military stores and provisions",
     "fate": "completed",
     "particulars": "War period. French fleet under Suffren threatened EIC interests.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0125",
@@ -1872,7 +1996,8 @@
     "cargo_description": "military stores and provisions",
     "fate": "wrecked",
     "particulars": "Wrecked 26 January 1786 on rocks at Plymouth Sound. All passengers and crew rescued, largely due to the heroism of Sir Edward Pellew (later Lord Exmouth).",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0126",
@@ -1887,7 +2012,8 @@
     "cargo_description": "woolens and silver bullion",
     "fate": "completed",
     "particulars": "Growing tea and silk trade.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0127",
@@ -1902,7 +2028,8 @@
     "cargo_description": "English manufactures",
     "fate": "completed",
     "particulars": "Grant would become chairman of the EIC's Court of Directors.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0128",
@@ -1917,7 +2044,8 @@
     "cargo_description": "woolens, metals, and silver",
     "fate": "completed",
     "particulars": "French Revolutionary Wars. Heavy convoy escort required.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0129",
@@ -1932,7 +2060,8 @@
     "cargo_description": "military stores and manufactures",
     "fate": "completed",
     "particulars": "Napoleonic Wars. EIC expanding in western India.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0130",
@@ -1947,7 +2076,8 @@
     "cargo_description": "English woolens and silver",
     "fate": "completed",
     "particulars": "Battle of the Nile (1798) secured the eastern Mediterranean.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0131",
@@ -1962,7 +2092,8 @@
     "cargo_description": "English manufactures and bullion",
     "fate": "completed",
     "particulars": "Brief Peace of Amiens (1802).",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0132",
@@ -1977,7 +2108,8 @@
     "cargo_description": "military stores and provisions",
     "fate": "completed",
     "particulars": "Napoleonic Wars resumed after Amiens.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0133",
@@ -1992,7 +2124,8 @@
     "cargo_description": "woolens and bullion",
     "fate": "completed",
     "particulars": "Horsburgh compiled famous hydrographic charts of Asian waters.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0134",
@@ -2007,7 +2140,8 @@
     "cargo_description": "English manufactures and military stores",
     "fate": "completed",
     "particulars": "Named after the naval hero. Major India trader.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0135",
@@ -2022,7 +2156,8 @@
     "cargo_description": "woolens and silver bullion",
     "fate": "completed",
     "particulars": "War of 1812 era. American privateers posed a threat.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0136",
@@ -2037,7 +2172,8 @@
     "cargo_description": "English manufactures",
     "fate": "completed",
     "particulars": "End of Napoleonic Wars. Post-war trade expansion.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0137",
@@ -2052,7 +2188,8 @@
     "cargo_description": "woolens and silver",
     "fate": "completed",
     "particulars": "Growing opium trade financing tea purchases.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0138",
@@ -2067,7 +2204,8 @@
     "cargo_description": "English manufactures and hardware",
     "fate": "completed",
     "particulars": "Expansion of EIC territory in western India.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0139",
@@ -2082,7 +2220,8 @@
     "cargo_description": "woolens, tin, and silver",
     "fate": "completed",
     "particulars": "EIC building 'factories' in Canton.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0140",
@@ -2097,7 +2236,8 @@
     "cargo_description": "manufactured goods and machinery",
     "fate": "completed",
     "particulars": "First Burmese War (1824-1826) era.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0141",
@@ -2112,7 +2252,8 @@
     "cargo_description": "manufactured goods and military stores",
     "fate": "completed",
     "particulars": "Post-war consolidation in India.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0142",
@@ -2127,7 +2268,8 @@
     "cargo_description": "woolens and silver",
     "fate": "completed",
     "particulars": "Canton system of trade. Foreign merchants confined to factories.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0143",
@@ -2142,7 +2284,8 @@
     "cargo_description": "English manufactures and machinery",
     "fate": "completed",
     "particulars": "EIC's India monopoly abolished by Charter Act 1833.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0144",
@@ -2157,7 +2300,8 @@
     "cargo_description": "manufactured goods and machinery",
     "fate": "completed",
     "particulars": "Post-Opium War. Treaty of Nanking opened five ports.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0145",
@@ -2172,7 +2316,8 @@
     "cargo_description": "manufactured goods and bullion",
     "fate": "completed",
     "particulars": "Post-treaty trade expansion.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0146",
@@ -2187,7 +2332,8 @@
     "cargo_description": "military stores and machinery",
     "fate": "completed",
     "particulars": "Indian Rebellion of 1857 imminent.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0147",
@@ -2202,7 +2348,8 @@
     "cargo_description": "manufactured goods and machinery",
     "fate": "completed",
     "particulars": "EIC governing India under Crown control since 1858.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0148",
@@ -2217,7 +2364,8 @@
     "cargo_description": "manufactured goods",
     "fate": "completed",
     "particulars": "EIC winding down as governing entity.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0149",
@@ -2232,7 +2380,8 @@
     "cargo_description": "manufactured goods and machinery",
     "fate": "completed",
     "particulars": "Suez Canal would open in 1869, revolutionizing the route.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   },
   {
     "voyage_id": "eic:0150",
@@ -2247,6 +2396,7 @@
     "cargo_description": "manufactured goods",
     "fate": "completed",
     "particulars": "Among the final EIC-associated voyages. The Company was formally dissolved on 1 June 1874 by the East India Stock Dividend Redemption Act. End of 274 years of corporate history.",
-    "archive": "eic"
+    "archive": "eic",
+    "is_curated": true
   }
 ]

@@ -213,7 +213,9 @@ class VoyageFullResponse(BaseModel):
     vessel: dict[str, Any] | None = None
     hull_profile: dict[str, Any] | None = None
     cliwoc_track: dict[str, Any] | None = None
+    crew: list[dict[str, Any]] | None = None
     links_found: list[str]
+    link_confidence: dict[str, float] = Field(default_factory=dict)
     message: str = ""
 
     def to_text(self) -> str:
@@ -284,7 +286,77 @@ class VoyageFullResponse(BaseModel):
                 ]
             )
 
+        if self.crew:
+            lines.extend(["", f"--- Crew ({len(self.crew)} records) ---"])
+            for c in self.crew[:10]:
+                lines.append(
+                    f"  {c.get('name', '?')} - {c.get('rank_english', c.get('rank', '?'))}"
+                )
+            if len(self.crew) > 10:
+                lines.append(f"  ... and {len(self.crew) - 10} more")
+
+        if self.link_confidence:
+            conf_parts = [f"{k}: {v:.0%}" for k, v in self.link_confidence.items()]
+            lines.extend(["", f"Link confidence: {', '.join(conf_parts)}"])
+
         lines.extend(["", f"Links found: {', '.join(self.links_found) or 'none'}"])
+        return "\n".join(lines)
+
+
+class LinkAuditResponse(BaseModel):
+    """Results of cross-archive link quality audit."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    wreck_links: dict[str, Any]
+    cliwoc_links: dict[str, Any]
+    crew_links: dict[str, Any]
+    total_links_evaluated: int
+    confidence_distribution: dict[str, int] = Field(default_factory=dict)
+    message: str = ""
+
+    def to_text(self) -> str:
+        lines = [self.message, ""]
+
+        wl = self.wreck_links
+        lines.extend(
+            [
+                "--- Wreck Links ---",
+                f"  Ground truth: {wl.get('ground_truth_count', 0)} wrecks with voyage_id",
+                f"  Matched: {wl.get('matched_count', 0)}",
+                f"  Precision: {wl.get('precision', 0):.1%}",
+                f"  Recall: {wl.get('recall', 0):.1%}",
+            ]
+        )
+
+        cl = self.cliwoc_links
+        lines.extend(
+            [
+                "",
+                "--- CLIWOC Track Links ---",
+                f"  DAS-number direct links: {cl.get('direct_links', 0)}",
+                f"  Fuzzy matches found: {cl.get('fuzzy_matches', 0)}",
+                f"  Mean confidence: {cl.get('mean_confidence', 0):.2f}",
+                f"  Matches >= 0.7: {cl.get('high_confidence_count', 0)}",
+                f"  Matches >= 0.5: {cl.get('moderate_confidence_count', 0)}",
+            ]
+        )
+
+        crl = self.crew_links
+        lines.extend(
+            [
+                "",
+                "--- Crew Links ---",
+                f"  Exact voyage_id matches: {crl.get('exact_matches', 0)}",
+                f"  Fuzzy ship+date matches: {crl.get('fuzzy_matches', 0)}",
+            ]
+        )
+
+        if self.confidence_distribution:
+            lines.extend(["", "--- Confidence Distribution ---"])
+            for bucket, count in sorted(self.confidence_distribution.items(), reverse=True):
+                lines.append(f"  {bucket}: {count}")
+
         return "\n".join(lines)
 
 
@@ -517,6 +589,105 @@ class CrewDetailResponse(BaseModel):
             f"Origin: {c.get('origin', '?')}",
             f"Ship: {c.get('ship_name', '?')}",
             f"Pay: {c.get('monthly_pay_guilders', '?')} guilders/month",
+        ]
+        return "\n".join(lines)
+
+
+# ---------------------------------------------------------------------------
+# Muster responses (DSS — GZMVOC ship-level crew composition)
+# ---------------------------------------------------------------------------
+
+
+class MusterInfo(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    muster_id: str
+    ship_name: str
+    captain: str | None = None
+    muster_date: str | None = None
+    muster_location: str | None = None
+    total_crew: int | None = None
+    das_voyage_id: str | None = None
+    archive: str | None = None
+
+
+class MusterSearchResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    muster_count: int
+    musters: list[MusterInfo]
+    message: str = ""
+    total_count: int | None = None
+    next_cursor: str | None = None
+    has_more: bool = False
+
+    def to_text(self) -> str:
+        lines = [self.message, ""]
+        for m in self.musters:
+            lines.append(
+                f"  {m.muster_id}: {m.ship_name}"
+                f" ({m.muster_location or '?'}, {m.muster_date or '?'})"
+            )
+            if m.total_crew:
+                lines.append(f"    Crew: {m.total_crew}")
+            if m.das_voyage_id:
+                lines.append(f"    DAS voyage: {m.das_voyage_id}")
+        footer = _pagination_footer(
+            len(self.musters), self.total_count, self.has_more, self.next_cursor
+        )
+        if footer:
+            lines.append(footer)
+        return "\n".join(lines)
+
+
+class MusterDetailResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    muster: dict[str, Any]
+    message: str = ""
+
+    def to_text(self) -> str:
+        m = self.muster
+        lines = [
+            f"Muster: {m.get('ship_name', '?')}",
+            f"Captain: {m.get('captain', '?')}",
+            f"Date: {m.get('muster_date', '?')}",
+            f"Location: {m.get('muster_location', '?')}",
+            f"European crew: {m.get('total_european', '?')}",
+            f"Asian crew: {m.get('total_asian', '?')}",
+            f"Total crew: {m.get('total_crew', '?')}",
+            f"Mean wage: {m.get('mean_wage_guilders', '?')} guilders/month",
+        ]
+        if m.get("das_voyage_id"):
+            lines.append(f"DAS voyage: {m['das_voyage_id']}")
+        return "\n".join(lines)
+
+
+class WageComparisonResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    group1_label: str
+    group1_n: int
+    group1_mean_wage: float
+    group1_median_wage: float
+    group2_label: str
+    group2_n: int
+    group2_mean_wage: float
+    group2_median_wage: float
+    difference_pct: float
+    message: str = ""
+
+    def to_text(self) -> str:
+        lines = [
+            self.message,
+            "",
+            f"  {self.group1_label}: n={self.group1_n}, "
+            f"mean={self.group1_mean_wage:.1f}, "
+            f"median={self.group1_median_wage:.1f} guilders/month",
+            f"  {self.group2_label}: n={self.group2_n}, "
+            f"mean={self.group2_mean_wage:.1f}, "
+            f"median={self.group2_median_wage:.1f} guilders/month",
+            f"  Difference: {self.difference_pct:+.1f}%",
         ]
         return "\n".join(lines)
 

@@ -12,6 +12,7 @@ The distance between consecutive positions is a direct, integrated
 measurement of wind strength and ocean current -- a natural anemometer.
 
 This demo uses live MCP tool calls for all analysis:
+    maritime_compute_track_speeds    (single-voyage daily speed computation)
     maritime_get_speed_profile       (seasonal wind patterns by route segment)
     maritime_get_route               (route geography and waypoints)
     maritime_aggregate_track_speeds  (decadal, monthly, directional, nationality trends)
@@ -98,6 +99,51 @@ async def main() -> None:
         print(f"  Eastbound transits: {east_group['n']:,}")
     if west_group:
         print(f"  Westbound transits: {west_group['n']:,}")
+
+    # =================================================================
+    # 0. SINGLE-VOYAGE SPEED PROFILE (maritime_compute_track_speeds)
+    # =================================================================
+    print("\n" + "=" * 72)
+    print("0. SINGLE-VOYAGE SPEED PROFILE")
+    print("=" * 72)
+    print()
+    print("  Before aggregating across hundreds of voyages, look at a single")
+    print("  track to see what daily speed data looks like. Each data point")
+    print("  is the haversine distance between consecutive noon positions.")
+
+    # Pick a Dutch eastbound voyage with good data
+    single = await runner.run(
+        "maritime_compute_track_speeds",
+        voyage_id=1,
+        lat_min=RF_LAT_MIN,
+        lat_max=RF_LAT_MAX,
+        lon_min=RF_LON_MIN,
+        lon_max=RF_LON_MAX,
+    )
+    if "error" not in single:
+        speeds = single.get("speeds", [])
+        stats = single.get("statistics", {})
+        print(f"\n  Voyage ID:   {single.get('voyage_id', 1)}")
+        print(f"  Ship:        {single.get('ship_name', '?')}")
+        print("  Region:      Roaring Forties (30-50S, 15-110E)")
+        print(f"  Data points: {len(speeds)}")
+        if stats:
+            print(f"  Mean speed:  {stats.get('mean_km_day', 0):.1f} km/day")
+            print(f"  Median:      {stats.get('median_km_day', 0):.1f} km/day")
+            print(f"  Std dev:     {stats.get('std_dev_km_day', 0):.1f} km/day")
+            print(
+                f"  Min/Max:     {stats.get('min_km_day', 0):.1f} - {stats.get('max_km_day', 0):.1f} km/day"
+            )
+        if speeds:
+            print("\n  First 5 daily positions:")
+            for s in speeds[:5]:
+                print(
+                    f"    {s.get('date', '?'):>12s}  "
+                    f"{s.get('speed_km_day', 0):6.1f} km/day  "
+                    f"{s.get('direction', '?')}"
+                )
+    else:
+        print(f"\n  (Voyage 1 not available: {single.get('error', '?')})")
 
     # =================================================================
     # 1. ROARING FORTIES: Southern Hemisphere Westerly Winds
@@ -792,7 +838,7 @@ async def main() -> None:
     print("  tree rings, and the instrumental era.")
     print()
     print("  Data source: CLIWOC 2.1 Full -- ~261K daily positions, 1662-1855")
-    print("  Tools: chuk-mcp-maritime-archives MCP server (33 tools)")
+    print("  Tools: chuk-mcp-maritime-archives MCP server (37 tools)")
     print("=" * 72)
 
 

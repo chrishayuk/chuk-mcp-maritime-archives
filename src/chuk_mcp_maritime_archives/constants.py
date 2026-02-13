@@ -13,7 +13,7 @@ from typing import Literal
 
 class ServerConfig(str, Enum):
     NAME = "chuk-mcp-maritime-archives"
-    VERSION = "0.14.0"
+    VERSION = "0.16.0"
     DESCRIPTION = "Historical Maritime Archives"
 
 
@@ -70,6 +70,7 @@ class ArchiveId(str, Enum):
     SOIC = "soic"
     UKHO = "ukho"
     NOAA = "noaa"
+    DSS = "dss"
 
 
 ARCHIVE_METADATA: dict[str, dict] = {
@@ -155,6 +156,7 @@ ARCHIVE_METADATA: dict[str, dict] = {
         "total_voyages": 150,
         "total_losses": 35,
         "access_method": "curated",
+        "is_curated_archive": True,
         "description": (
             "Curated voyage records from the English East India Company, "
             "1600-1874. Routes between London and India/China via the Cape "
@@ -178,6 +180,7 @@ ARCHIVE_METADATA: dict[str, dict] = {
         "total_voyages": 500,
         "total_losses": 100,
         "access_method": "curated",
+        "is_curated_archive": True,
         "description": (
             "Curated voyage records from the Portuguese India Run "
             "(Carreira da India), 1497-1835. The longest-running European "
@@ -198,6 +201,7 @@ ARCHIVE_METADATA: dict[str, dict] = {
         "total_voyages": 250,
         "total_losses": 42,
         "access_method": "curated",
+        "is_curated_archive": True,
         "description": (
             "Curated voyage records from the Manila Galleon trade, "
             "1565-1815. Pacific crossing between Acapulco (New Spain) "
@@ -216,6 +220,7 @@ ARCHIVE_METADATA: dict[str, dict] = {
         "total_voyages": 132,
         "total_losses": 20,
         "access_method": "curated",
+        "is_curated_archive": True,
         "description": (
             "Curated voyage records from the Swedish East India Company "
             "(Svenska Ostindiska Companiet), 1731-1813. Routes between "
@@ -268,6 +273,27 @@ ARCHIVE_METADATA: dict[str, dict] = {
             "Information System (AWOIS). US Department of Commerce."
         ),
         "license": "Public Domain (US Government)",
+    },
+    "dss": {
+        "name": "Dutch Ships and Sailors",
+        "organisation": "Huygens ING / VU Amsterdam / IISG",
+        "coverage_start": "1691",
+        "coverage_end": "1837",
+        "record_types": ["musters", "crews"],
+        "total_records": 77100,
+        "access_method": "linked_data",
+        "documentation_url": "https://www.huygens.knaw.nl/resources/dutch-ships-and-sailors/",
+        "description": (
+            "Linked data from the Dutch Ships and Sailors (DSS) project. "
+            "Combines GZMVOC Asian muster rolls (ship-level crew composition "
+            "and wages, 1691-1791) with Noordelijke Monsterrollen individual "
+            "crew records (northern Dutch provinces, 1803-1837)."
+        ),
+        "citation": (
+            "Dutch Ships and Sailors (CLARIN IV). Huygens ING, VU Amsterdam, "
+            "IISG. GZMVOC: M. van Rossum. MDB: J. Leinenga."
+        ),
+        "license": "Open access for research",
     },
 }
 
@@ -434,7 +460,17 @@ DEFAULT_ARCHIVE: str = "das"
 
 
 ArchiveName = Literal[
-    "das", "voc_crew", "voc_cargo", "maarer", "eic", "carreira", "galleon", "soic", "ukho", "noaa"
+    "das",
+    "voc_crew",
+    "voc_cargo",
+    "maarer",
+    "eic",
+    "carreira",
+    "galleon",
+    "soic",
+    "ukho",
+    "noaa",
+    "dss",
 ]
 RegionName = Literal[
     "north_sea",
@@ -516,6 +552,8 @@ class ErrorMessages:
         "Voyage '{}' not found. Use maritime_search_voyages to find valid voyage IDs."
     )
     TIMELINE_NO_EVENTS = "No dated events found for voyage '{}'"
+    MUSTER_NOT_FOUND = "Muster record '{}' not found"
+    AUDIT_FAILED = "Link audit failed: {}"
 
 
 class SuccessMessages:
@@ -532,3 +570,6 @@ class SuccessMessages:
     TRACK_SPEEDS_COMPUTED = "Computed {} daily speed observations for voyage {}"
     SPEEDS_AGGREGATED = "Aggregated {} observations across {} voyages by {}"
     SPEED_GROUPS_COMPARED = "Compared {} vs {} observations (z={:.2f}, p={:.4f})"
+    MUSTERS_FOUND = "Found {} muster records"
+    WAGES_COMPARED = "Compared wages: {} ({} records) vs {} ({} records)"
+    LINKS_AUDITED = "Audited {} cross-archive links ({} wreck, {} CLIWOC)"

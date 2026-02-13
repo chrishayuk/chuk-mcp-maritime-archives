@@ -2230,6 +2230,7 @@ def build_voyages() -> list[dict]:
                 "fate": fate,
                 "particulars": particulars,
                 "archive": ARCHIVE,
+                "is_curated": True,
             }
         )
     return voyages
@@ -2856,6 +2857,7 @@ def build_wrecks() -> list[dict]:
                 "tonnage": tons,
                 "archive": ARCHIVE,
                 "particulars": particulars,
+                "is_curated": True,
             }
         )
     return wrecks

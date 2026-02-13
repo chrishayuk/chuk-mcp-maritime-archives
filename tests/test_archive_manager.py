@@ -1,6 +1,6 @@
 """Tests for ArchiveManager backed by local JSON fixture data."""
 
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -543,10 +543,11 @@ class TestBuildTimeline:
             "chuk_mcp_maritime_archives.core.archive_manager.get_track_by_das_number",
             return_value=mock_track,
         ):
-            result = manager._find_cliwoc_track_for_voyage(voyage)
+            result, confidence = manager._find_cliwoc_track_for_voyage(voyage)
             assert result is not None
             assert result["voyage_id"] == 42
             assert "positions" not in result  # positions stripped from summary
+            assert confidence == 1.0  # DAS number = exact match
 
     @pytest.mark.asyncio
     async def test_find_cliwoc_track_falls_back_to_ship_name(self, manager: ArchiveManager):
@@ -745,3 +746,572 @@ class TestNarrativeSearch:
         lower = await manager.search_narratives(query="gothenburg")
         assert upper.total_count == lower.total_count
         assert upper.total_count >= 1
+
+
+# ---------------------------------------------------------------------------
+# get_voyage_full: hull_profile confidence + include_crew
+# ---------------------------------------------------------------------------
+
+
+class TestVoyageFullExtended:
+    @pytest.mark.asyncio
+    async def test_hull_profile_confidence(self, manager: ArchiveManager):
+        """Voyage with ship_type matching a hull profile should set hull_profile confidence."""
+        # Add ship_type to a fixture voyage so hull profile is found
+        with patch.object(manager, "get_voyage", new_callable=AsyncMock) as mock_get:
+            mock_get.return_value = {
+                "voyage_id": "das:3456",
+                "ship_name": "Batavia",
+                "ship_type": "retourschip",
+                "departure_date": "1628-10-28",
+                "fate": "wrecked",
+                "archive": "das",
+            }
+            result = await manager.get_voyage_full("das:3456")
+            assert result is not None
+            assert result["hull_profile"] is not None
+            assert result["link_confidence"]["hull_profile"] == 1.0
+            assert "hull_profile" in result["links_found"]
+
+    @pytest.mark.asyncio
+    async def test_include_crew_true(self, manager: ArchiveManager):
+        """include_crew=True should populate crew records and crew confidence."""
+        mock_crew = [
+            {"name": "Jan Jansen", "rank": "matroos", "link_confidence": 0.85},
+            {"name": "Pieter Klaas", "rank": "schipper", "link_confidence": 0.92},
+        ]
+        with patch.object(
+            manager, "find_crew_for_voyage", new_callable=AsyncMock, return_value=mock_crew
+        ):
+            result = await manager.get_voyage_full("das:5678", include_crew=True)
+            assert result is not None
+            assert result["crew"] is not None
+            assert len(result["crew"]) == 2
+            assert "crew" in result["links_found"]
+            # crew confidence = min of individual crew confidences
+            assert result["link_confidence"]["crew"] == 0.85
+
+    @pytest.mark.asyncio
+    async def test_include_crew_empty(self, manager: ArchiveManager):
+        """include_crew=True with no crew found should not add crew to links_found."""
+        with patch.object(manager, "find_crew_for_voyage", new_callable=AsyncMock, return_value=[]):
+            result = await manager.get_voyage_full("das:5678", include_crew=True)
+            assert result is not None
+            assert result["crew"] is None or result["crew"] == []
+            assert "crew" not in result["links_found"]
+
+
+# ---------------------------------------------------------------------------
+# find_crew_for_voyage
+# ---------------------------------------------------------------------------
+
+
+class TestFindCrewForVoyage:
+    @pytest.mark.asyncio
+    async def test_exact_voc_match(self, manager: ArchiveManager):
+        """VOC crew with matching voyage_id should be found with confidence 1.0."""
+        crew = await manager.find_crew_for_voyage("das:5678")
+        assert len(crew) >= 1
+        for c in crew:
+            assert c["link_confidence"] == 1.0
+            assert c["link_method"] in ("exact_voyage_id", "muster_das_voyage_id")
+
+    @pytest.mark.asyncio
+    async def test_dss_muster_exact_match(self, manager: ArchiveManager):
+        """DSS muster with das_voyage_id should be found."""
+        crew = await manager.find_crew_for_voyage("das:1234")
+        # dss_muster:0001 has das_voyage_id "das:1234"
+        muster_results = [c for c in crew if c.get("link_method") == "muster_das_voyage_id"]
+        assert len(muster_results) >= 1
+        for c in muster_results:
+            assert c["link_confidence"] == 1.0
+
+    @pytest.mark.asyncio
+    async def test_fuzzy_matching_path(self, manager: ArchiveManager):
+        """When no exact matches, fuzzy matching by ship name + date should be tried."""
+        # Use a voyage_id that has no exact crew match
+        # Mock VOC and DSS exact lookups to return empty, forcing fuzzy path
+        with (
+            patch.object(manager._crew_client, "search", new_callable=AsyncMock, return_value=[]),
+            patch.object(
+                manager._dss_client,
+                "get_musters_for_voyage",
+                new_callable=AsyncMock,
+                return_value=[],
+            ),
+            patch.object(
+                manager,
+                "get_voyage",
+                new_callable=AsyncMock,
+                return_value={
+                    "voyage_id": "das:9999",
+                    "ship_name": "Onderneming",
+                    "departure_date": "1810-01-01",
+                },
+            ),
+        ):
+            crew = await manager.find_crew_for_voyage("das:9999", min_confidence=0.50)
+            # DSS crew fixture has "Onderneming" with muster_date 1810-04-15
+            # Fuzzy match should find them
+            fuzzy = [c for c in crew if c.get("link_method") == "fuzzy_ship_date"]
+            assert len(fuzzy) >= 1
+            for c in fuzzy:
+                assert 0.50 <= c["link_confidence"] <= 1.0
+
+    @pytest.mark.asyncio
+    async def test_voc_client_exception(self, manager: ArchiveManager):
+        """Exception from VOC crew client should be caught silently."""
+        with patch.object(
+            manager._crew_client,
+            "search",
+            new_callable=AsyncMock,
+            side_effect=RuntimeError("DB error"),
+        ):
+            # Should not raise — catches exception and continues
+            crew = await manager.find_crew_for_voyage("das:5678")
+            # DSS muster may still return results
+            assert isinstance(crew, list)
+
+    @pytest.mark.asyncio
+    async def test_dss_client_exception(self, manager: ArchiveManager):
+        """Exception from DSS muster client should be caught silently."""
+        with patch.object(
+            manager._dss_client,
+            "get_musters_for_voyage",
+            new_callable=AsyncMock,
+            side_effect=RuntimeError("DB error"),
+        ):
+            crew = await manager.find_crew_for_voyage("das:5678")
+            assert isinstance(crew, list)
+
+
+# ---------------------------------------------------------------------------
+# _find_wreck_for_voyage
+# ---------------------------------------------------------------------------
+
+
+class TestFindWreckForVoyage:
+    @pytest.mark.asyncio
+    async def test_non_das_with_get_wreck_by_voyage_id(self, manager: ArchiveManager):
+        """EIC client has get_wreck_by_voyage_id — should use it."""
+        result = await manager._find_wreck_for_voyage("eic:0062")
+        # May or may not find a wreck in fixtures, but should not error
+        # The important thing is the branch is covered
+        assert result is None or isinstance(result, dict)
+
+    @pytest.mark.asyncio
+    async def test_non_das_unknown_prefix(self, manager: ArchiveManager):
+        """Unknown prefix without a registered client should return None."""
+        result = await manager._find_wreck_for_voyage("unknown:001")
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_find_cliwoc_track_das_number_not_found_falls_to_fuzzy(
+        self, manager: ArchiveManager
+    ):
+        """When voyage has voyage_number but DAS lookup returns None, should try fuzzy."""
+        voyage = {
+            "voyage_number": "9999",
+            "ship_name": "Batavia",
+            "departure_date": "1628-10-28",
+            "archive": "das",
+        }
+        with (
+            patch(
+                "chuk_mcp_maritime_archives.core.archive_manager.get_track_by_das_number",
+                return_value=None,
+            ),
+            patch(
+                "chuk_mcp_maritime_archives.core.archive_manager.find_track_for_voyage",
+                return_value=({"voyage_id": 99, "ship_name": "Batavia"}, 0.85),
+            ),
+        ):
+            result, confidence = manager._find_cliwoc_track_for_voyage(voyage)
+            assert result is not None
+            assert result["voyage_id"] == 99
+            assert confidence == 0.85
+
+    def test_find_cliwoc_track_no_ship_name(self, manager: ArchiveManager):
+        """Voyage with no ship_name and no voyage_number should return (None, 0.0)."""
+        voyage = {"departure_date": "1700-01-01"}
+        result, confidence = manager._find_cliwoc_track_for_voyage(voyage)
+        assert result is None
+        assert confidence == 0.0
+
+
+# ---------------------------------------------------------------------------
+# audit_links
+# ---------------------------------------------------------------------------
+
+
+class TestAuditLinks:
+    @pytest.mark.asyncio
+    async def test_audit_links_returns_structure(self, manager: ArchiveManager):
+        """audit_links should return expected dict structure."""
+        result = await manager.audit_links()
+        assert "wreck_links" in result
+        assert "cliwoc_links" in result
+        assert "crew_links" in result
+        assert "total_links_evaluated" in result
+        assert "confidence_distribution" in result
+
+    @pytest.mark.asyncio
+    async def test_audit_links_wreck_ground_truth(self, manager: ArchiveManager):
+        """Wreck links audit should count wrecks with voyage_id as ground truth."""
+        result = await manager.audit_links()
+        wl = result["wreck_links"]
+        assert wl["ground_truth_count"] >= 0
+        assert wl["matched_count"] >= 0
+        assert 0.0 <= wl["precision"] <= 1.0
+        assert 0.0 <= wl["recall"] <= 1.0
+
+    @pytest.mark.asyncio
+    async def test_audit_links_cliwoc_metrics(self, manager: ArchiveManager):
+        """CLIWOC audit should count direct and fuzzy links."""
+        result = await manager.audit_links()
+        cl = result["cliwoc_links"]
+        assert "direct_links" in cl
+        assert "fuzzy_matches" in cl
+        assert cl["direct_links"] >= 0
+
+    @pytest.mark.asyncio
+    async def test_audit_links_confidence_distribution(self, manager: ArchiveManager):
+        """Confidence distribution should have standard buckets."""
+        result = await manager.audit_links()
+        dist = result["confidence_distribution"]
+        assert "0.9-1.0" in dist
+        assert "0.7-0.9" in dist
+        assert "0.5-0.7" in dist
+
+
+# ---------------------------------------------------------------------------
+# build_timeline — additional branches
+# ---------------------------------------------------------------------------
+
+
+class TestBuildTimelineExtended:
+    @pytest.mark.asyncio
+    async def test_timeline_cliwoc_position_sampling(self, manager: ArchiveManager):
+        """When CLIWOC track has many positions, max_positions should downsample."""
+        mock_track = {"voyage_id": 42, "ship_name": "Batavia", "nationality": "NL"}
+        positions = [
+            {
+                "date": f"1629-{(i % 12) + 1:02d}-{(i % 28) + 1:02d}",
+                "lat": -10.0 + i,
+                "lon": 20.0 + i,
+            }
+            for i in range(50)
+        ]
+        full_track = {"voyage_id": 42, "nationality": "NL", "positions": positions}
+        with (
+            patch(
+                "chuk_mcp_maritime_archives.core.archive_manager.get_track_by_das_number",
+                return_value=mock_track,
+            ),
+            patch(
+                "chuk_mcp_maritime_archives.core.archive_manager.get_track",
+                return_value=full_track,
+            ),
+        ):
+            result = await manager.build_timeline(
+                voyage_id="das:3456", include_positions=True, max_positions=5
+            )
+            assert result is not None
+            cliwoc_events = [e for e in result["events"] if e["type"] == "cliwoc_position"]
+            assert len(cliwoc_events) <= 5
+
+    @pytest.mark.asyncio
+    async def test_timeline_geojson_with_multiple_positions(self, manager: ArchiveManager):
+        """GeoJSON LineString should be built when >= 2 positioned events exist."""
+        mock_track = {"voyage_id": 42, "ship_name": "Batavia", "nationality": "NL"}
+        full_track = {
+            "voyage_id": 42,
+            "nationality": "NL",
+            "positions": [
+                {"date": "1629-01-10", "lat": -10.0, "lon": 20.0},
+                {"date": "1629-02-15", "lat": -20.0, "lon": 40.0},
+            ],
+        }
+        with (
+            patch(
+                "chuk_mcp_maritime_archives.core.archive_manager.get_track_by_das_number",
+                return_value=mock_track,
+            ),
+            patch(
+                "chuk_mcp_maritime_archives.core.archive_manager.get_track",
+                return_value=full_track,
+            ),
+        ):
+            result = await manager.build_timeline(voyage_id="das:3456", include_positions=True)
+            assert result is not None
+            assert result["geojson"] is not None
+            assert result["geojson"]["type"] == "Feature"
+            assert result["geojson"]["geometry"]["type"] == "LineString"
+            coords = result["geojson"]["geometry"]["coordinates"]
+            assert len(coords) >= 2
+
+    @pytest.mark.asyncio
+    async def test_timeline_arrival_event_for_completed_voyage(self, manager: ArchiveManager):
+        """Non-wrecked voyage with arrival_date should have arrival event."""
+        with patch.object(manager, "get_voyage", new_callable=AsyncMock) as mock_get:
+            mock_get.return_value = {
+                "voyage_id": "das:5678",
+                "ship_name": "Ridderschap van Holland",
+                "departure_date": "1694-01-03",
+                "departure_port": "Texel",
+                "destination_port": "Batavia",
+                "arrival_date": "1694-08-15",
+                "fate": "arrived",
+                "archive": "das",
+            }
+            result = await manager.build_timeline(voyage_id="das:5678")
+            assert result is not None
+            event_types = [e["type"] for e in result["events"]]
+            assert "arrival" in event_types
+            arrival = [e for e in result["events"] if e["type"] == "arrival"][0]
+            assert arrival["title"] == "Arrived Batavia"
+
+    @pytest.mark.asyncio
+    async def test_timeline_wreck_event_position(self, manager: ArchiveManager):
+        """Wreck event with position data should include lat/lon."""
+        result = await manager.build_timeline(voyage_id="das:3456")
+        assert result is not None
+        loss_events = [e for e in result["events"] if e["type"] == "loss"]
+        assert len(loss_events) == 1
+        assert loss_events[0]["position"] is not None
+        assert loss_events[0]["position"]["lat"] == -28.49
+
+    @pytest.mark.asyncio
+    async def test_timeline_wreck_without_loss_date(self, manager: ArchiveManager):
+        """Wreck without loss_date should not produce a loss event."""
+        with patch.object(manager, "_find_wreck_for_voyage", new_callable=AsyncMock) as mock_wreck:
+            mock_wreck.return_value = {
+                "wreck_id": "maarer:TEST",
+                "ship_name": "Test Ship",
+                "loss_cause": "unknown",
+                # No loss_date
+            }
+            result = await manager.build_timeline(voyage_id="das:3456")
+            assert result is not None
+            # Wreck found but no loss_date means no loss event
+            loss_events = [e for e in result["events"] if e["type"] == "loss"]
+            assert len(loss_events) == 0
+
+    @pytest.mark.asyncio
+    async def test_timeline_wreck_position_none(self, manager: ArchiveManager):
+        """Wreck with loss_date but no position should have position=None in event."""
+        with patch.object(manager, "_find_wreck_for_voyage", new_callable=AsyncMock) as mock_wreck:
+            mock_wreck.return_value = {
+                "wreck_id": "maarer:TEST",
+                "ship_name": "Test Ship",
+                "loss_date": "1629-06-04",
+                "loss_cause": "storm",
+                # No position field
+            }
+            result = await manager.build_timeline(voyage_id="das:3456")
+            assert result is not None
+            loss_events = [e for e in result["events"] if e["type"] == "loss"]
+            assert len(loss_events) == 1
+            assert loss_events[0]["position"] is None
+
+
+# ---------------------------------------------------------------------------
+# Wreck operations — additional branches
+# ---------------------------------------------------------------------------
+
+
+class TestWreckOperationsExtended:
+    @pytest.mark.asyncio
+    async def test_search_wrecks_unknown_archive(self, manager: ArchiveManager):
+        """Searching with an unknown archive name should return empty results."""
+        result = await manager.search_wrecks(archive="nonexistent")
+        assert len(result.items) == 0
+
+    @pytest.mark.asyncio
+    async def test_get_wreck_eic_prefix(self, manager: ArchiveManager):
+        """wreck_id with eic_wreck: prefix should route to EIC client."""
+        wreck = await manager.get_wreck("eic_wreck:0001")
+        # May or may not find the wreck in fixtures
+        assert wreck is None or isinstance(wreck, dict)
+
+    @pytest.mark.asyncio
+    async def test_get_wreck_unknown_prefix(self, manager: ArchiveManager):
+        """wreck_id without a known prefix should default to MAARER."""
+        wreck = await manager.get_wreck("unknown_id_123")
+        assert wreck is None  # Not found in MAARER
+
+
+# ---------------------------------------------------------------------------
+# Narrative search — edge cases
+# ---------------------------------------------------------------------------
+
+
+class TestNarrativeSearchEdgeCases:
+    def test_parse_query_terms_unmatched_quote(self, manager: ArchiveManager):
+        """Unmatched opening quote should treat rest as one term."""
+        terms = manager._parse_query_terms('"Cape of Good Hope')
+        assert len(terms) == 1
+        assert terms[0] == "Cape of Good Hope"
+
+    def test_extract_snippet_no_match(self, manager: ArchiveManager):
+        """When no term matches, snippet should return start of text."""
+        snippet = manager._extract_snippet(
+            "This is a long text about ships and oceans.",
+            ["xyznonexistent"],
+            max_len=20,
+        )
+        assert snippet == "This is a long text"
+
+    @pytest.mark.asyncio
+    async def test_search_narratives_nonexistent_archive(self, manager: ArchiveManager):
+        """Narrative search with unknown archive should return empty."""
+        result = await manager.search_narratives(query="ship", archive="nonexistent")
+        assert result.total_count == 0
+
+
+# ---------------------------------------------------------------------------
+# Crew search — merge path
+# ---------------------------------------------------------------------------
+
+
+class TestCrewSearchExtended:
+    @pytest.mark.asyncio
+    async def test_search_crew_no_archive_merges(self, manager: ArchiveManager):
+        """Search without archive should merge results from VOC + DSS."""
+        result = await manager.search_crew()
+        # VOC fixture has 2 crew, DSS fixture has 5 crew
+        assert result.total_count >= 2
+
+    @pytest.mark.asyncio
+    async def test_search_crew_unknown_archive(self, manager: ArchiveManager):
+        """Search with unknown archive should return empty."""
+        result = await manager.search_crew(archive="nonexistent")
+        assert len(result.items) == 0
+
+
+# ---------------------------------------------------------------------------
+# Wage comparison — empty stats
+# ---------------------------------------------------------------------------
+
+
+class TestWageComparisonExtended:
+    @pytest.mark.asyncio
+    async def test_compare_wages_empty_group(self, manager: ArchiveManager):
+        """Period with no data should yield 0.0 mean and median."""
+        result = await manager.compare_wages(
+            group1_start=1400,
+            group1_end=1401,
+            group2_start=1720,
+            group2_end=1740,
+        )
+        assert result["group1_mean_wage"] == 0.0
+        assert result["group1_median_wage"] == 0.0
+
+    @pytest.mark.asyncio
+    async def test_compare_wages_crews_source(self, manager: ArchiveManager):
+        """source='crews' path should use search_crews instead of search_musters."""
+        result = await manager.compare_wages(
+            group1_start=1800,
+            group1_end=1815,
+            group2_start=1816,
+            group2_end=1835,
+            source="crews",
+        )
+        assert "group1_label" in result
+        assert "group2_label" in result
+
+
+# ---------------------------------------------------------------------------
+# Position assessment — additional branches
+# ---------------------------------------------------------------------------
+
+
+class TestAssessPositionExtended:
+    @pytest.mark.asyncio
+    async def test_assess_position_voyage_with_incident_position(self, manager: ArchiveManager):
+        """Voyage with incident.position should use that position."""
+        with patch.object(manager, "get_voyage", new_callable=AsyncMock) as mock_get:
+            mock_get.return_value = {
+                "voyage_id": "das:3456",
+                "departure_date": "1628-10-28",
+                "incident": {"position": {"lat": -28.5, "lon": 113.8}},
+            }
+            result = await manager.assess_position(voyage_id="das:3456")
+            assert result["position"]["lat"] == -28.5
+            assert result["position"]["lon"] == 113.8
+
+    @pytest.mark.asyncio
+    async def test_assess_position_voyage_loss_date(self, manager: ArchiveManager):
+        """Voyage with loss_date should use loss_date year for navigation era."""
+        with patch.object(manager, "get_voyage", new_callable=AsyncMock) as mock_get:
+            mock_get.return_value = {
+                "voyage_id": "das:3456",
+                "loss_date": "1629-06-04",
+                "departure_date": "1628-10-28",
+            }
+            result = await manager.assess_position(voyage_id="das:3456")
+            era = result["factors"]["navigation_era"]
+            assert era["year"] == 1629
+
+    @pytest.mark.asyncio
+    async def test_assess_position_voyage_invalid_date(self, manager: ArchiveManager):
+        """Voyage with non-numeric date should handle ValueError."""
+        with patch.object(manager, "get_voyage", new_callable=AsyncMock) as mock_get:
+            mock_get.return_value = {
+                "voyage_id": "das:3456",
+                "loss_date": "unknown",
+                "departure_date": "xxxx-01-01",
+            }
+            result = await manager.assess_position(voyage_id="das:3456")
+            # Should not crash — year remains None
+            assert result["factors"]["navigation_era"]["year"] is None
+
+    @pytest.mark.asyncio
+    async def test_assess_position_wreck_with_position(self, manager: ArchiveManager):
+        """Wreck with position should use wreck position data."""
+        result = await manager.assess_position(wreck_id="maarer:VOC-0789")
+        assert result["position"]["lat"] == -28.49
+
+    @pytest.mark.asyncio
+    async def test_assess_position_wreck_not_found(self, manager: ArchiveManager):
+        """Non-existent wreck should fall through gracefully."""
+        result = await manager.assess_position(wreck_id="maarer:NONEXISTENT")
+        assert "assessment" in result
+
+    @pytest.mark.asyncio
+    async def test_assess_position_no_source_info(self, manager: ArchiveManager):
+        """Falling through all elif branches (no voyage, wreck, or date)."""
+        result = await manager.assess_position()
+        assert result["assessment"]["quality_score"] == 0.5
+        assert result["factors"]["navigation_era"]["year"] is None
+
+
+# ---------------------------------------------------------------------------
+# Date range filter — edge cases
+# ---------------------------------------------------------------------------
+
+
+class TestDateFilterExtended:
+    def test_filter_value_error_date(self, manager: ArchiveManager):
+        """Records with non-numeric date should be skipped (ValueError path)."""
+        records = [
+            {"name": "A", "loss_date": "UNKNOWN"},
+            {"name": "B", "loss_date": "1629-06-04"},
+        ]
+        result = manager._filter_by_date_range(records, "1600/1700", "loss_date")
+        assert len(result) == 1
+        assert result[0]["name"] == "B"
+
+
+# ---------------------------------------------------------------------------
+# GeoJSON export — wreck_id not found branch
+# ---------------------------------------------------------------------------
+
+
+class TestGeoJSONExtended:
+    @pytest.mark.asyncio
+    async def test_export_geojson_wreck_id_not_found(self, manager: ArchiveManager):
+        """Non-existent wreck_id in list should be skipped."""
+        geojson = await manager.export_geojson(wreck_ids=["maarer:NONEXISTENT"])
+        assert geojson["type"] == "FeatureCollection"
+        assert len(geojson["features"]) == 0

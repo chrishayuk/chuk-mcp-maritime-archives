@@ -8,6 +8,7 @@ from .discovery.api import register_discovery_tools
 from .export.api import register_export_tools
 from .linking.api import register_linking_tools
 from .location.api import register_location_tools
+from .musters.api import register_muster_tools
 from .narratives.api import register_narrative_tools
 from .position.api import register_position_tools
 from .routes.api import register_route_tools
@@ -27,6 +28,7 @@ __all__ = [
     "register_export_tools",
     "register_linking_tools",
     "register_location_tools",
+    "register_muster_tools",
     "register_narrative_tools",
     "register_position_tools",
     "register_route_tools",

@@ -2100,6 +2100,7 @@ def _expand_voyages(curated: list[dict], start_id: int, target_total: int) -> li
                     "fate": fate,
                     "particulars": f"Annual India fleet voyage. {context}",
                     "archive": ARCHIVE,
+                    "is_curated": False,
                 }
             )
             vid += 1
@@ -2143,6 +2144,7 @@ def build_voyages() -> list[dict]:
                 "fate": fate,
                 "particulars": particulars,
                 "archive": ARCHIVE,
+                "is_curated": True,
             }
         )
 
@@ -2931,6 +2933,7 @@ def _expand_wrecks(
                 "tonnage": v.get("tonnage", 400),
                 "archive": ARCHIVE,
                 "particulars": context,
+                "is_curated": False,
             }
         )
         wid += 1
@@ -2973,6 +2976,7 @@ def build_wrecks(voyages: list[dict] | None = None) -> list[dict]:
                 "tonnage": tons,
                 "archive": ARCHIVE,
                 "particulars": particulars,
+                "is_curated": True,
             }
         )
 

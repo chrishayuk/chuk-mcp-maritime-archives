@@ -5,6 +5,7 @@ from .cargo_client import CargoClient
 from .carreira_client import CarreiraClient
 from .crew_client import CrewClient
 from .das_client import DASClient
+from .dss_client import DSSClient
 from .eic_client import EICClient
 from .galleon_client import GalleonClient
 from .noaa_client import NOAAClient
@@ -18,6 +19,7 @@ __all__ = [
     "CarreiraClient",
     "CrewClient",
     "DASClient",
+    "DSSClient",
     "EICClient",
     "GalleonClient",
     "NOAAClient",

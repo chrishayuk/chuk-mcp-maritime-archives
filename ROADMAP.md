@@ -329,33 +329,73 @@ Expanded to 33 tools across 17 categories. Server-side speed computation, aggreg
 **Quality:**
 - 762 tests across 13 test modules, 96%+ branch coverage
 
----
-
-## Planned
-
 ### v0.15.0 -- Dutch Ships and Sailors (Linked Data)
 
-Integrate the DSS Linked Data Cloud -- four curated Dutch maritime datasets as five-star linked data, hosted by Huygens ING and VU Amsterdam.
+Expanded to 36 tools across 19 categories. Integrated the DSS Linked Data Cloud with GZMVOC ship muster records and MDB individual crew records.
 
-- **SPARQL client** for querying the DSS triple store at `semanticweb.cs.vu.nl/dss/`
-- Cross-links DAS voyages with DSS ship records via shared identifiers
-- Generale Zeemonsterrollen VOC (GZMVOC) -- crew counting and payment records, complements existing VOC Opvarenden data
-- Wage comparison data: Asiatic vs European sailors
-- Ship type classification linked to Getty AAT vocabulary
-- `scripts/download_dss.py` -- SPARQL CONSTRUCT queries to extract and cache locally as JSON
-- Fallback to local cache when SPARQL endpoint is unavailable (consistent with local-first pattern)
+**New tools:**
+- `maritime_search_musters` -- search GZMVOC ship-level muster records from Asian waters (1691-1791)
+- `maritime_get_muster` -- get full muster record details (crew composition, wages, ranks)
+- `maritime_compare_wages` -- compare crew wage distributions between two time periods
+
+**Enhanced tools:**
+- `maritime_search_crew` -- extended with `archive="dss"` for MDB individual crew records (1803-1837)
+- `maritime_get_crew_member` -- extended to route `dss:` prefixed IDs to DSSClient
+
+**New archive:**
+- **Dutch Ships and Sailors (DSS)** -- CLARIN-IV project combining multiple Dutch maritime datasets
+- **GZMVOC (Generale Zeemonsterrollen VOC)**: Ship-level crew composition and muster records from Asian waters (1691-1791). Crew counts, wages, rank summaries per ship.
+- **MDB (Noordelijke Monsterrollen)**: Individual crew records from four northern Dutch provinces (Groningen, Friesland, Drenthe, Overijssel), 1803-1837. ~77,043 records.
+- Cross-links to DAS voyages via `das_voyage_id` field
+
+**Architecture:**
+- `DSSClient` -- new client following multi-data-file pattern (musters + crews), with lazy indexes for muster, crew, and voyage-muster lookups
+- `_crew_clients` dispatch dict in `ArchiveManager` (like `_voyage_clients` / `_wreck_clients`) for multi-archive crew search
+- `compare_wages()` method with mean/median statistics and percentage difference
+- Response models: `MusterInfo`, `MusterSearchResponse`, `MusterDetailResponse`, `WageComparisonResponse`
+- `tools/musters/api.py` with `register_muster_tools()`
+
+**Data pipeline:**
+- `scripts/generate_dss.py` -- curated fallback data generator (70 musters, 101 crew records)
+- `scripts/download_dss.py` -- .ttl download from DANS Data Station with Turtle parser (SPARQL endpoints offline)
+
+**Quality:**
+- 810 tests across 13 test modules, 97%+ branch coverage
 
 ### v0.16.0 -- Improved Cross-Archive Entity Resolution
 
-Improve the CLIWOC-DAS linking hit rate and add entity resolution scoring across all archives.
+Expanded to 37 tools across 19 categories. Added pure-Python fuzzy entity resolution for historical ship name matching, confidence scoring for all cross-archive links, a link audit tool, and crew-voyage linking.
 
-- **Fuzzy ship name matching** using Levenshtein distance and phonetic matching (historical spellings vary: "BATAVIA" vs "Batavia" vs "De Batavia")
-- **Date-weighted matching** -- prioritise candidates with closest date overlap, penalise distant matches
-- **Confidence scoring** for all cross-archive links: `link_confidence` field (0.0-1.0) on `VoyageFullResponse`
-- **Link audit tool** -- `maritime_audit_links` returns precision/recall metrics against known ground truth (54 found wrecks, 48 DAS-linked CLIWOC tracks)
-- **Crew-voyage linking** -- match crew records to specific voyages via ship name + date, enabling per-voyage crew lists
-- Currently 48 direct DAS-CLIWOC links via DAS number; target: 200+ fuzzy-matched links with scored confidence
-- `is_curated` field on expanded archive records (Carreira, Galleon, SOIC) to distinguish hand-curated from programmatically generated entries
+**New tool:**
+- `maritime_audit_links` -- audit cross-archive link quality with precision/recall metrics and confidence distribution
+
+**Enhanced tools:**
+- `maritime_get_voyage_full` -- gains `link_confidence` dict (0.0-1.0 per link), optional `include_crew` parameter for crew record linking
+
+**Entity resolution module** (`core/entity_resolution.py`):
+- Ship name normalization: strips articles (De, Het, 'T, HMS, VOC), preserves saints (San, Santa, Sao)
+- Levenshtein distance (two-row DP) for edit-distance similarity
+- American Soundex for phonetic matching across historical spelling variants
+- Composite scoring: name similarity (0.50), date proximity (0.30), nationality (0.10), phonetic (0.10)
+- `ShipNameIndex` -- three-level pre-built index (exact -> Soundex -> Levenshtein fallback)
+
+**Results:**
+- 45 direct DAS-CLIWOC links + 118 fuzzy matches (163 total, up from 48 direct-only)
+- Mean fuzzy match confidence: 0.661
+- 83 high-confidence (0.7-0.9), 35 moderate (0.5-0.7) fuzzy matches
+
+**Data quality:**
+- `is_curated` field on all EIC, Carreira, Galleon, and SOIC records: `true` for hand-curated entries from historical sources, `false` for programmatically expanded fleet records
+
+**Example demos:**
+- `entity_resolution_demo.py` -- ship name normalization, fuzzy matching, composite scoring, index lookup, link_confidence display, audit metrics
+
+**Quality:**
+- 923 tests across 14 test modules, 96%+ branch coverage
+
+---
+
+## Planned
 
 ### v0.17.0 -- Additional Sailing Routes
 
@@ -443,7 +483,7 @@ This server is the data layer in a composable stack of MCP servers:
 
 | Server | Tools | Tests | Role |
 |--------|-------|-------|------|
-| chuk-mcp-maritime-archives | 33 | 762 | Voyage, wreck, vessel, crew, cargo, analytics |
+| chuk-mcp-maritime-archives | 37 | 923 | Voyage, wreck, vessel, crew, cargo, musters, analytics |
 | chuk-mcp-ocean-drift | 10 | 235 | Forward/backtrack/Monte Carlo drift |
 | chuk-mcp-dem | 4 | 711 | Bathymetry and elevation data |
 | chuk-mcp-stac | 5 | 382 | Satellite imagery via STAC catalogues |
@@ -451,7 +491,7 @@ This server is the data layer in a composable stack of MCP servers:
 | chuk-mcp-tides | 8 | 717 | Tidal current data |
 | chuk-mcp-physics | 66 | 240 | Fluid dynamics computations |
 | chuk-mcp-open-meteo | 6 | 22 | Weather and wind data |
-| **Total** | **139** | **3,312** | |
+| **Total** | **142** | **3,360** | |
 
 All servers follow the same patterns: Pydantic v2 models, dual output mode, chuk-artifacts storage.
 
@@ -488,14 +528,9 @@ Current and potential data sources for the project.
 | SOIC Archives | ~132 voyages, ~20 wrecks | `generate_soic.py` | Curated + expanded from Koninckx |
 | [UKHO Wrecks](https://www.admiralty.co.uk/access-data/marine-data) | 94,000+ wrecks worldwide | `download_ukho.py` / `generate_ukho.py` | Working (EMODnet WFS download + curated fallback) |
 | [NOAA AWOIS](https://nauticalcharts.noaa.gov/) | ~13,000 US wrecks | `download_noaa.py` / `generate_noaa.py` | Working (ArcGIS REST download + curated fallback) |
+| [Dutch Ships and Sailors](https://datasets.iisg.amsterdam/dataverse/dss) | ~70 musters, ~101 crew (curated) | `generate_dss.py` / `download_dss.py` | Working (curated + .ttl download fallback) |
 
 > **Note:** All download and generate scripts support `--force` to regenerate data. Run `python scripts/download_all.py` to fetch/generate all datasets. Core reference data is ~35 MB; with crew data downloaded, total is ~115 MB.
-
-### Planned
-
-| Source | Records | Format | Access | Target Version |
-|--------|---------|--------|--------|----------------|
-| [Dutch Ships and Sailors](https://datasets.iisg.amsterdam/dataverse/dss) | Linked data (4 datasets) | RDF/SPARQL | Open access, live triple store | v0.15.0 |
 
 ### Potential
 

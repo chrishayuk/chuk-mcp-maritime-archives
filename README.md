@@ -8,12 +8,12 @@
 
 ## Features
 
-This MCP server provides structured access to historical maritime archives and reference data through 33 tools across 10 archives and 6 nations.
+This MCP server provides structured access to historical maritime archives and reference data through 37 tools across 11 archives and 6 nations.
 
 **All tools return fully-typed Pydantic v2 models** for type safety, validation, and excellent IDE support. All tools support `output_mode="text"` for human-readable output alongside the default JSON.
 
 ### 1. Archive Discovery (`maritime_list_archives`, `maritime_get_archive`)
-Browse 10 maritime archives across 6 nations:
+Browse 11 maritime archives across 6 nations:
 - Dutch Asiatic Shipping (DAS) -- 8,194 voyages (1595-1795)
 - VOC Opvarenden -- up to 774,200 crew records (1633-1794)
 - Boekhouder-Generaal Batavia -- 200 curated cargo records (1700-1795)
@@ -24,6 +24,7 @@ Browse 10 maritime archives across 6 nations:
 - Swedish East India Company (SOIC) -- ~132 voyages, ~20 wrecks (1731-1813)
 - UK Hydrographic Office (UKHO) -- 94,000+ wrecks worldwide (1500-2024)
 - NOAA Wrecks & Obstructions (AWOIS) -- ~13,000 wrecks in US waters (1600-2024)
+- Dutch Ships and Sailors (DSS) -- GZMVOC musters + MDB crew (1691-1837)
 
 > **Note:** The EIC, Carreira, Galleon, and SOIC archives are curated datasets compiled from published academic sources. Carreira, Galleon, and SOIC include programmatically expanded records covering the full historical period. VOC Crew data requires running `scripts/download_crew.py` to download from the Nationaal Archief (774K records, ~80 MB). UKHO data requires running `scripts/download_ukho.py` to download from EMODnet (94K records). NOAA data requires running `scripts/download_noaa.py` to download from NOAA ArcGIS (13K records). Curated fallbacks of 50 representative wrecks ship with the repo via `scripts/generate_ukho.py` and `scripts/generate_noaa.py`. Cargo and EIC have download scripts (`download_cargo.py`, `download_eic.py`) for future expansion from external sources.
 
@@ -55,11 +56,13 @@ Hydrodynamic hull data for drift modelling:
 - Reference wrecks and LLM guidance notes
 
 ### 6. Crew Search (`maritime_search_crew`, `maritime_get_crew_member`)
-Search VOC crew muster rolls (up to 774,200 records from Nationaal Archief):
-- Filter by name, rank, ship, origin, fate
+Search crew records across multiple archives:
+- **VOC Opvarenden** (default): up to 774,200 records from Nationaal Archief (1633-1794)
+- **DSS (MDB)**: 77,043 individual crew records from northern Dutch provinces (1803-1837)
+- Filter by name, rank, ship, origin, fate, archive
 - Personnel records: rank, pay, embarkation/service dates
+- Multi-archive dispatch: `archive="voc_crew"` or `archive="dss"`
 - Indexed lookups for fast search across large datasets
-- Cross-reference with voyage records
 
 ### 7. Cargo Search (`maritime_search_cargo`, `maritime_get_cargo_manifest`)
 Search VOC cargo manifests (200 curated records, expandable via download scripts):
@@ -133,6 +136,13 @@ Full-text search across all free-text narrative content:
 - Filter by record type (voyage/wreck) and archive
 - Relevance-ranked results with text snippets and match context
 - Cursor-based pagination
+
+### 17. Ship Musters (`maritime_search_musters`, `maritime_get_muster`, `maritime_compare_wages`)
+GZMVOC ship-level muster records and wage comparison from the DSS Linked Data Cloud:
+- Search ship muster records from Asian waters (1691-1791)
+- Crew composition by rank, European/Asian crew counts, aggregate wages
+- Cross-link to DAS voyages via `das_voyage_id`
+- Compare wage distributions between time periods (GZMVOC or MDB data)
 
 ### 18. Track Analytics (`maritime_compute_track_speeds`, `maritime_aggregate_track_speeds`, `maritime_compare_speed_groups`)
 Server-side speed computation and statistical analysis on CLIWOC track data:
@@ -285,6 +295,8 @@ python narrative_search_demo.py   # full-text search across all narrative fields
 python speed_profile_demo.py       # CLIWOC-derived speed statistics per segment
 python climate_proxy_demo.py       # ship speeds as climate proxies (wind & monsoon)
 python volcanic_signal_demo.py    # volcanic signals, E/W ratios, spatial variation
+python dss_crew_demo.py           # DSS musters, MDB crew, wage comparison
+python entity_resolution_demo.py  # fuzzy matching, confidence scores, link auditing
 python timeline_demo.py            # chronological voyage timeline from all sources
 
 # Core tool demos (network required)
@@ -309,8 +321,10 @@ python batavia_case_study_demo.py  # 12-tool chain investigating the Batavia wre
 | `track_explorer_demo.py` | No | `maritime_search_tracks`, `maritime_get_track`, `maritime_nearby_tracks` |
 | `cross_archive_demo.py` | Partial | `maritime_search_voyages`, `maritime_get_voyage_full` (EIC/Carreira/Galleon/SOIC offline, DAS needs network) |
 | `speed_profile_demo.py` | No | `maritime_get_speed_profile`, `maritime_estimate_position` |
-| `climate_proxy_demo.py` | No | `maritime_get_speed_profile`, `maritime_get_route`, `maritime_aggregate_track_speeds`, `maritime_compare_speed_groups` |
+| `climate_proxy_demo.py` | No | `maritime_compute_track_speeds`, `maritime_get_speed_profile`, `maritime_get_route`, `maritime_aggregate_track_speeds`, `maritime_compare_speed_groups` |
 | `volcanic_signal_demo.py` | No | `maritime_aggregate_track_speeds`, `maritime_compare_speed_groups` (Laki eruption, E/W ratio, seasonal amplitude, spatial variation) |
+| `dss_crew_demo.py` | No | `maritime_search_musters`, `maritime_get_muster`, `maritime_compare_wages`, `maritime_search_crew` (DSS musters, MDB crew, wage comparison) |
+| `entity_resolution_demo.py` | No | `maritime_get_voyage_full`, `maritime_audit_links` (fuzzy matching, confidence scores, link auditing) |
 | `timeline_demo.py` | No | `maritime_get_timeline`, `maritime_search_voyages` |
 | `ukho_global_wrecks_demo.py` | No | `maritime_search_wrecks`, `maritime_get_wreck`, `maritime_get_statistics`, `maritime_export_geojson` (UKHO flag/type/depth filters) |
 | `noaa_us_wrecks_demo.py` | No | `maritime_search_wrecks`, `maritime_get_wreck`, `maritime_export_geojson` (NOAA GP quality, Gulf, Great Lakes) |
@@ -358,6 +372,9 @@ All tools accept an optional `output_mode` parameter (`"json"` default, or `"tex
 | `maritime_assess_position` | Position | Position quality and uncertainty assessment |
 | `maritime_export_geojson` | Export | GeoJSON wreck position export |
 | `maritime_get_statistics` | Export | Aggregate loss statistics |
+| `maritime_search_musters` | Musters | Search GZMVOC ship muster records |
+| `maritime_get_muster` | Musters | Get full muster record details |
+| `maritime_compare_wages` | Musters | Compare wage distributions between time periods |
 | `maritime_search_narratives` | Narratives | Full-text search across all narrative fields |
 | `maritime_compute_track_speeds` | Analytics | Compute daily sailing speeds for a CLIWOC voyage |
 | `maritime_aggregate_track_speeds` | Analytics | Aggregate track speeds by decade, year, month, direction, or nationality |
@@ -404,6 +421,36 @@ All tools accept an optional `output_mode` parameter (`"json"` default, or `"tex
 }
 ```
 
+### maritime_search_musters
+
+```python
+{
+  "ship_name": "Middelburg",                     # optional, substring match
+  "captain": "Pietersz",                         # optional
+  "location": "Batavia",                         # optional, muster location
+  "year_start": 1720,                            # optional, earliest year
+  "year_end": 1760,                              # optional, latest year
+  "date_range": "1720/1760",                     # optional, YYYY/YYYY
+  "das_voyage_id": "das:1234",                   # optional, cross-link to DAS voyage
+  "max_results": 50,                             # optional, default 50, max 500
+  "cursor": null                                 # optional, from previous next_cursor
+}
+```
+
+### maritime_compare_wages
+
+```python
+{
+  "group1_start": 1691,                          # required, first group start year
+  "group1_end": 1740,                            # required, first group end year
+  "group2_start": 1741,                          # required, second group start year
+  "group2_end": 1791,                            # required, second group end year
+  "rank": "matroos",                             # optional, rank filter
+  "origin": "Groningen",                         # optional, origin filter (MDB only)
+  "source": "musters"                            # "musters" (GZMVOC) or "crews" (MDB)
+}
+```
+
 ### maritime_search_crew
 
 ```python
@@ -411,6 +458,7 @@ All tools accept an optional `output_mode` parameter (`"json"` default, or `"tex
   "ship_name": "Ridderschap van Holland",        # optional
   "rank": "schipper",                            # optional
   "fate": "died_voyage",                         # optional
+  "archive": "voc_crew",                         # optional: "voc_crew" or "dss"
   "max_results": 50,                             # optional, default 100, max 500
   "cursor": null                                 # optional, from previous next_cursor
 }
@@ -692,6 +740,8 @@ python scripts/generate_carreira.py     # Portuguese Carreira (~500 voyages, ~10
 python scripts/generate_galleon.py      # Manila Galleon (~250 voyages, ~42 wrecks)
 python scripts/generate_soic.py         # Swedish SOIC (~132 voyages, ~20 wrecks)
 python scripts/generate_cargo.py        # Curated cargo fallback (~200 records)
+python scripts/generate_dss.py          # DSS musters + MDB crew (~70 musters, ~101 crew)
+python scripts/download_dss.py          # DSS .ttl download from DANS (falls back to generate)
 python scripts/generate_reference.py    # Gazetteer, routes, hull profiles
 python scripts/generate_speed_profiles.py  # CLIWOC speed statistics
 ```
@@ -795,11 +845,11 @@ Built on top of chuk-mcp-server, this server uses:
 - **No External HTTP Deps**: Uses stdlib `urllib.request` -- no requests/httpx dependency
 - **Indexed Lookups**: Lazy-built in-memory indexes for large datasets (774K crew records)
 - **Cross-Archive Linking**: Unified voyage view with wreck, vessel, hull profile, and CLIWOC track linking
-- **Multi-Archive Dispatch**: 8 archives across 5 nations (Dutch, English, Portuguese, Spanish, Swedish) with unified query interface
-- **Dual Output**: All 33 tools support `output_mode="text"` for human-readable responses
+- **Multi-Archive Dispatch**: 11 archives across 6 nations (Dutch, English, Portuguese, Spanish, Swedish, American) with unified query interface
+- **Dual Output**: All 37 tools support `output_mode="text"` for human-readable responses
 - **Domain Reference Data**: ~160 place gazetteer, 8 routes, 6 hull profiles, 215 speed profiles, ~261K ship positions, 22 regions, 7 navigation eras
 - **Cursor-Based Pagination**: All 8 search tools support `cursor` / `next_cursor` / `has_more` for paging through large result sets
-- **762 Tests**: Across 13 test modules with 97%+ branch coverage
+- **923 Tests**: Across 14 test modules with 96%+ branch coverage
 
 ### Supported Archives
 
@@ -814,6 +864,7 @@ Built on top of chuk-mcp-server, this server uses:
 | Portuguese Carreira da India | ~500 voyages, ~100 wrecks | 1497-1835 | Guinote/Frutuoso/Lopes (curated + expanded) |
 | Spanish Manila Galleon | ~250 voyages, ~42 wrecks | 1565-1815 | Schurz (curated + expanded) |
 | Swedish East India Company (SOIC) | ~132 voyages, ~20 wrecks | 1731-1813 | Koninckx (curated + expanded) |
+| Dutch Ships and Sailors (DSS) | ~70 musters, ~101 crew | 1691-1837 | CLARIN-IV DSS (GZMVOC + MDB) |
 
 ### Reference Data
 
@@ -917,6 +968,14 @@ See [ROADMAP.md](ROADMAP.md) for the development roadmap and planned features.
 - **Geographic search**: `maritime_search_tracks` now supports lat/lon bounding box filtering
 - 762 tests, 97%+ branch coverage
 
+### Completed (v0.15.0)
+
+- **36 MCP tools** across 19 categories (added ship musters)
+- **Dutch Ships and Sailors (DSS)**: GZMVOC ship-level muster records (1691-1791) + MDB individual crew records (1803-1837)
+- **New tools**: `maritime_search_musters`, `maritime_get_muster`, `maritime_compare_wages`
+- **Multi-archive crew dispatch**: `maritime_search_crew` now supports `archive="dss"` for MDB records
+- 810 tests, 97%+ branch coverage
+
 ### Planned
 
 - **Drift modelling**: available as chuk-mcp-ocean-drift (10 tools, v0.1.0) — forward/backtrack/Monte Carlo drift computation using hull profiles and position data from this server
@@ -949,3 +1008,4 @@ Apache License 2.0 -- See [LICENSE](LICENSE) for details.
 - P. Guinote, E. Frutuoso, and A. Lopes for _As Armadas da India 1497-1835_
 - W.L. Schurz for _The Manila Galleon_ (1939)
 - C. Koninckx for _The First and Second Charters of the Swedish East India Company_ (1980)
+- [Dutch Ships and Sailors](https://datasets.iisg.amsterdam/dataverse/dss) CLARIN-IV project for the DSS Linked Data Cloud (GZMVOC and MDB datasets)

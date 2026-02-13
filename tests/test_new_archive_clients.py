@@ -1,9 +1,10 @@
-"""Tests for archive clients: EIC, Carreira, Galleon, SOIC, UKHO, NOAA."""
+"""Tests for archive clients: EIC, Carreira, Galleon, SOIC, UKHO, NOAA, DSS."""
 
 from pathlib import Path
 
 import pytest
 
+from chuk_mcp_maritime_archives.core.clients.dss_client import DSSClient
 from chuk_mcp_maritime_archives.core.clients.eic_client import EICClient
 from chuk_mcp_maritime_archives.core.clients.carreira_client import CarreiraClient
 from chuk_mcp_maritime_archives.core.clients.galleon_client import GalleonClient
@@ -918,7 +919,8 @@ class TestMultiArchiveManager:
         assert "carreira" in ids
         assert "galleon" in ids
         assert "soic" in ids
-        assert len(ids) == 10
+        assert "dss" in ids
+        assert len(ids) == 11
 
     @pytest.mark.asyncio
     async def test_search_voyages_all_archives(self):
@@ -1060,3 +1062,255 @@ class TestMultiArchiveManager:
         result = await self.manager.search_wrecks(max_results=500)
         archives = {w.get("archive") for w in result.items}
         assert "noaa" in archives
+
+
+# ---------------------------------------------------------------------------
+# DSS Client (Dutch Ships and Sailors)
+# ---------------------------------------------------------------------------
+
+
+class TestDSSClient:
+    @pytest.fixture(autouse=True)
+    def setup(self):
+        self.client = DSSClient(data_dir=FIXTURES_DIR)
+
+    # --- Muster search tests ---
+
+    @pytest.mark.asyncio
+    async def test_search_musters_all(self):
+        results = await self.client.search_musters()
+        assert len(results) == 4
+
+    @pytest.mark.asyncio
+    async def test_search_musters_by_ship_name(self):
+        results = await self.client.search_musters(ship_name="Middelburg")
+        assert len(results) == 2
+        assert all(r["ship_name"] == "Middelburg" for r in results)
+
+    @pytest.mark.asyncio
+    async def test_search_musters_by_captain(self):
+        results = await self.client.search_musters(captain="Pietersz")
+        assert len(results) == 1
+        assert results[0]["captain"] == "Jan Pietersz van Hoorn"
+
+    @pytest.mark.asyncio
+    async def test_search_musters_by_location(self):
+        results = await self.client.search_musters(location="Batavia")
+        assert len(results) == 2
+
+    @pytest.mark.asyncio
+    async def test_search_musters_by_date_range(self):
+        results = await self.client.search_musters(date_range="1740/1760")
+        assert len(results) == 2  # 1750 + 1760
+
+    @pytest.mark.asyncio
+    async def test_search_musters_by_year_start(self):
+        results = await self.client.search_musters(year_start=1740)
+        assert len(results) == 2  # 1750 + 1760
+
+    @pytest.mark.asyncio
+    async def test_search_musters_by_year_end(self):
+        results = await self.client.search_musters(year_end=1730)
+        assert len(results) == 1  # 1720 only
+
+    @pytest.mark.asyncio
+    async def test_search_musters_by_das_voyage(self):
+        results = await self.client.search_musters(das_voyage_id="das:1234")
+        assert len(results) == 1
+        assert results[0]["muster_id"] == "dss_muster:0001"
+
+    @pytest.mark.asyncio
+    async def test_search_musters_max_results(self):
+        results = await self.client.search_musters(max_results=2)
+        assert len(results) == 2
+
+    # --- Muster get tests ---
+
+    @pytest.mark.asyncio
+    async def test_get_muster_by_id(self):
+        result = await self.client.get_muster_by_id("dss_muster:0001")
+        assert result is not None
+        assert result["ship_name"] == "Middelburg"
+
+    @pytest.mark.asyncio
+    async def test_get_muster_by_id_without_prefix(self):
+        result = await self.client.get_muster_by_id("0001")
+        assert result is not None
+
+    @pytest.mark.asyncio
+    async def test_get_muster_by_id_not_found(self):
+        result = await self.client.get_muster_by_id("dss_muster:9999")
+        assert result is None
+
+    # --- Muster-voyage cross-link tests ---
+
+    @pytest.mark.asyncio
+    async def test_musters_for_voyage(self):
+        results = await self.client.get_musters_for_voyage("das:5678")
+        assert len(results) == 1
+        assert results[0]["muster_id"] == "dss_muster:0004"
+
+    @pytest.mark.asyncio
+    async def test_musters_for_voyage_no_match(self):
+        results = await self.client.get_musters_for_voyage("das:9999")
+        assert len(results) == 0
+
+    # --- Crew search tests ---
+
+    @pytest.mark.asyncio
+    async def test_search_crews_all(self):
+        results = await self.client.search_crews()
+        assert len(results) == 5
+
+    @pytest.mark.asyncio
+    async def test_search_crews_by_name(self):
+        results = await self.client.search_crews(name="Fokkema")
+        assert len(results) == 1
+        assert results[0]["name"] == "Lammert Fokkema"
+
+    @pytest.mark.asyncio
+    async def test_search_crews_by_rank(self):
+        results = await self.client.search_crews(rank="matroos")
+        assert len(results) == 3
+
+    @pytest.mark.asyncio
+    async def test_search_crews_by_rank_english(self):
+        results = await self.client.search_crews(rank="sailor")
+        assert len(results) == 3
+
+    @pytest.mark.asyncio
+    async def test_search_crews_by_origin(self):
+        results = await self.client.search_crews(origin="Groningen")
+        assert len(results) == 2
+
+    @pytest.mark.asyncio
+    async def test_search_crews_by_destination(self):
+        results = await self.client.search_crews(destination="Batavia")
+        assert len(results) == 3
+
+    @pytest.mark.asyncio
+    async def test_search_crews_by_age_min(self):
+        results = await self.client.search_crews(age_min=30)
+        assert len(results) == 2  # age 35 + age 40
+
+    @pytest.mark.asyncio
+    async def test_search_crews_by_age_max(self):
+        results = await self.client.search_crews(age_max=25)
+        assert len(results) == 2  # age 22 + age 19
+
+    @pytest.mark.asyncio
+    async def test_search_crews_by_date_range(self):
+        results = await self.client.search_crews(date_range="1815/1825")
+        assert len(results) == 2  # 1815 + 1820
+
+    @pytest.mark.asyncio
+    async def test_search_crews_by_ship_name(self):
+        results = await self.client.search_crews(ship_name="Onderneming")
+        assert len(results) == 2
+
+    # --- Crew get tests ---
+
+    @pytest.mark.asyncio
+    async def test_get_crew_by_id(self):
+        result = await self.client.get_crew_by_id("dss:00001")
+        assert result is not None
+        assert result["name"] == "Lammert Fokkema"
+
+    @pytest.mark.asyncio
+    async def test_get_crew_by_id_without_prefix(self):
+        result = await self.client.get_crew_by_id("00001")
+        assert result is not None
+
+    @pytest.mark.asyncio
+    async def test_get_crew_by_id_not_found(self):
+        result = await self.client.get_crew_by_id("dss:99999")
+        assert result is None
+
+    # --- Abstract method delegation ---
+
+    @pytest.mark.asyncio
+    async def test_search_delegates_to_crews(self):
+        """The abstract search() method delegates to search_crews()."""
+        results = await self.client.search(name="Fokkema")
+        assert len(results) == 1
+
+    @pytest.mark.asyncio
+    async def test_get_by_id_delegates_to_crew(self):
+        """The abstract get_by_id() delegates to get_crew_by_id()."""
+        result = await self.client.get_by_id("dss:00001")
+        assert result is not None
+
+    # --- Archive tag consistency ---
+
+    @pytest.mark.asyncio
+    async def test_all_musters_have_archive_tag(self):
+        results = await self.client.search_musters()
+        for m in results:
+            assert m["archive"] == "dss"
+
+    @pytest.mark.asyncio
+    async def test_all_crews_have_archive_tag(self):
+        results = await self.client.search_crews()
+        for c in results:
+            assert c["archive"] == "dss"
+
+
+# ---------------------------------------------------------------------------
+# DSS integration via ArchiveManager
+# ---------------------------------------------------------------------------
+
+
+class TestDSSArchiveManagerIntegration:
+    @pytest.fixture(autouse=True)
+    def setup(self):
+        from chuk_mcp_maritime_archives.core.archive_manager import ArchiveManager
+
+        self.manager = ArchiveManager(data_dir=FIXTURES_DIR)
+
+    @pytest.mark.asyncio
+    async def test_search_musters(self):
+        result = await self.manager.search_musters()
+        assert result.total_count == 4
+
+    @pytest.mark.asyncio
+    async def test_get_muster(self):
+        result = await self.manager.get_muster("dss_muster:0001")
+        assert result is not None
+        assert result["ship_name"] == "Middelburg"
+
+    @pytest.mark.asyncio
+    async def test_search_crew_dss_archive(self):
+        result = await self.manager.search_crew(archive="dss")
+        assert result.total_count == 5
+        for c in result.items:
+            assert c["archive"] == "dss"
+
+    @pytest.mark.asyncio
+    async def test_get_crew_member_dss_routing(self):
+        result = await self.manager.get_crew_member("dss:00001")
+        assert result is not None
+        assert result["name"] == "Lammert Fokkema"
+
+    @pytest.mark.asyncio
+    async def test_compare_wages_musters(self):
+        result = await self.manager.compare_wages(
+            group1_start=1700,
+            group1_end=1740,
+            group2_start=1741,
+            group2_end=1780,
+        )
+        assert result["group1_n"] >= 1
+        assert result["group2_n"] >= 1
+        assert "difference_pct" in result
+
+    @pytest.mark.asyncio
+    async def test_compare_wages_crews(self):
+        result = await self.manager.compare_wages(
+            group1_start=1805,
+            group1_end=1820,
+            group2_start=1821,
+            group2_end=1837,
+            source="crews",
+        )
+        assert result["group1_n"] >= 1
+        assert "group2_mean_wage" in result

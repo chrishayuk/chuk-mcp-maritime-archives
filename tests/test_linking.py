@@ -13,7 +13,7 @@ from chuk_mcp_maritime_archives.core.cliwoc_tracks import (
     get_track_by_das_number,
     search_tracks,
 )
-from chuk_mcp_maritime_archives.models import VoyageFullResponse
+from chuk_mcp_maritime_archives.models import LinkAuditResponse, VoyageFullResponse
 
 from .conftest import (
     MockMCPServer,
@@ -210,7 +210,7 @@ class TestCLIWOCLinking:
 
     def test_find_track_for_voyage_by_name(self):
         """Test ship name matching (requires CLIWOC 2.1 Full data)."""
-        result = find_track_for_voyage(
+        result, confidence = find_track_for_voyage(
             ship_name="BATAVIA",
             departure_date="1628-10-28",
             nationality="NL",
@@ -219,22 +219,25 @@ class TestCLIWOCLinking:
             pytest.skip("CLIWOC 2.1 Full data not available (no ship name index)")
         assert "voyage_id" in result
         assert "positions" not in result  # Should be summary only
+        assert 0.0 < confidence <= 1.0
 
     def test_find_track_for_voyage_empty_name(self):
-        result = find_track_for_voyage(ship_name="", departure_date="1700-01-01")
+        result, confidence = find_track_for_voyage(ship_name="", departure_date="1700-01-01")
         assert result is None
+        assert confidence == 0.0
 
     def test_find_track_for_voyage_no_match(self):
-        result = find_track_for_voyage(
+        result, confidence = find_track_for_voyage(
             ship_name="ZZZZNONEXISTENTZZZ",
             departure_date="1700-01-01",
         )
         assert result is None
+        assert confidence == 0.0
 
     def test_find_track_case_insensitive(self):
         """Ship name lookup should be case-insensitive."""
-        lower = find_track_for_voyage(ship_name="batavia")
-        upper = find_track_for_voyage(ship_name="BATAVIA")
+        lower, lower_conf = find_track_for_voyage(ship_name="batavia")
+        upper, upper_conf = find_track_for_voyage(ship_name="BATAVIA")
         # Both should return the same result (or both None if data missing)
         if lower is not None and upper is not None:
             assert lower["voyage_id"] == upper["voyage_id"]
@@ -286,6 +289,11 @@ class TestArchiveManagerLinking:
         assert "wreck" in result["links_found"]
         assert "vessel" in result["links_found"]
 
+        # link_confidence should be populated
+        assert "link_confidence" in result
+        assert result["link_confidence"]["wreck"] == 1.0
+        assert result["link_confidence"]["vessel"] == 1.0
+
     @pytest.mark.asyncio
     async def test_get_voyage_full_no_wreck(self, manager):
         """Voyage das:5678 (Ridderschap) arrived safely — no wreck."""
@@ -293,6 +301,7 @@ class TestArchiveManagerLinking:
         assert result is not None
         assert result["wreck"] is None
         assert "wreck" not in result["links_found"]
+        assert "wreck" not in result["link_confidence"]
 
     @pytest.mark.asyncio
     async def test_get_voyage_full_not_found(self, manager):
@@ -306,6 +315,9 @@ class TestArchiveManagerLinking:
         # links_found should only list non-None records
         for link_name in result["links_found"]:
             assert result.get(link_name) is not None
+        # link_confidence keys should match links_found
+        for link_name in result["link_confidence"]:
+            assert link_name in result["links_found"]
 
 
 # ---------------------------------------------------------------------------
@@ -327,7 +339,33 @@ class TestLinkingTool:
                 "vessel": SAMPLE_VESSELS[0],
                 "hull_profile": {"ship_type": "retourschip", "description": "Large ship"},
                 "cliwoc_track": None,
+                "crew": None,
                 "links_found": ["wreck", "vessel", "hull_profile"],
+                "link_confidence": {"wreck": 1.0, "vessel": 1.0, "hull_profile": 1.0},
+            }
+        )
+        self.mgr.audit_links = AsyncMock(
+            return_value={
+                "wreck_links": {
+                    "ground_truth_count": 54,
+                    "matched_count": 54,
+                    "precision": 1.0,
+                    "recall": 1.0,
+                },
+                "cliwoc_links": {
+                    "direct_links": 48,
+                    "fuzzy_matches": 150,
+                    "mean_confidence": 0.78,
+                    "high_confidence_count": 120,
+                    "moderate_confidence_count": 150,
+                },
+                "crew_links": {"exact_matches": 500, "fuzzy_matches": 0},
+                "total_links_evaluated": 600,
+                "confidence_distribution": {
+                    "0.9-1.0": 48,
+                    "0.7-0.9": 120,
+                    "0.5-0.7": 30,
+                },
             }
         )
         register_linking_tools(self.mcp, self.mgr)
@@ -370,7 +408,9 @@ class TestLinkingTool:
             "vessel": None,
             "hull_profile": None,
             "cliwoc_track": None,
+            "crew": None,
             "links_found": [],
+            "link_confidence": {},
         }
         fn = self.mcp.get_tool("maritime_get_voyage_full")
         result = await fn(voyage_id="das:5678")
@@ -402,9 +442,214 @@ class TestLinkingTool:
             "vessel": None,
             "hull_profile": None,
             "cliwoc_track": None,
+            "crew": None,
             "links_found": ["wreck"],
+            "link_confidence": {"wreck": 1.0},
         }
         fn = self.mcp.get_tool("maritime_get_voyage_full")
         result = await fn(voyage_id="das:3456")
         parsed = json.loads(result)
         assert "1 linked record)" in parsed["message"]
+
+    @pytest.mark.asyncio
+    async def test_link_confidence_present(self):
+        fn = self.mcp.get_tool("maritime_get_voyage_full")
+        result = await fn(voyage_id="das:3456")
+        parsed = json.loads(result)
+        assert "link_confidence" in parsed
+        assert parsed["link_confidence"]["wreck"] == 1.0
+        assert parsed["link_confidence"]["vessel"] == 1.0
+        assert parsed["link_confidence"]["hull_profile"] == 1.0
+
+    @pytest.mark.asyncio
+    async def test_link_confidence_empty_when_no_links(self):
+        self.mgr.get_voyage_full.return_value = {
+            "voyage": SAMPLE_VOYAGES[2],
+            "wreck": None,
+            "vessel": None,
+            "hull_profile": None,
+            "cliwoc_track": None,
+            "crew": None,
+            "links_found": [],
+            "link_confidence": {},
+        }
+        fn = self.mcp.get_tool("maritime_get_voyage_full")
+        result = await fn(voyage_id="das:5678")
+        parsed = json.loads(result)
+        assert parsed["link_confidence"] == {}
+
+    @pytest.mark.asyncio
+    async def test_include_crew_parameter(self):
+        self.mgr.get_voyage_full.return_value = {
+            "voyage": SAMPLE_VOYAGES[0],
+            "wreck": None,
+            "vessel": None,
+            "hull_profile": None,
+            "cliwoc_track": None,
+            "crew": [{"name": "Jan Jansen", "rank": "matroos", "link_confidence": 1.0}],
+            "links_found": ["crew"],
+            "link_confidence": {"crew": 1.0},
+        }
+        fn = self.mcp.get_tool("maritime_get_voyage_full")
+        result = await fn(voyage_id="das:3456", include_crew=True)
+        parsed = json.loads(result)
+        assert parsed["crew"] is not None
+        assert len(parsed["crew"]) == 1
+        assert parsed["crew"][0]["name"] == "Jan Jansen"
+        assert "crew" in parsed["links_found"]
+
+    @pytest.mark.asyncio
+    async def test_link_confidence_text_mode(self):
+        fn = self.mcp.get_tool("maritime_get_voyage_full")
+        result = await fn(voyage_id="das:3456", output_mode="text")
+        assert "Link confidence:" in result
+        assert "100%" in result
+
+    @pytest.mark.asyncio
+    async def test_audit_links_success(self):
+        fn = self.mcp.get_tool("maritime_audit_links")
+        result = await fn()
+        parsed = json.loads(result)
+        assert parsed["wreck_links"]["ground_truth_count"] == 54
+        assert parsed["cliwoc_links"]["direct_links"] == 48
+        assert parsed["cliwoc_links"]["fuzzy_matches"] == 150
+        assert parsed["total_links_evaluated"] == 600
+
+    @pytest.mark.asyncio
+    async def test_audit_links_text_mode(self):
+        fn = self.mcp.get_tool("maritime_audit_links")
+        result = await fn(output_mode="text")
+        assert "Wreck Links" in result
+        assert "CLIWOC Track Links" in result
+        assert "Crew Links" in result
+        assert "Confidence Distribution" in result
+
+    @pytest.mark.asyncio
+    async def test_audit_links_error(self):
+        self.mgr.audit_links.side_effect = RuntimeError("DB error")
+        fn = self.mcp.get_tool("maritime_audit_links")
+        result = await fn()
+        parsed = json.loads(result)
+        assert "error" in parsed
+
+
+# ---------------------------------------------------------------------------
+# LinkAuditResponse model
+# ---------------------------------------------------------------------------
+
+
+class TestLinkAuditResponse:
+    def test_minimal(self):
+        resp = LinkAuditResponse(
+            wreck_links={
+                "ground_truth_count": 10,
+                "matched_count": 8,
+                "precision": 1.0,
+                "recall": 0.8,
+            },
+            cliwoc_links={
+                "direct_links": 5,
+                "fuzzy_matches": 20,
+                "mean_confidence": 0.75,
+                "high_confidence_count": 15,
+                "moderate_confidence_count": 20,
+            },
+            crew_links={"exact_matches": 100, "fuzzy_matches": 0},
+            total_links_evaluated=50,
+            message="Test audit",
+        )
+        assert resp.total_links_evaluated == 50
+
+    def test_to_text(self):
+        resp = LinkAuditResponse(
+            wreck_links={
+                "ground_truth_count": 10,
+                "matched_count": 8,
+                "precision": 1.0,
+                "recall": 0.8,
+            },
+            cliwoc_links={
+                "direct_links": 5,
+                "fuzzy_matches": 20,
+                "mean_confidence": 0.75,
+                "high_confidence_count": 15,
+                "moderate_confidence_count": 20,
+            },
+            crew_links={"exact_matches": 100, "fuzzy_matches": 0},
+            total_links_evaluated=50,
+            confidence_distribution={"0.9-1.0": 5, "0.7-0.9": 15},
+            message="Audit complete",
+        )
+        text = resp.to_text()
+        assert "Wreck Links" in text
+        assert "CLIWOC Track Links" in text
+        assert "Crew Links" in text
+        assert "0.9-1.0: 5" in text
+
+    def test_extra_fields_forbidden(self):
+        with pytest.raises(Exception):
+            LinkAuditResponse(
+                wreck_links={},
+                cliwoc_links={},
+                crew_links={},
+                total_links_evaluated=0,
+                bogus="fail",
+            )
+
+
+# ---------------------------------------------------------------------------
+# VoyageFullResponse with new fields
+# ---------------------------------------------------------------------------
+
+
+class TestVoyageFullResponseV016:
+    def test_link_confidence_field(self):
+        resp = VoyageFullResponse(
+            voyage=SAMPLE_VOYAGES[0],
+            wreck=SAMPLE_WRECKS[0],
+            links_found=["wreck"],
+            link_confidence={"wreck": 1.0},
+        )
+        assert resp.link_confidence["wreck"] == 1.0
+
+    def test_crew_field(self):
+        resp = VoyageFullResponse(
+            voyage=SAMPLE_VOYAGES[0],
+            crew=[{"name": "Jan", "rank": "matroos"}],
+            links_found=["crew"],
+        )
+        assert len(resp.crew) == 1
+
+    def test_defaults(self):
+        resp = VoyageFullResponse(
+            voyage=SAMPLE_VOYAGES[0],
+            links_found=[],
+        )
+        assert resp.link_confidence == {}
+        assert resp.crew is None
+
+    def test_json_round_trip_with_confidence(self):
+        resp = VoyageFullResponse(
+            voyage=SAMPLE_VOYAGES[0],
+            wreck=SAMPLE_WRECKS[0],
+            links_found=["wreck"],
+            link_confidence={"wreck": 1.0, "cliwoc_track": 0.85},
+        )
+        dumped = resp.model_dump_json()
+        parsed = json.loads(dumped)
+        assert parsed["link_confidence"]["wreck"] == 1.0
+        assert parsed["link_confidence"]["cliwoc_track"] == 0.85
+
+    def test_to_text_with_crew(self):
+        resp = VoyageFullResponse(
+            voyage=SAMPLE_VOYAGES[0],
+            crew=[
+                {"name": "Jan Jansen", "rank_english": "sailor"},
+                {"name": "Pieter de Vries", "rank_english": "boatswain"},
+            ],
+            links_found=["crew"],
+            message="Test",
+        )
+        text = resp.to_text()
+        assert "Crew (2 records)" in text
+        assert "Jan Jansen" in text

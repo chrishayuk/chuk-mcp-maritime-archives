@@ -30,6 +30,7 @@ from chuk_mcp_maritime_archives.tools import (
     register_export_tools,
     register_linking_tools,
     register_location_tools,
+    register_muster_tools,
     register_narrative_tools,
     register_position_tools,
     register_route_tools,
@@ -101,6 +102,7 @@ class ToolRunner:
         register_linking_tools(self._mcp, self.manager)
         register_speed_tools(self._mcp, self.manager)
         register_timeline_tools(self._mcp, self.manager)
+        register_muster_tools(self._mcp, self.manager)
         register_narrative_tools(self._mcp, self.manager)
         register_analytics_tools(self._mcp, self.manager)
         register_discovery_tools(self._mcp, self.manager)

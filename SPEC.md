@@ -1,6 +1,6 @@
 # chuk-mcp-maritime-archives Specification
 
-Version 0.14.0
+Version 0.16.0
 
 ## Overview
 
@@ -10,7 +10,7 @@ crew muster rolls, cargo manifests, and shipwreck databases from the Age of Expl
 through the colonial era and beyond, 1497-2024. Covers Dutch (VOC), English (EIC), Portuguese
 (Carreira da India), Spanish (Manila Galleon), Swedish (SOIC), UK Hydrographic Office (UKHO), and NOAA maritime archives.
 
-- **33 tools** for searching, retrieving, analysing, and exporting maritime archival data
+- **37 tools** for searching, retrieving, analysing, and exporting maritime archival data
 - **Cursor-based pagination** -- all 8 search tools support `cursor` / `next_cursor` / `has_more` for paging through large result sets
 - **Dual output mode** -- all tools return JSON (default) or human-readable text via `output_mode` parameter
 - **Async-first** -- tool entry points are async; sync HTTP I/O runs in thread pools
@@ -30,6 +30,7 @@ through the colonial era and beyond, 1497-2024. Covers Dutch (VOC), English (EIC
 | `soic` | Swedish East India Company | Curated + expanded from Koninckx | ~132 voyages, ~20 wrecks | 1731-1813 | voyages, wrecks |
 | `ukho` | UK Hydrographic Office Global Wrecks | UK Hydrographic Office via EMODnet | 94,000+ wrecks | 1500-2024 | wrecks |
 | `noaa` | NOAA Wrecks and Obstructions | NOAA Office of Coast Survey | 10,000+ wrecks | 1500-2024 | wrecks |
+| `dss` | Dutch Ships and Sailors | Huygens ING / VU Amsterdam / IISG | ~70 musters, ~101 crew | 1691-1837 | musters, crews |
 
 > **Note on data completeness:** The EIC, Carreira, Galleon, and SOIC archives are curated datasets compiled from published academic sources. Carreira, Galleon, and SOIC include programmatically expanded records covering the full historical period. VOC Crew data requires running `scripts/download_crew.py` to download from the Nationaal Archief (774K records, ~80 MB). Cargo and EIC have download scripts for future expansion from external sources.
 
@@ -47,6 +48,7 @@ through the colonial era and beyond, 1497-2024. Covers Dutch (VOC), English (EIC
 | SOIC | Koninckx published sources | Local JSON via `generate_soic.py` |
 | UKHO | EMODnet Human Activities portal | Bulk download via `download_ukho.py` + `generate_ukho.py` fallback |
 | NOAA | NOAA ENC Direct API | REST API via `download_noaa.py` + `generate_noaa.py` fallback |
+| DSS | DANS Data Station (doi:10.17026/dans-zeu-be9b) | Local JSON via `generate_dss.py` + `download_dss.py` (.ttl) |
 
 All archives except DAS, UKHO, and NOAA work entirely offline with local JSON data. DAS data is
 cached locally after first download. VOC Crew requires running `download_crew.py`
@@ -308,7 +310,7 @@ List available ship types that have hull profile data.
 
 #### `maritime_search_crew`
 
-Search VOC crew muster roll records.
+Search crew records across VOC Opvarenden and DSS (MDB) archives.
 
 **Parameters:**
 
@@ -321,7 +323,7 @@ Search VOC crew muster roll records.
 | `origin` | `str?` | `None` | Place of origin (substring match) |
 | `date_range` | `str?` | `None` | Date range |
 | `fate` | `str?` | `None` | Service outcome: `survived`, `died_voyage`, `died_asia`, `deserted`, `discharged` |
-| `archive` | `str` | `voc_crew` | Archive to query |
+| `archive` | `str` | `voc_crew` | Archive to query: `voc_crew` (1633-1794) or `dss` (MDB, 1803-1837) |
 | `max_results` | `int` | `100` | Maximum results per page (max: 500) |
 | `cursor` | `str?` | `None` | Pagination cursor from a previous result's `next_cursor` field |
 
@@ -353,6 +355,91 @@ Get full details for a specific crew member by ID.
 | Field | Type | Description |
 |-------|------|-------------|
 | `crew_member` | `dict` | Full crew record including rank, origin, pay, fate |
+| `message` | `str` | Result message |
+
+---
+
+### Muster Tools
+
+#### `maritime_search_musters`
+
+Search GZMVOC ship-level muster records from Asian waters (1691-1791).
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `ship_name` | `str?` | `None` | Ship name (substring match) |
+| `captain` | `str?` | `None` | Captain name (substring match) |
+| `date_range` | `str?` | `None` | Date range as `YYYY/YYYY` or `YYYY-MM-DD/YYYY-MM-DD` |
+| `location` | `str?` | `None` | Muster location (e.g., Batavia, Makassar) |
+| `das_voyage_id` | `str?` | `None` | DAS voyage identifier for cross-linking |
+| `year_start` | `int?` | `None` | Filter musters from this year onward |
+| `year_end` | `int?` | `None` | Filter musters up to this year |
+| `max_results` | `int` | `50` | Maximum results per page (max: 500) |
+| `cursor` | `str?` | `None` | Pagination cursor from a previous result's `next_cursor` field |
+
+**Response:** `MusterSearchResponse`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `muster_count` | `int` | Number of muster records on this page |
+| `musters` | `MusterInfo[]` | Muster record summaries |
+| `total_count` | `int?` | Total matching records across all pages |
+| `next_cursor` | `str?` | Cursor for next page (null if no more pages) |
+| `has_more` | `bool` | Whether more pages are available |
+| `message` | `str` | Result message |
+
+---
+
+#### `maritime_get_muster`
+
+Get full details for a specific ship muster record.
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `muster_id` | `str` | *required* | Muster record identifier (e.g., `dss_muster:0001`) |
+
+**Response:** `MusterDetailResponse`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `muster` | `dict` | Full muster record including crew composition, wages, ranks |
+| `message` | `str` | Result message |
+
+---
+
+#### `maritime_compare_wages`
+
+Compare crew wage distributions between two time periods.
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `group1_start` | `int` | *required* | Start year for first comparison group |
+| `group1_end` | `int` | *required* | End year for first comparison group |
+| `group2_start` | `int` | *required* | Start year for second comparison group |
+| `group2_end` | `int` | *required* | End year for second comparison group |
+| `rank` | `str?` | `None` | Optional rank filter |
+| `origin` | `str?` | `None` | Optional place of origin filter (MDB crews only) |
+| `source` | `str` | `musters` | Data source: `musters` (GZMVOC, 1691-1791) or `crews` (MDB, 1803-1837) |
+
+**Response:** `WageComparisonResponse`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `group1_label` | `str` | Label for first group (e.g., "1691-1740") |
+| `group1_n` | `int` | Number of records in first group |
+| `group1_mean_wage` | `float` | Mean wage for first group (guilders/month) |
+| `group1_median_wage` | `float` | Median wage for first group (guilders/month) |
+| `group2_label` | `str` | Label for second group |
+| `group2_n` | `int` | Number of records in second group |
+| `group2_mean_wage` | `float` | Mean wage for second group |
+| `group2_median_wage` | `float` | Median wage for second group |
+| `difference_pct` | `float` | Percentage difference (group2 relative to group1) |
 | `message` | `str` | Result message |
 
 ---
@@ -778,6 +865,7 @@ and CLIWOC ship tracks automatically in a single call.
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `voyage_id` | `str` | required | Voyage identifier from any archive (e.g. `"das:0372.1"`, `"eic:0062"`, `"carreira:0001"`, `"galleon:0009"`, `"soic:0002"`) |
+| `include_crew` | `bool` | `false` | Include linked crew records (VOC Opvarenden + DSS musters) |
 | `output_mode` | `str` | `"json"` | `"json"` or `"text"` |
 
 **Response: `VoyageFullResponse`**
@@ -789,15 +877,39 @@ and CLIWOC ship tracks automatically in a single call.
 | `vessel` | `dict?` | Linked vessel record (from DAS vessel registry, DAS voyages only) |
 | `hull_profile` | `dict?` | Hull profile for the ship type |
 | `cliwoc_track` | `dict?` | Linked CLIWOC track summary (without positions) |
+| `crew` | `list?` | Linked crew records when `include_crew=true` |
 | `links_found` | `str[]` | Names of linked records found (e.g. `["wreck", "vessel"]`) |
+| `link_confidence` | `dict` | Confidence scores (0.0-1.0) for each linked record type |
 | `message` | `str` | Human-readable summary |
 
 **Linking strategy:**
 
-1. **Wreck**: Found by matching `voyage_id` in wreck records
-2. **Vessel**: Found by reverse lookup in vessel `voyage_ids` arrays
-3. **Hull profile**: Found by matching voyage `ship_type` to hull profile data
-4. **CLIWOC track**: Found by DAS number (exact match), or ship name + nationality + date overlap (fuzzy match). Nationality mapped from archive: `das`/`eic`→NL/UK, `carreira`→PT, `galleon`→ES, `soic`→SE
+1. **Wreck**: Found by matching `voyage_id` in wreck records (confidence 1.0)
+2. **Vessel**: Found by reverse lookup in vessel `voyage_ids` arrays (confidence 1.0)
+3. **Hull profile**: Found by matching voyage `ship_type` to hull profile data (confidence 1.0)
+4. **CLIWOC track**: Found by DAS number (exact match, confidence 1.0), or fuzzy entity resolution using Levenshtein distance + Soundex phonetic matching + date proximity + nationality (confidence 0.0-1.0)
+5. **Crew**: Found by exact `voyage_id` in VOC Opvarenden, exact DAS muster link, or fuzzy ship name + date matching in DSS records
+
+#### `maritime_audit_links`
+
+Audit cross-archive link quality against known ground truth. Evaluates wreck-voyage links, CLIWOC track matches, and crew-voyage links, returning precision/recall metrics and confidence distributions.
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `output_mode` | `str` | `"json"` | `"json"` or `"text"` |
+
+**Response: `LinkAuditResponse`**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `wreck_links` | `dict` | Ground truth count, matched count, precision, recall |
+| `cliwoc_links` | `dict` | Direct links (DAS#), fuzzy matches, mean confidence |
+| `crew_links` | `dict` | Exact matches, fuzzy matches |
+| `total_links_evaluated` | `int` | Total number of links audited |
+| `confidence_distribution` | `dict` | Count of links in confidence buckets (0.9-1.0, 0.7-0.9, 0.5-0.7) |
+| `message` | `str` | Human-readable summary |
 
 ---
 

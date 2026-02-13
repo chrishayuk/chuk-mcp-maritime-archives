@@ -38,7 +38,7 @@ message templates are all constants -- never inline strings.
 
 ### 5. Data Source Clients
 
-Ten archive clients extend `BaseArchiveClient`, each loading from local JSON:
+Eleven archive clients extend `BaseArchiveClient`, each loading from local JSON:
 
 **Core archives (Dutch):**
 - `DASClient` -- Dutch Asiatic Shipping voyages and vessels (8,194 voyages)
@@ -53,10 +53,13 @@ Ten archive clients extend `BaseArchiveClient`, each loading from local JSON:
 - `SOICClient` -- Swedish East India Company (~132 voyages, ~20 wrecks)
 - `UKHOClient` -- UK Hydrographic Office global wrecks (94,000+ wrecks, wrecks-only)
 - `NOAAClient` -- NOAA Automated Wreck and Obstruction Information System (AWOIS) wrecks (wrecks-only)
+- `DSSClient` -- Dutch Ships and Sailors musters + crew (~70 GZMVOC musters, ~101 MDB crew records)
 
 Each multi-nation client handles both voyages and wrecks in a single class, with
 `search()`, `get_by_id()`, `search_wrecks()`, and `get_wreck_by_id()` methods.
 `UKHOClient` and `NOAAClient` are wrecks-only -- `search()` and `get_by_id()` delegate to wreck methods.
+`DSSClient` handles musters and crew in a single class, with `search_musters()`, `get_muster_by_id()`,
+`search_crews()`, and `get_crew_by_id()` methods. The abstract `search()` and `get_by_id()` delegate to crew methods.
 
 Reference data modules load from JSON files in `data/`:
 - `voc_gazetteer` -- ~160 historical place names from `data/gazetteer.json`
@@ -64,8 +67,8 @@ Reference data modules load from JSON files in `data/`:
 - `hull_profiles` -- 6 ship type profiles from `data/hull_profiles.json`
 - `speed_profiles` -- 215 speed profiles across 6 routes from `data/speed_profiles.json`
 
-`ArchiveManager` instantiates all 10 clients at startup and uses `_voyage_clients`
-and `_wreck_clients` dispatch dicts to route queries by archive ID.
+`ArchiveManager` instantiates all 11 clients at startup and uses `_voyage_clients`,
+`_wreck_clients`, and `_crew_clients` dispatch dicts to route queries by archive ID.
 
 ### 6. LRU Caching
 
@@ -131,9 +134,9 @@ All data files in `data/` are produced by scripts in `scripts/`:
   via shared utilities in `scripts/download_utils.py`
 - `scripts/download_all.py` orchestrates all scripts with `--force` passthrough
 
-### 11. Test Coverage -- 97%+
+### 11. Test Coverage -- 96%+
 
-All modules maintain 97%+ branch coverage (762 tests across 14 test modules). Tests use
+All modules maintain 96%+ branch coverage (923 tests across 14 test modules). Tests use
 `pytest-asyncio` and mock at the client data boundary (`_load_json`), not at the manager
 level, to exercise the full data flow from tool to client.
 
@@ -221,6 +224,8 @@ server.py                           # CLI entry point (sync)
   |     +-- tools/timeline/api.py         # maritime_get_timeline
   |     +-- tools/position/api.py         # maritime_assess_position
   |     +-- tools/export/api.py           # maritime_export_geojson, maritime_get_statistics
+  |     +-- tools/musters/api.py          # maritime_search_musters, maritime_get_muster,
+  |     |                                #   maritime_compare_wages
   |     +-- tools/narratives/api.py       # maritime_search_narratives
   |     +-- tools/analytics/api.py       # maritime_compute_track_speeds,
   |     |                                #   maritime_aggregate_track_speeds,
@@ -237,10 +242,12 @@ server.py                           # CLI entry point (sync)
   |           +-- core/clients/soic_client.py      # SOIC voyages + wrecks (local JSON)
   |           +-- core/clients/ukho_client.py      # UKHO global wrecks (local JSON)
   |           +-- core/clients/noaa_client.py      # NOAA AWOIS wrecks (local JSON)
+  |           +-- core/clients/dss_client.py       # DSS musters + crew (local JSON)
   |           +-- core/hull_profiles.py            # Hull profiles (data/hull_profiles.json)
   |           +-- core/voc_gazetteer.py            # VOC gazetteer (data/gazetteer.json)
   |           +-- core/voc_routes.py               # VOC routes (data/routes.json)
   |           +-- core/speed_profiles.py           # Speed profiles (data/speed_profiles.json)
+  |           +-- core/entity_resolution.py         # Fuzzy ship name matching (Levenshtein, Soundex)
   |           +-- core/cliwoc_tracks.py            # CLIWOC tracks (data/cliwoc_tracks.json)
 
 models/maritime.py              # Domain models (extra="allow")
@@ -266,6 +273,7 @@ src/chuk_mcp_maritime_archives/
 |   +-- voc_gazetteer.py       # VOC gazetteer (loaded from data/gazetteer.json)
 |   +-- voc_routes.py          # VOC routes (loaded from data/routes.json)
 |   +-- speed_profiles.py      # Speed profiles (loaded from data/speed_profiles.json)
+|   +-- entity_resolution.py   # Fuzzy ship name matching (Levenshtein, Soundex, ShipNameIndex)
 |   +-- cliwoc_tracks.py       # CLIWOC tracks (loaded from data/cliwoc_tracks.json)
 |   +-- clients/
 |       +-- __init__.py
@@ -280,6 +288,7 @@ src/chuk_mcp_maritime_archives/
 |       +-- soic_client.py       # SOIC voyages + wrecks (local JSON)
 |       +-- ukho_client.py       # UKHO global wrecks (local JSON)
 |       +-- noaa_client.py       # NOAA AWOIS wrecks (local JSON)
+|       +-- dss_client.py        # DSS musters + crew (local JSON)
 +-- models/
 |   +-- __init__.py
 |   +-- maritime.py    # Domain models (extra="allow")
@@ -300,6 +309,7 @@ src/chuk_mcp_maritime_archives/
     +-- timeline/      # maritime_get_timeline
     +-- position/      # maritime_assess_position
     +-- export/        # maritime_export_geojson, maritime_get_statistics
+    +-- musters/       # maritime_search_musters, maritime_get_muster, maritime_compare_wages
     +-- narratives/    # maritime_search_narratives
     +-- analytics/     # maritime_compute_track_speeds, aggregate, compare
     +-- discovery/     # maritime_capabilities
@@ -335,7 +345,7 @@ Falls back silently if the store is unavailable or any download fails.
 ### `async_server.py`
 
 Creates the `ChukMCPServer` MCP instance, instantiates `ArchiveManager`, and registers
-all tool groups (18 categories, 33 tools). Each tool module receives the MCP instance
+all tool groups (19 categories, 37 tools). Each tool module receives the MCP instance
 and the shared `ArchiveManager`.
 
 ### `core/archive_manager.py`
@@ -346,7 +356,9 @@ The central orchestrator. Manages:
 - **Multi-archive dispatch**: `_voyage_clients` and `_wreck_clients` dicts route by archive ID
 - **LRU caches**: OrderedDict caches for voyages, wrecks, and vessels
 - **Hull profile lookups**: static reference data for 6 VOC ship types
-- **Cross-archive linking**: unified voyage view with wreck, vessel, hull profile, CLIWOC track
+- **Cross-archive linking**: unified voyage view with wreck, vessel, hull profile, CLIWOC track, crew records, and confidence scores
+- **Entity resolution**: fuzzy ship name matching via `ShipNameIndex` (Levenshtein + Soundex + date proximity)
+- **Link auditing**: precision/recall metrics for cross-archive links against known ground truth
 - **Timeline assembly**: chronological events from voyages, route estimates, CLIWOC tracks, and wrecks
 - **Position assessment**: navigation era detection, uncertainty estimation
 - **GeoJSON export**: wreck position FeatureCollection generation
@@ -454,6 +466,19 @@ profiles across 6 routes with mean, median, standard deviation, and percentile s
 (km/day) per route segment. Provides: `get_speed_profile()` for all segments of a route
 with optional departure-month filtering, `get_segment_speed()` for single-segment lookup
 with month-to-all-months fallback, and `list_profiled_routes()` for available route IDs.
+
+### `core/entity_resolution.py`
+
+Pure-Python entity resolution for historical maritime ship names. Provides fuzzy
+matching, phonetic encoding, and confidence scoring for linking records across
+archives where ship names vary in spelling, casing, and use of articles. No
+external dependencies. Key components: `normalize_ship_name()` strips articles
+(De, Het, 'T, HMS, VOC) while preserving saints (San, Santa, Sao);
+`levenshtein_distance()` / `levenshtein_similarity()` for edit-distance scoring;
+`soundex()` for phonetic encoding; `score_ship_match()` for composite confidence
+with weights: name=0.50, date=0.30, nationality=0.10, phonetic=0.10;
+`ShipNameIndex` for fast three-level lookup (exact normalized -> Soundex ->
+Levenshtein fallback with length-based early rejection).
 
 ### `core/cliwoc_tracks.py`
 

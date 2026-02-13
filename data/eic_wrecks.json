@@ -16,7 +16,8 @@
     "depth_estimate_m": null,
     "tonnage": 1100,
     "archive": "eic",
-    "particulars": "Largest English ship of her time. Damaged and abandoned at Bantam. Caught fire and burned at her moorings. A catastrophic loss."
+    "particulars": "Largest English ship of her time. Damaged and abandoned at Bantam. Caught fire and burned at her moorings. A catastrophic loss.",
+    "is_curated": true
   },
   {
     "wreck_id": "eic_wreck:0002",
@@ -35,7 +36,8 @@
     "depth_estimate_m": null,
     "tonnage": 300,
     "archive": "eic",
-    "particulars": "Lost during the Anglo-Dutch conflict in the Banda Islands."
+    "particulars": "Lost during the Anglo-Dutch conflict in the Banda Islands.",
+    "is_curated": true
   },
   {
     "wreck_id": "eic_wreck:0003",
@@ -54,7 +56,8 @@
     "depth_estimate_m": null,
     "tonnage": 350,
     "archive": "eic",
-    "particulars": "Captain Kidd's vessel involved in piracy. Eventually captured."
+    "particulars": "Captain Kidd's vessel involved in piracy. Eventually captured.",
+    "is_curated": true
   },
   {
     "wreck_id": "eic_wreck:0004",
@@ -73,7 +76,8 @@
     "depth_estimate_m": 12,
     "tonnage": 499,
     "archive": "eic",
-    "particulars": "Wrecked on Bird Island during outward voyage to Madras. Carried gold pagodas for the garrison. Wreck discovered in 1977 by Dave Allen. Gold coins and artifacts recovered."
+    "particulars": "Wrecked on Bird Island during outward voyage to Madras. Carried gold pagodas for the garrison. Wreck discovered in 1977 by Dave Allen. Gold coins and artifacts recovered.",
+    "is_curated": true
   },
   {
     "wreck_id": "eic_wreck:0005",
@@ -92,7 +96,8 @@
     "depth_estimate_m": null,
     "tonnage": 800,
     "archive": "eic",
-    "particulars": "Wrecked near Robben Island in a severe storm. All crew saved. Ship was a total loss."
+    "particulars": "Wrecked near Robben Island in a severe storm. All crew saved. Ship was a total loss.",
+    "is_curated": true
   },
   {
     "wreck_id": "eic_wreck:0006",
@@ -111,7 +116,8 @@
     "depth_estimate_m": 10,
     "tonnage": 729,
     "archive": "eic",
-    "particulars": "Struck a reef off the Transkei coast. The survivors' overland march toward Cape Town is one of the most famous shipwreck stories. Many perished; some were absorbed into local communities. Rumoured to carry the Peacock Throne jewels. Wreck partially located."
+    "particulars": "Struck a reef off the Transkei coast. The survivors' overland march toward Cape Town is one of the most famous shipwreck stories. Many perished; some were absorbed into local communities. Rumoured to carry the Peacock Throne jewels. Wreck partially located.",
+    "is_curated": true
   },
   {
     "wreck_id": "eic_wreck:0007",
@@ -130,7 +136,8 @@
     "depth_estimate_m": 5,
     "tonnage": 758,
     "archive": "eic",
-    "particulars": "Struck the cliffs at Seacombe during a severe gale. Captain Pierce, his two daughters, and ~168 others perished. One of the most widely reported shipwrecks of the 18th century. Wreck site located."
+    "particulars": "Struck the cliffs at Seacombe during a severe gale. Captain Pierce, his two daughters, and ~168 others perished. One of the most widely reported shipwrecks of the 18th century. Wreck site located.",
+    "is_curated": true
   },
   {
     "wreck_id": "eic_wreck:0008",
@@ -149,7 +156,8 @@
     "depth_estimate_m": null,
     "tonnage": 600,
     "archive": "eic",
-    "particulars": "Struck an iceberg south of the Cape. Lt. Riou kept the sinking vessel afloat for weeks. One of the earliest recorded iceberg collisions."
+    "particulars": "Struck an iceberg south of the Cape. Lt. Riou kept the sinking vessel afloat for weeks. One of the earliest recorded iceberg collisions.",
+    "is_curated": true
   },
   {
     "wreck_id": "eic_wreck:0009",
@@ -168,7 +176,8 @@
     "depth_estimate_m": null,
     "tonnage": 850,
     "archive": "eic",
-    "particulars": "Wrecked on a reef off the coast of Madagascar. Most survived but endured months stranded before rescue."
+    "particulars": "Wrecked on a reef off the coast of Madagascar. Most survived but endured months stranded before rescue.",
+    "is_curated": true
   },
   {
     "wreck_id": "eic_wreck:0010",
@@ -187,7 +196,8 @@
     "depth_estimate_m": 12,
     "tonnage": 1200,
     "archive": "eic",
-    "particulars": "Struck the Shambles bank in heavy weather. Captain John Wordsworth (brother of poet William Wordsworth) and ~260 others drowned. Wreck located and partially excavated."
+    "particulars": "Struck the Shambles bank in heavy weather. Captain John Wordsworth (brother of poet William Wordsworth) and ~260 others drowned. Wreck located and partially excavated.",
+    "is_curated": true
   },
   {
     "wreck_id": "eic_wreck:0011",
@@ -206,7 +216,8 @@
     "depth_estimate_m": 8,
     "tonnage": 1200,
     "archive": "eic",
-    "particulars": "Wrecked in a violent storm. Only 6 of 378 aboard survived. 344 soldiers and invalids among the dead. The nearby town was renamed Arniston in memory."
+    "particulars": "Wrecked in a violent storm. Only 6 of 378 aboard survived. 344 soldiers and invalids among the dead. The nearby town was renamed Arniston in memory.",
+    "is_curated": true
   },
   {
     "wreck_id": "eic_wreck:0012",
@@ -225,7 +236,8 @@
     "depth_estimate_m": null,
     "tonnage": 1350,
     "archive": "eic",
-    "particulars": "Caught fire in the Bay of Biscay. 81 lives lost of 641 aboard. Most rescued by the brig Cambria. Captain Cobb was among the last to leave the burning ship."
+    "particulars": "Caught fire in the Bay of Biscay. 81 lives lost of 641 aboard. Most rescued by the brig Cambria. Captain Cobb was among the last to leave the burning ship.",
+    "is_curated": true
   },
   {
     "wreck_id": "eic_wreck:0013",
@@ -244,7 +256,8 @@
     "depth_estimate_m": 5,
     "tonnage": 755,
     "archive": "eic",
-    "particulars": "Driven ashore in Plymouth Sound during a gale. All rescued, largely due to Sir Edward Pellew (later Lord Exmouth)."
+    "particulars": "Driven ashore in Plymouth Sound during a gale. All rescued, largely due to Sir Edward Pellew (later Lord Exmouth).",
+    "is_curated": true
   },
   {
     "wreck_id": "eic_wreck:0014",
@@ -263,7 +276,8 @@
     "depth_estimate_m": null,
     "tonnage": 600,
     "archive": "eic",
-    "particulars": "An earlier ship of this name lost on the Indian coast."
+    "particulars": "An earlier ship of this name lost on the Indian coast.",
+    "is_curated": true
   },
   {
     "wreck_id": "eic_wreck:0015",
@@ -282,7 +296,8 @@
     "depth_estimate_m": null,
     "tonnage": 500,
     "archive": "eic",
-    "particulars": "Lost in a storm in the Mozambique Channel."
+    "particulars": "Lost in a storm in the Mozambique Channel.",
+    "is_curated": true
   },
   {
     "wreck_id": "eic_wreck:0016",
@@ -301,7 +316,8 @@
     "depth_estimate_m": null,
     "tonnage": 600,
     "archive": "eic",
-    "particulars": "Wrecked on the Malabar Coast during monsoon."
+    "particulars": "Wrecked on the Malabar Coast during monsoon.",
+    "is_curated": true
   },
   {
     "wreck_id": "eic_wreck:0017",
@@ -320,7 +336,8 @@
     "depth_estimate_m": null,
     "tonnage": 700,
     "archive": "eic",
-    "particulars": "Wrecked in the treacherous Sunda Strait."
+    "particulars": "Wrecked in the treacherous Sunda Strait.",
+    "is_curated": true
   },
   {
     "wreck_id": "eic_wreck:0018",
@@ -339,7 +356,8 @@
     "depth_estimate_m": null,
     "tonnage": 800,
     "archive": "eic",
-    "particulars": "Driven ashore in Table Bay during a severe gale."
+    "particulars": "Driven ashore in Table Bay during a severe gale.",
+    "is_curated": true
   },
   {
     "wreck_id": "eic_wreck:0019",
@@ -358,7 +376,8 @@
     "depth_estimate_m": null,
     "tonnage": 600,
     "archive": "eic",
-    "particulars": "Wrecked on the Natal coast during a storm."
+    "particulars": "Wrecked on the Natal coast during a storm.",
+    "is_curated": true
   },
   {
     "wreck_id": "eic_wreck:0020",
@@ -377,7 +396,8 @@
     "depth_estimate_m": null,
     "tonnage": 900,
     "archive": "eic",
-    "particulars": "Wrecked on the Bassas da India atoll in the Mozambique Channel."
+    "particulars": "Wrecked on the Bassas da India atoll in the Mozambique Channel.",
+    "is_curated": true
   },
   {
     "wreck_id": "eic_wreck:0021",
@@ -396,7 +416,8 @@
     "depth_estimate_m": null,
     "tonnage": 700,
     "archive": "eic",
-    "particulars": "Lost in a cyclone near Mauritius."
+    "particulars": "Lost in a cyclone near Mauritius.",
+    "is_curated": true
   },
   {
     "wreck_id": "eic_wreck:0022",
@@ -415,7 +436,8 @@
     "depth_estimate_m": null,
     "tonnage": 800,
     "archive": "eic",
-    "particulars": "Another casualty of the dangerous Sunda Strait passage."
+    "particulars": "Another casualty of the dangerous Sunda Strait passage.",
+    "is_curated": true
   },
   {
     "wreck_id": "eic_wreck:0023",
@@ -434,7 +456,8 @@
     "depth_estimate_m": null,
     "tonnage": 600,
     "archive": "eic",
-    "particulars": "Wrecked in a storm off Ceylon."
+    "particulars": "Wrecked in a storm off Ceylon.",
+    "is_curated": true
   },
   {
     "wreck_id": "eic_wreck:0024",
@@ -453,7 +476,8 @@
     "depth_estimate_m": null,
     "tonnage": 500,
     "archive": "eic",
-    "particulars": "Wrecked navigating the dangerous Torres Strait."
+    "particulars": "Wrecked navigating the dangerous Torres Strait.",
+    "is_curated": true
   },
   {
     "wreck_id": "eic_wreck:0025",
@@ -472,7 +496,8 @@
     "depth_estimate_m": null,
     "tonnage": 800,
     "archive": "eic",
-    "particulars": "Lost in a cyclone off the coast of Madagascar."
+    "particulars": "Lost in a cyclone off the coast of Madagascar.",
+    "is_curated": true
   },
   {
     "wreck_id": "eic_wreck:0026",
@@ -491,7 +516,8 @@
     "depth_estimate_m": null,
     "tonnage": 500,
     "archive": "eic",
-    "particulars": "Wrecked on Inaccessible Island. Crew survived on the island for months before rescue."
+    "particulars": "Wrecked on Inaccessible Island. Crew survived on the island for months before rescue.",
+    "is_curated": true
   },
   {
     "wreck_id": "eic_wreck:0027",
@@ -510,7 +536,8 @@
     "depth_estimate_m": null,
     "tonnage": 600,
     "archive": "eic",
-    "particulars": "Lost in a storm in the Kattegat while under convoy."
+    "particulars": "Lost in a storm in the Kattegat while under convoy.",
+    "is_curated": true
   },
   {
     "wreck_id": "eic_wreck:0028",
@@ -529,7 +556,8 @@
     "depth_estimate_m": null,
     "tonnage": 500,
     "archive": "eic",
-    "particulars": "Wrecked near the Horn of Africa."
+    "particulars": "Wrecked near the Horn of Africa.",
+    "is_curated": true
   },
   {
     "wreck_id": "eic_wreck:0029",
@@ -548,7 +576,8 @@
     "depth_estimate_m": null,
     "tonnage": 700,
     "archive": "eic",
-    "particulars": "Lost during monsoon off the Burmese coast."
+    "particulars": "Lost during monsoon off the Burmese coast.",
+    "is_curated": true
   },
   {
     "wreck_id": "eic_wreck:0030",
@@ -567,7 +596,8 @@
     "depth_estimate_m": null,
     "tonnage": 600,
     "archive": "eic",
-    "particulars": "Caught fire in the Indian Ocean. Crew took to the boats."
+    "particulars": "Caught fire in the Indian Ocean. Crew took to the boats.",
+    "is_curated": true
   },
   {
     "wreck_id": "eic_wreck:0031",
@@ -586,7 +616,8 @@
     "depth_estimate_m": null,
     "tonnage": 700,
     "archive": "eic",
-    "particulars": "Lost in a cyclone in the Bay of Bengal."
+    "particulars": "Lost in a cyclone in the Bay of Bengal.",
+    "is_curated": true
   },
   {
     "wreck_id": "eic_wreck:0032",
@@ -605,7 +636,8 @@
     "depth_estimate_m": null,
     "tonnage": 600,
     "archive": "eic",
-    "particulars": "Wrecked on a reef near Mauritius."
+    "particulars": "Wrecked on a reef near Mauritius.",
+    "is_curated": true
   },
   {
     "wreck_id": "eic_wreck:0033",
@@ -624,7 +656,8 @@
     "depth_estimate_m": null,
     "tonnage": 400,
     "archive": "eic",
-    "particulars": "Lost in a storm in the Arabian Sea."
+    "particulars": "Lost in a storm in the Arabian Sea.",
+    "is_curated": true
   },
   {
     "wreck_id": "eic_wreck:0034",
@@ -643,7 +676,8 @@
     "depth_estimate_m": null,
     "tonnage": 700,
     "archive": "eic",
-    "particulars": "Captured by a French privateer during the Napoleonic Wars."
+    "particulars": "Captured by a French privateer during the Napoleonic Wars.",
+    "is_curated": true
   },
   {
     "wreck_id": "eic_wreck:0035",
@@ -662,6 +696,7 @@
     "depth_estimate_m": null,
     "tonnage": 800,
     "archive": "eic",
-    "particulars": "Lost on the treacherous Agulhas Bank during a severe storm."
+    "particulars": "Lost on the treacherous Agulhas Bank during a severe storm.",
+    "is_curated": true
   }
 ]

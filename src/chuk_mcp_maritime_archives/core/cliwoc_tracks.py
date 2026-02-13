@@ -33,6 +33,7 @@ _TRACK_INDEX: dict[int, dict[str, Any]] = {}  # voyage_id -> track
 _DAS_INDEX: dict[str, dict[str, Any]] = {}  # das_number -> track
 _SHIP_NAME_INDEX: dict[str, list[dict[str, Any]]] = {}  # upper(ship_name) -> [tracks]
 _METADATA: dict[str, Any] = {}
+_FUZZY_INDEX: Any = None  # ShipNameIndex, built lazily
 
 
 # ---------------------------------------------------------------------------
@@ -251,49 +252,65 @@ def find_track_for_voyage(
     ship_name: str,
     departure_date: str | None = None,
     nationality: str = "NL",
-) -> dict[str, Any] | None:
+    min_confidence: float = 0.50,
+) -> tuple[dict[str, Any] | None, float]:
     """
-    Find a CLIWOC track matching a DAS voyage by ship name and date overlap.
+    Find a CLIWOC track matching a voyage by ship name and date overlap.
 
-    Tries DAS number index first (exact match), then ship name index with
-    date overlap filtering. Returns track summary (without positions) or None.
+    Uses fuzzy matching via entity resolution (Levenshtein + Soundex + date
+    proximity scoring). Returns ``(track_summary, confidence)`` where
+    confidence is 0.0-1.0.
 
     Args:
-        ship_name: Ship name from DAS voyage record
-        departure_date: Departure date (YYYY-MM-DD) for date overlap filtering
+        ship_name: Ship name from voyage record
+        departure_date: Departure date (YYYY-MM-DD) for date proximity scoring
         nationality: Expected nationality (default NL for DAS voyages)
+        min_confidence: Minimum confidence threshold (default 0.50)
+
+    Returns:
+        Tuple of (track_summary_dict_or_None, confidence_float).
     """
+    global _FUZZY_INDEX
+
     _load_tracks()
     if not ship_name:
-        return None
+        return None, 0.0
 
-    # Try ship name index (available with CLIWOC 2.1 Full)
-    candidates = _SHIP_NAME_INDEX.get(ship_name.upper(), [])
-    if not candidates:
-        return None
+    if not _TRACKS:
+        return None, 0.0
 
-    # Filter by nationality
-    candidates = [t for t in candidates if t.get("nationality") == nationality.upper()]
-    if not candidates:
-        return None
+    # Build fuzzy index lazily on first use
+    if _FUZZY_INDEX is None:
+        from .entity_resolution import ShipNameIndex
 
-    # If we have a departure date, find the track with best date overlap
-    if departure_date and len(departure_date) >= 4:
-        dep_year = int(departure_date[:4])
-        best = None
-        best_diff = 9999
-        for t in candidates:
-            t_start = t.get("year_start")
-            if t_start:
-                diff = abs(t_start - dep_year)
-                if diff < best_diff:
-                    best_diff = diff
-                    best = t
-        if best and best_diff <= 1:
-            return _track_summary(best)
+        _FUZZY_INDEX = ShipNameIndex(
+            records=_TRACKS,
+            name_field="ship_name",
+            id_field="voyage_id",
+        )
 
-    # Return first match if no date filtering or no close match
-    return _track_summary(candidates[0]) if candidates else None
+    matches = _FUZZY_INDEX.find_matches(
+        query_name=ship_name,
+        query_date=departure_date,
+        query_nationality=nationality,
+        min_confidence=min_confidence,
+        max_results=5,
+    )
+
+    if not matches:
+        return None, 0.0
+
+    # Return the best match
+    best = matches[0]
+    cid = best.candidate_id
+    try:
+        track = _TRACK_INDEX.get(int(cid)) if str(cid).isdigit() else None
+    except (ValueError, TypeError):
+        track = None
+    if track:
+        return _track_summary(track), best.confidence
+
+    return None, 0.0
 
 
 # ---------------------------------------------------------------------------

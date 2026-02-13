@@ -52,6 +52,7 @@ def build_voyages() -> list[dict]:
         rec = {
             "voyage_id": _vid(num),
             "archive": ARCHIVE,
+            "is_curated": True,
         }
         rec.update(kwargs)
         voyages.append(rec)
@@ -1952,6 +1953,7 @@ def _expand_galleon_voyages(
                     "cargo_description": cargo,
                     "fate": fate,
                     "particulars": f"Annual galleon crossing. {context}",
+                    "is_curated": False,
                 }
             )
             vid += 1
@@ -1984,6 +1986,7 @@ def build_wrecks(voyages: list[dict]) -> list[dict]:
         rec = {
             "wreck_id": _wid(num),
             "archive": ARCHIVE,
+            "is_curated": True,
         }
         rec.update(kwargs)
         wrecks.append(rec)
@@ -2499,6 +2502,7 @@ def build_wrecks(voyages: list[dict]) -> list[dict]:
             depth_estimate_m=None,
             tonnage=v.get("tonnage", 500),
             particulars=ctx,
+            is_curated=False,
         )
         wid += 1
 
