@@ -29,6 +29,7 @@ def register_wreck_tools(mcp: object, manager: object) -> None:
         min_cargo_value: float | None = None,
         flag: str | None = None,
         vessel_type: str | None = None,
+        gp_quality: int | None = None,
         archive: str | None = None,
         max_results: int = 100,
         cursor: str | None = None,
@@ -48,20 +49,22 @@ def register_wreck_tools(mcp: object, manager: object) -> None:
             - galleon: Spanish Manila Galleon wrecks, 1565-1815
             - soic: Swedish East India Company wrecks, 1731-1813
             - ukho: UK Hydrographic Office Global Wrecks, 1500-2024
+            - noaa: NOAA Wrecks & Obstructions (AWOIS), 1600-2024
 
         Args:
             ship_name: Ship name or partial name (case-insensitive)
             date_range: Date range as "YYYY/YYYY" or "YYYY-MM-DD/YYYY-MM-DD"
-            region: Geographic region filter (e.g., cape, pacific, indian_ocean)
+            region: Geographic region filter (e.g., cape, pacific, gulf_of_mexico)
             cause: Loss cause filter - storm, reef, fire, battle, grounding,
                 scuttled, collision, unknown
             status: Wreck discovery status - found, unfound, approximate
             min_depth_m: Minimum estimated depth in metres
             max_depth_m: Maximum estimated depth in metres
             min_cargo_value: Minimum cargo value in guilders
-            flag: Vessel nationality/flag (substring match, e.g. "UK", "NL")
+            flag: Vessel nationality/flag (substring match, e.g. "UK", "NL", "US")
             vessel_type: Vessel type classification (substring match, e.g. "liner", "warship")
-            archive: Restrict to specific archive - maarer, eic, carreira, galleon, soic, ukho (default: all)
+            gp_quality: NOAA position accuracy code (1=High, 2=Medium, 3=Low, 4=Poor)
+            archive: Restrict to specific archive - maarer, eic, carreira, galleon, soic, ukho, noaa (default: all)
             max_results: Maximum results per page (default: 100, max: 500)
             cursor: Pagination cursor from a previous result's next_cursor field
             output_mode: Response format - "json" (default) or "text"
@@ -77,6 +80,7 @@ def register_wreck_tools(mcp: object, manager: object) -> None:
             - Use maritime_export_geojson to map wreck positions
             - Use flag to filter by nationality (e.g. "UK", "NL", "US")
             - Use vessel_type to filter by ship classification (e.g. "liner", "warship")
+            - Use gp_quality=1 to find NOAA wrecks with high-accuracy positions
         """
         try:
             result = await manager.search_wrecks(  # type: ignore[union-attr]
@@ -90,6 +94,7 @@ def register_wreck_tools(mcp: object, manager: object) -> None:
                 min_cargo_value=min_cargo_value,
                 flag=flag,
                 vessel_type=vessel_type,
+                gp_quality=gp_quality,
                 archive=archive,
                 max_results=max_results,
                 cursor=cursor,

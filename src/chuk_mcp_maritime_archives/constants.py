@@ -13,7 +13,7 @@ from typing import Literal
 
 class ServerConfig(str, Enum):
     NAME = "chuk-mcp-maritime-archives"
-    VERSION = "0.11.0"
+    VERSION = "0.13.0"
     DESCRIPTION = "Historical Maritime Archives"
 
 
@@ -69,6 +69,7 @@ class ArchiveId(str, Enum):
     GALLEON = "galleon"
     SOIC = "soic"
     UKHO = "ukho"
+    NOAA = "noaa"
 
 
 ARCHIVE_METADATA: dict[str, dict] = {
@@ -248,6 +249,26 @@ ARCHIVE_METADATA: dict[str, dict] = {
         ),
         "license": "Open Government Licence v3.0",
     },
+    "noaa": {
+        "name": "NOAA Wrecks & Obstructions (AWOIS)",
+        "organisation": "National Oceanic and Atmospheric Administration",
+        "coverage_start": "1600",
+        "coverage_end": "2024",
+        "record_types": ["wrecks"],
+        "total_wrecks": 13000,
+        "access_method": "rest_api",
+        "documentation_url": "https://nauticalcharts.noaa.gov/data/wrecks-and-obstructions.html",
+        "description": (
+            "Automated Wreck and Obstruction Information System (AWOIS). "
+            "Contains ~13,000 wrecks in US coastal waters with position "
+            "quality codes, depths, and vessel information. Public domain."
+        ),
+        "citation": (
+            "NOAA Office of Coast Survey. Automated Wreck and Obstruction "
+            "Information System (AWOIS). US Department of Commerce."
+        ),
+        "license": "Public Domain (US Government)",
+    },
 }
 
 
@@ -282,6 +303,8 @@ REGIONS: dict[str, str] = {
     "baltic": "Baltic Sea",
     "north_pacific": "North Pacific Ocean",
     "australia_nz": "Australia and New Zealand waters",
+    "gulf_of_mexico": "Gulf of Mexico",
+    "great_lakes": "Great Lakes",
 }
 
 
@@ -411,7 +434,7 @@ DEFAULT_ARCHIVE: str = "das"
 
 
 ArchiveName = Literal[
-    "das", "voc_crew", "voc_cargo", "maarer", "eic", "carreira", "galleon", "soic", "ukho"
+    "das", "voc_crew", "voc_cargo", "maarer", "eic", "carreira", "galleon", "soic", "ukho", "noaa"
 ]
 RegionName = Literal[
     "north_sea",
@@ -441,6 +464,8 @@ RegionName = Literal[
     "baltic",
     "north_pacific",
     "australia_nz",
+    "gulf_of_mexico",
+    "great_lakes",
 ]
 
 
@@ -503,3 +528,4 @@ class SuccessMessages:
     LOCATIONS_FOUND = "Found {} locations"
     EXPORT_COMPLETE = "Exported {} wreck positions to GeoJSON"
     STATISTICS_COMPLETE = "Statistics for {} losses across {} years"
+    NARRATIVES_FOUND = "Found {} narrative matches for '{}'"

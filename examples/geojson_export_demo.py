@@ -5,8 +5,8 @@ GeoJSON Export Demo -- chuk-mcp-maritime-archives
 Export wreck positions as GeoJSON FeatureCollection for mapping
 and GIS analysis. Shows filtering by region, status, archive, and
 specific wreck IDs, plus the optional uncertainty and voyage data
-properties. Includes wrecks from all 6 wreck archives (MAARER,
-EIC, Carreira, Galleon, SOIC, UKHO).
+properties. Includes wrecks from all 7 wreck archives (MAARER,
+EIC, Carreira, Galleon, SOIC, UKHO, NOAA).
 
 Demonstrates:
     maritime_export_geojson (multiple filter combinations)

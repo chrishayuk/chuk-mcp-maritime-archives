@@ -38,7 +38,7 @@ message templates are all constants -- never inline strings.
 
 ### 5. Data Source Clients
 
-Nine archive clients extend `BaseArchiveClient`, each loading from local JSON:
+Ten archive clients extend `BaseArchiveClient`, each loading from local JSON:
 
 **Core archives (Dutch):**
 - `DASClient` -- Dutch Asiatic Shipping voyages and vessels (8,194 voyages)
@@ -52,10 +52,11 @@ Nine archive clients extend `BaseArchiveClient`, each loading from local JSON:
 - `GalleonClient` -- Spanish Manila Galleon (~250 voyages, ~42 wrecks)
 - `SOICClient` -- Swedish East India Company (~132 voyages, ~20 wrecks)
 - `UKHOClient` -- UK Hydrographic Office global wrecks (94,000+ wrecks, wrecks-only)
+- `NOAAClient` -- NOAA Automated Wreck and Obstruction Information System (AWOIS) wrecks (wrecks-only)
 
 Each multi-nation client handles both voyages and wrecks in a single class, with
 `search()`, `get_by_id()`, `search_wrecks()`, and `get_wreck_by_id()` methods.
-`UKHOClient` is wrecks-only -- `search()` and `get_by_id()` delegate to wreck methods.
+`UKHOClient` and `NOAAClient` are wrecks-only -- `search()` and `get_by_id()` delegate to wreck methods.
 
 Reference data modules load from JSON files in `data/`:
 - `voc_gazetteer` -- ~160 historical place names from `data/gazetteer.json`
@@ -63,7 +64,7 @@ Reference data modules load from JSON files in `data/`:
 - `hull_profiles` -- 6 ship type profiles from `data/hull_profiles.json`
 - `speed_profiles` -- 215 speed profiles across 6 routes from `data/speed_profiles.json`
 
-`ArchiveManager` instantiates all 9 clients at startup and uses `_voyage_clients`
+`ArchiveManager` instantiates all 10 clients at startup and uses `_voyage_clients`
 and `_wreck_clients` dispatch dicts to route queries by archive ID.
 
 ### 6. LRU Caching
@@ -107,12 +108,16 @@ for instant crew member retrieval across 774K records.
 
 `ArchiveManager` routes queries to the correct client via dispatch dicts:
 - `_voyage_clients`: maps archive IDs (das, eic, carreira, galleon, soic) to voyage clients
-- `_wreck_clients`: maps archive IDs (maarer, eic, carreira, galleon, soic, ukho) to wreck clients
+- `_wreck_clients`: maps archive IDs (maarer, eic, carreira, galleon, soic, ukho, noaa) to wreck clients
 
 When `archive` is specified, the query goes to a single client. When omitted, all clients
 are queried and results are aggregated. Prefixed IDs (e.g. `eic:0062`) are parsed to route
-`get_by_id()` calls to the correct client. CLIWOC nationality cross-referencing maps
-archive IDs to nationality codes (das→NL, eic→UK, carreira→PT, galleon→ES, soic→SE).
+`get_by_id()` calls to the correct client. Wreck IDs use compound prefixes routed via a
+prefix list: `("eic_wreck:", self._eic_client)`, `("carreira_wreck:", self._carreira_client)`,
+`("galleon_wreck:", self._galleon_client)`, `("soic_wreck:", self._soic_client)`,
+`("ukho_wreck:", self._ukho_client)`, `("noaa_wreck:", self._noaa_client)`. CLIWOC nationality
+cross-referencing maps archive IDs to nationality codes (das→NL, eic→UK, carreira→PT,
+galleon→ES, soic→SE).
 
 ### 10. Reproducible Data Pipeline
 
@@ -128,7 +133,7 @@ All data files in `data/` are produced by scripts in `scripts/`:
 
 ### 11. Test Coverage -- 97%+
 
-All modules maintain 97%+ branch coverage (616 tests across 13 test modules). Tests use
+All modules maintain 97%+ branch coverage (647 tests across 13 test modules). Tests use
 `pytest-asyncio` and mock at the client data boundary (`_load_json`), not at the manager
 level, to exercise the full data flow from tool to client.
 
@@ -150,6 +155,7 @@ level, to exercise the full data flow from tool to client.
                         |  tracks/ linking/   |
                         |  speed/ timeline/   |
                         |  position/ export/  |
+                        |  narratives/        |
                         |  discovery/         |
                         +---------------------+
                                     |
@@ -176,7 +182,8 @@ level, to exercise the full data flow from tool to client.
          | voyages.json, vessels.json, wrecks.json,  |
          | eic_voyages.json, eic_wrecks.json,        |
          | carreira_voyages.json, galleon_voyages.json|
-         | soic_voyages.json, crew.json, cargo.json  |
+         | soic_voyages.json, noaa_wrecks.json,       |
+         | crew.json, cargo.json                      |
          +-------------------------------------------+
 
          +------+ +------+ +------+ +------+ +------+
@@ -213,6 +220,7 @@ server.py                           # CLI entry point (sync)
   |     +-- tools/timeline/api.py         # maritime_get_timeline
   |     +-- tools/position/api.py         # maritime_assess_position
   |     +-- tools/export/api.py           # maritime_export_geojson, maritime_get_statistics
+  |     +-- tools/narratives/api.py       # maritime_search_narratives
   |     +-- tools/discovery/api.py        # maritime_capabilities
   |     +-- core/archive_manager.py       # Central orchestrator, multi-archive dispatch
   |           +-- core/clients/das_client.py       # DAS voyages + vessels (local JSON)
@@ -224,6 +232,7 @@ server.py                           # CLI entry point (sync)
   |           +-- core/clients/galleon_client.py   # Galleon voyages + wrecks (local JSON)
   |           +-- core/clients/soic_client.py      # SOIC voyages + wrecks (local JSON)
   |           +-- core/clients/ukho_client.py      # UKHO global wrecks (local JSON)
+  |           +-- core/clients/noaa_client.py      # NOAA AWOIS wrecks (local JSON)
   |           +-- core/hull_profiles.py            # Hull profiles (data/hull_profiles.json)
   |           +-- core/voc_gazetteer.py            # VOC gazetteer (data/gazetteer.json)
   |           +-- core/voc_routes.py               # VOC routes (data/routes.json)
@@ -266,6 +275,7 @@ src/chuk_mcp_maritime_archives/
 |       +-- galleon_client.py    # Galleon voyages + wrecks (local JSON)
 |       +-- soic_client.py       # SOIC voyages + wrecks (local JSON)
 |       +-- ukho_client.py       # UKHO global wrecks (local JSON)
+|       +-- noaa_client.py       # NOAA AWOIS wrecks (local JSON)
 +-- models/
 |   +-- __init__.py
 |   +-- maritime.py    # Domain models (extra="allow")
@@ -286,6 +296,7 @@ src/chuk_mcp_maritime_archives/
     +-- timeline/      # maritime_get_timeline
     +-- position/      # maritime_assess_position
     +-- export/        # maritime_export_geojson, maritime_get_statistics
+    +-- narratives/    # maritime_search_narratives
     +-- discovery/     # maritime_capabilities
 ```
 
@@ -319,14 +330,14 @@ Falls back silently if the store is unavailable or any download fails.
 ### `async_server.py`
 
 Creates the `ChukMCPServer` MCP instance, instantiates `ArchiveManager`, and registers
-all tool groups (15 categories, 29 tools). Each tool module receives the MCP instance
+all tool groups (16 categories, 30 tools). Each tool module receives the MCP instance
 and the shared `ArchiveManager`.
 
 ### `core/archive_manager.py`
 
 The central orchestrator. Manages:
-- **Archive registry**: static metadata for all 9 archives
-- **Data source clients**: 9 clients (DAS, Crew, Cargo, Wreck, EIC, Carreira, Galleon, SOIC, UKHO)
+- **Archive registry**: static metadata for all 10 archives
+- **Data source clients**: 10 clients (DAS, Crew, Cargo, Wreck, EIC, Carreira, Galleon, SOIC, UKHO, NOAA)
 - **Multi-archive dispatch**: `_voyage_clients` and `_wreck_clients` dicts route by archive ID
 - **LRU caches**: OrderedDict caches for voyages, wrecks, and vessels
 - **Hull profile lookups**: static reference data for 6 VOC ship types
@@ -335,6 +346,7 @@ The central orchestrator. Manages:
 - **Position assessment**: navigation era detection, uncertainty estimation
 - **GeoJSON export**: wreck position FeatureCollection generation
 - **Aggregate statistics**: loss statistics computed from wreck data
+- **Narrative search**: full-text search across all free-text fields with snippet extraction
 
 ### `core/clients/base.py`
 
@@ -399,6 +411,13 @@ via `scripts/generate_ukho.py`). Wrecks-only archive — no voyage data. `search
 and `get_by_id()` delegate to `search_wrecks()` and `get_wreck_by_id()`. Supports
 additional filter parameters `flag` (nationality) and `vessel_type`. Uses lazy-built
 `_wreck_index` for O(1) lookups across 94K records.
+
+### `core/clients/noaa_client.py`
+
+Client for the NOAA Automated Wreck and Obstruction Information System (AWOIS)
+(`data/noaa_wrecks.json`). Wrecks-only archive -- no voyage data. `search()`
+and `get_by_id()` delegate to `search_wrecks()` and `get_wreck_by_id()`. Uses
+lazy-built `_wreck_index` for O(1) lookups.
 
 ### `core/hull_profiles.py`
 
@@ -589,6 +608,6 @@ of truth in version-controlled JSON files that can be regenerated or edited dire
 
 Position assessment uses `NAVIGATION_ERAS` from constants to determine the navigation
 technology available in a given year. Six eras span 1595-1880, covering the full range
-of all 9 archives. The era determines the baseline position uncertainty (30km for
+of all 10 archives. The era determines the baseline position uncertainty (30km for
 1595-1650 down to 2km for 1840-1880), which is then adjusted based on the source
 description keywords.

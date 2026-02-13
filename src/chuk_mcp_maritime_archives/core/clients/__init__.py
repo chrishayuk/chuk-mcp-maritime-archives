@@ -7,6 +7,7 @@ from .crew_client import CrewClient
 from .das_client import DASClient
 from .eic_client import EICClient
 from .galleon_client import GalleonClient
+from .noaa_client import NOAAClient
 from .soic_client import SOICClient
 from .ukho_client import UKHOClient
 from .wreck_client import WreckClient
@@ -19,6 +20,7 @@ __all__ = [
     "DASClient",
     "EICClient",
     "GalleonClient",
+    "NOAAClient",
     "SOICClient",
     "UKHOClient",
     "WreckClient",

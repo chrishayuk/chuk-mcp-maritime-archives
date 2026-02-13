@@ -29,6 +29,7 @@ from .clients import (
     DASClient,
     EICClient,
     GalleonClient,
+    NOAAClient,
     SOICClient,
     UKHOClient,
     WreckClient,
@@ -96,6 +97,7 @@ class ArchiveManager:
         self._galleon_client = GalleonClient(data_dir=data_path)
         self._soic_client = SOICClient(data_dir=data_path)
         self._ukho_client = UKHOClient(data_dir=data_path)
+        self._noaa_client = NOAAClient(data_dir=data_path)
 
         # Multi-archive dispatch: archive ID -> voyage client
         self._voyage_clients: dict[str, Any] = {
@@ -114,6 +116,7 @@ class ArchiveManager:
             "galleon": self._galleon_client,
             "soic": self._soic_client,
             "ukho": self._ukho_client,
+            "noaa": self._noaa_client,
         }
 
     # --- Pagination Helper --------------------------------------------------
@@ -501,6 +504,7 @@ class ArchiveManager:
         min_cargo_value: float | None = None,
         flag: str | None = None,
         vessel_type: str | None = None,
+        gp_quality: int | None = None,
         archive: str | None = None,
         max_results: int = 100,
         cursor: str | None = None,
@@ -517,6 +521,7 @@ class ArchiveManager:
             min_cargo_value=min_cargo_value,
             flag=flag,
             vessel_type=vessel_type,
+            gp_quality=gp_quality,
             max_results=_FETCH_ALL,
         )
 
@@ -554,12 +559,161 @@ class ArchiveManager:
             ("galleon_wreck:", self._galleon_client),
             ("soic_wreck:", self._soic_client),
             ("ukho_wreck:", self._ukho_client),
+            ("noaa_wreck:", self._noaa_client),
         ]:
             if wreck_id.startswith(prefix):
                 return await client.get_wreck_by_id(wreck_id)
 
         # Default to MAARER
         return await self._wreck_client.get_by_id(wreck_id)
+
+    # --- Narrative Search ---------------------------------------------------
+
+    @staticmethod
+    def _parse_query_terms(query: str) -> list[str]:
+        """Parse a query string into terms, respecting quoted phrases."""
+        terms: list[str] = []
+        remaining = query.strip()
+        while remaining:
+            if remaining[0] == '"':
+                end = remaining.find('"', 1)
+                if end == -1:
+                    # Unmatched quote — treat rest as one term
+                    terms.append(remaining[1:].strip())
+                    break
+                terms.append(remaining[1:end])
+                remaining = remaining[end + 1 :].strip()
+            else:
+                parts = remaining.split(None, 1)
+                terms.append(parts[0])
+                remaining = parts[1] if len(parts) > 1 else ""
+        return [t for t in terms if t]
+
+    @staticmethod
+    def _extract_snippet(text: str, terms: list[str], max_len: int = 200) -> str:
+        """Extract a snippet around the first matching term."""
+        text_lower = text.lower()
+        best_pos = len(text)
+        for term in terms:
+            pos = text_lower.find(term.lower())
+            if pos != -1 and pos < best_pos:
+                best_pos = pos
+        if best_pos == len(text):
+            # No exact match found; return start of text
+            return text[:max_len].strip()
+        # Centre the snippet around the match
+        half = max_len // 2
+        start = max(0, best_pos - half)
+        end = min(len(text), start + max_len)
+        return text[start:end].strip()
+
+    @staticmethod
+    def _count_matches(text_lower: str, terms_lower: list[str]) -> int:
+        """Count total occurrences of all terms in lowered text."""
+        count = 0
+        for term in terms_lower:
+            start = 0
+            while True:
+                pos = text_lower.find(term, start)
+                if pos == -1:
+                    break
+                count += 1
+                start = pos + len(term)
+        return count
+
+    async def search_narratives(
+        self,
+        query: str,
+        record_type: str | None = None,
+        archive: str | None = None,
+        max_results: int = 50,
+        cursor: str | None = None,
+    ) -> PaginatedResult:
+        """
+        Search free-text narrative fields across all archives.
+
+        Scans voyage ``particulars`` and wreck ``particulars`` / ``loss_location``
+        fields for matching terms.  All query terms must be present (AND logic).
+        Quoted phrases are matched exactly.
+        """
+        terms = self._parse_query_terms(query)
+        if not terms:
+            return PaginatedResult(items=[], total_count=0, next_cursor=None, has_more=False)
+
+        terms_lower = [t.lower() for t in terms]
+        hits: list[dict] = []
+
+        # --- Scan voyages ---
+        if record_type in (None, "voyage"):
+            voyage_clients = (
+                {archive: self._voyage_clients[archive]}
+                if archive and archive in self._voyage_clients
+                else (
+                    {} if archive and archive not in self._voyage_clients else self._voyage_clients
+                )
+            )
+            for arc_id, client in voyage_clients.items():
+                voyages = await client.search(max_results=_FETCH_ALL)
+                for v in voyages:
+                    text = v.get("particulars") or ""
+                    if not text:
+                        continue
+                    text_lower = text.lower()
+                    # All terms must be present (AND logic)
+                    if not all(t in text_lower for t in terms_lower):
+                        continue
+                    match_count = self._count_matches(text_lower, terms_lower)
+                    hits.append(
+                        {
+                            "record_id": v.get("voyage_id", ""),
+                            "record_type": "voyage",
+                            "archive": arc_id,
+                            "ship_name": v.get("ship_name", "Unknown"),
+                            "date": v.get("departure_date"),
+                            "field": "particulars",
+                            "snippet": self._extract_snippet(text, terms),
+                            "match_count": match_count,
+                        }
+                    )
+
+        # --- Scan wrecks ---
+        if record_type in (None, "wreck"):
+            wreck_clients = (
+                {archive: self._wreck_clients[archive]}
+                if archive and archive in self._wreck_clients
+                else ({} if archive and archive not in self._wreck_clients else self._wreck_clients)
+            )
+            for arc_id, client in wreck_clients.items():
+                if hasattr(client, "search_wrecks"):
+                    wrecks = await client.search_wrecks(max_results=_FETCH_ALL)
+                else:
+                    wrecks = await client.search(max_results=_FETCH_ALL)
+                for w in wrecks:
+                    # Check both narrative fields
+                    for field_name in ("particulars", "loss_location"):
+                        text = w.get(field_name) or ""
+                        if not text:
+                            continue
+                        text_lower = text.lower()
+                        if not all(t in text_lower for t in terms_lower):
+                            continue
+                        match_count = self._count_matches(text_lower, terms_lower)
+                        hits.append(
+                            {
+                                "record_id": w.get("wreck_id", ""),
+                                "record_type": "wreck",
+                                "archive": arc_id,
+                                "ship_name": w.get("ship_name", "Unknown"),
+                                "date": w.get("loss_date"),
+                                "field": field_name,
+                                "snippet": self._extract_snippet(text, terms),
+                                "match_count": match_count,
+                            }
+                        )
+
+        # Sort by relevance (match count desc), then date
+        hits.sort(key=lambda h: (-h["match_count"], h.get("date") or "9999"))
+        return self._paginate(hits, max_results, cursor)
 
     # --- Vessel Operations --------------------------------------------------
 

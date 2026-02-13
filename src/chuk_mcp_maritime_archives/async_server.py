@@ -17,6 +17,7 @@ from .tools import (
     register_export_tools,
     register_linking_tools,
     register_location_tools,
+    register_narrative_tools,
     register_position_tools,
     register_route_tools,
     register_speed_tools,
@@ -45,4 +46,5 @@ register_tracks_tools(mcp, manager)
 register_linking_tools(mcp, manager)
 register_speed_tools(mcp, manager)
 register_timeline_tools(mcp, manager)
+register_narrative_tools(mcp, manager)
 register_discovery_tools(mcp, manager)

@@ -56,11 +56,13 @@ def main() -> None:
         "download_cargo.py",  # BGB cargo from Huygens/Zenodo
         "download_eic.py",  # EIC from ThreeDecks / curated
         "download_ukho.py",  # UKHO Global Wrecks from EMODnet (~94K records)
+        "download_noaa.py",  # NOAA AWOIS wrecks from ArcGIS (~13K records)
         # Curated data generation
         "generate_carreira.py",  # Portuguese Carreira da India
         "generate_galleon.py",  # Spanish Manila Galleon
         "generate_soic.py",  # Swedish East India Company
         "generate_ukho.py",  # UKHO curated fallback subset
+        "generate_noaa.py",  # NOAA curated fallback subset
         # Reference data
         "generate_reference.py",  # Gazetteer, routes, hull profiles
         "generate_speed_profiles.py",  # CLIWOC-derived speed statistics

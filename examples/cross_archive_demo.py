@@ -91,7 +91,7 @@ async def main() -> None:
 
     print("=" * 70)
     print("  CROSS-ARCHIVE LINKING DEMO")
-    print("  Unified voyage views across 9 maritime archives")
+    print("  Unified voyage views across 10 maritime archives")
     print("=" * 70)
 
     # ---- 1: EIC - Earl of Abergavenny (offline) -------------------------
@@ -184,7 +184,7 @@ async def main() -> None:
     print()
     print("  maritime_get_voyage_full assembles unified views from:")
     print("    - 5 voyage archives (DAS, EIC, Carreira, Galleon, SOIC)")
-    print("    - 6 wreck archives  (MAARER, EIC, Carreira, Galleon, SOIC, UKHO)")
+    print("    - 7 wreck archives  (MAARER, EIC, Carreira, Galleon, SOIC, UKHO, NOAA)")
     print("    - DAS vessel registry + hull profiles")
     print("    - CLIWOC 2.1 ship tracks (linked by nationality)")
     print()

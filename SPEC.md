@@ -1,6 +1,6 @@
 # chuk-mcp-maritime-archives Specification
 
-Version 0.11.0
+Version 0.13.0
 
 ## Overview
 
@@ -8,10 +8,10 @@ chuk-mcp-maritime-archives is an MCP (Model Context Protocol) server that provid
 structured access to historical maritime shipping records, vessel specifications,
 crew muster rolls, cargo manifests, and shipwreck databases from the Age of Exploration
 through the colonial era and beyond, 1497-2024. Covers Dutch (VOC), English (EIC), Portuguese
-(Carreira da India), Spanish (Manila Galleon), Swedish (SOIC), and UK Hydrographic Office (UKHO) maritime archives.
+(Carreira da India), Spanish (Manila Galleon), Swedish (SOIC), UK Hydrographic Office (UKHO), and NOAA maritime archives.
 
-- **29 tools** for searching, retrieving, analysing, and exporting maritime archival data
-- **Cursor-based pagination** -- all 6 search tools support `cursor` / `next_cursor` / `has_more` for paging through large result sets
+- **30 tools** for searching, retrieving, analysing, and exporting maritime archival data
+- **Cursor-based pagination** -- all 8 search tools support `cursor` / `next_cursor` / `has_more` for paging through large result sets
 - **Dual output mode** -- all tools return JSON (default) or human-readable text via `output_mode` parameter
 - **Async-first** -- tool entry points are async; sync HTTP I/O runs in thread pools
 - **Pluggable storage** -- exported data stored via chuk-artifacts (memory, filesystem, S3)
@@ -29,6 +29,7 @@ through the colonial era and beyond, 1497-2024. Covers Dutch (VOC), English (EIC
 | `galleon` | Spanish Manila Galleon | Curated + expanded from Schurz | ~250 voyages, ~42 wrecks | 1565-1815 | voyages, wrecks |
 | `soic` | Swedish East India Company | Curated + expanded from Koninckx | ~132 voyages, ~20 wrecks | 1731-1813 | voyages, wrecks |
 | `ukho` | UK Hydrographic Office Global Wrecks | UK Hydrographic Office via EMODnet | 94,000+ wrecks | 1500-2024 | wrecks |
+| `noaa` | NOAA Wrecks and Obstructions | NOAA Office of Coast Survey | 10,000+ wrecks | 1500-2024 | wrecks |
 
 > **Note on data completeness:** The EIC, Carreira, Galleon, and SOIC archives are curated datasets compiled from published academic sources. Carreira, Galleon, and SOIC include programmatically expanded records covering the full historical period. VOC Crew data requires running `scripts/download_crew.py` to download from the Nationaal Archief (774K records, ~80 MB). Cargo and EIC have download scripts for future expansion from external sources.
 
@@ -45,8 +46,9 @@ through the colonial era and beyond, 1497-2024. Covers Dutch (VOC), English (EIC
 | Galleon | Schurz published sources | Local JSON via `generate_galleon.py` |
 | SOIC | Koninckx published sources | Local JSON via `generate_soic.py` |
 | UKHO | EMODnet Human Activities portal | Bulk download via `download_ukho.py` + `generate_ukho.py` fallback |
+| NOAA | NOAA ENC Direct API | REST API via `download_noaa.py` + `generate_noaa.py` fallback |
 
-All archives except DAS and UKHO work entirely offline with local JSON data. DAS data is
+All archives except DAS, UKHO, and NOAA work entirely offline with local JSON data. DAS data is
 cached locally after first download. VOC Crew requires running `download_crew.py`
 to fetch the 774K-record dataset. All scripts support `--force` for re-download.
 
@@ -90,7 +92,7 @@ Get detailed metadata for a specific archive.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `archive_id` | `str` | *required* | Archive identifier: `das`, `voc_crew`, `voc_cargo`, `maarer`, `eic`, `carreira`, `galleon`, `soic`, `ukho` |
+| `archive_id` | `str` | *required* | Archive identifier: `das`, `voc_crew`, `voc_cargo`, `maarer`, `eic`, `carreira`, `galleon`, `soic`, `ukho`, `noaa` |
 
 **Response:** `ArchiveDetailResponse`
 
@@ -175,6 +177,7 @@ Search shipwreck and loss records across all archives.
 | `min_cargo_value` | `float?` | `None` | Minimum cargo value in guilders |
 | `flag` | `str?` | `None` | Vessel nationality/flag (substring match, UKHO data) |
 | `vessel_type` | `str?` | `None` | Vessel type classification (substring match, UKHO data) |
+| `gp_quality` | `str?` | `None` | Geographic position quality: `surveyed`, `approximate`, `reported` (NOAA data) |
 | `archive` | `str?` | `None` | Limit to specific archive |
 | `max_results` | `int` | `100` | Maximum results per page (max: 500) |
 | `cursor` | `str?` | `None` | Pagination cursor from a previous result's `next_cursor` field |
@@ -201,7 +204,7 @@ Get full details for a specific wreck by ID.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `wreck_id` | `str` | *required* | Wreck identifier (e.g., `maarer:VOC-0789`, `eic_wreck:0010`, `carreira_wreck:0001`, `galleon_wreck:0001`, `soic_wreck:0001`, `ukho_wreck:00001`) |
+| `wreck_id` | `str` | *required* | Wreck identifier (e.g., `maarer:VOC-0789`, `eic_wreck:0010`, `carreira_wreck:0001`, `galleon_wreck:0001`, `soic_wreck:0001`, `ukho_wreck:00001`, `noaa_wreck:00001`) |
 
 **Response:** `WreckDetailResponse`
 
@@ -893,6 +896,53 @@ Get aggregate loss statistics across archives.
 
 ---
 
+### Narrative Search Tool
+
+#### `maritime_search_narratives`
+
+Search free-text narrative content across all maritime archives. Searches voyage
+`particulars`, wreck `particulars`, and wreck `loss_location` fields. All query
+terms must be present (AND logic). Quoted phrases are matched exactly.
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `query` | `str` | *required* | Search text: keywords or quoted phrases (e.g. `"monsoon"`, `'"Cape of Good Hope"'`) |
+| `record_type` | `str?` | `None` | Limit to `"voyage"` or `"wreck"` (default: both) |
+| `archive` | `str?` | `None` | Restrict to a specific archive ID |
+| `max_results` | `int` | `50` | Maximum results per page (max: 500) |
+| `cursor` | `str?` | `None` | Pagination cursor from a previous result's `next_cursor` field |
+
+**Response:** `NarrativeSearchResponse`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `result_count` | `int` | Number of results on this page |
+| `results` | `NarrativeHit[]` | Matching narrative excerpts |
+| `query` | `str` | Query used |
+| `record_type` | `str?` | Record type filter applied |
+| `archive` | `str?` | Archive filter applied |
+| `total_count` | `int?` | Total matching records across all pages |
+| `next_cursor` | `str?` | Cursor for next page (null if no more pages) |
+| `has_more` | `bool` | Whether more pages are available |
+| `message` | `str` | Result message |
+
+**NarrativeHit fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `record_id` | `str` | Voyage ID or wreck ID |
+| `record_type` | `str` | `"voyage"` or `"wreck"` |
+| `archive` | `str` | Archive ID |
+| `ship_name` | `str` | Ship name |
+| `date` | `str?` | Departure date (voyages) or loss date (wrecks) |
+| `field` | `str` | Field that matched (e.g. `"particulars"`, `"loss_location"`) |
+| `snippet` | `str` | ~200-char text snippet with match context |
+| `match_count` | `int` | Number of term occurrences in this record |
+
+---
+
 ### Discovery Tool
 
 #### `maritime_capabilities`
@@ -970,6 +1020,8 @@ Each ship type includes full hydrodynamic profiles for drift modelling:
 | `pacific` | Pacific Ocean |
 | `japan` | Japanese waters |
 | `caribbean` | Caribbean Sea |
+| `gulf_of_mexico` | Gulf of Mexico |
+| `great_lakes` | Great Lakes |
 | `north_atlantic` | North Atlantic Ocean |
 | `mediterranean` | Mediterranean Sea |
 | `baltic` | Baltic Sea |
@@ -1047,7 +1099,7 @@ All tools return `ErrorResponse` on failure:
 
 ```json
 {
-  "error": "Archive 'invalid' not found. Available: das, voc_crew, voc_cargo, maarer, eic, carreira, galleon, soic, ukho",
+  "error": "Archive 'invalid' not found. Available: das, voc_crew, voc_cargo, maarer, eic, carreira, galleon, soic, ukho, noaa",
   "message": ""
 }
 ```

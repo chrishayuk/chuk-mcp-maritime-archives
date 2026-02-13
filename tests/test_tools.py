@@ -11,6 +11,7 @@ from .conftest import (
     MockMCPServer,
     SAMPLE_CARGO,
     SAMPLE_CREW,
+    SAMPLE_NARRATIVE_HITS,
     SAMPLE_VESSELS,
     SAMPLE_VOYAGES,
     SAMPLE_WRECKS,
@@ -42,6 +43,7 @@ def mock_manager() -> MagicMock:
     mgr.get_crew_member = AsyncMock(return_value=SAMPLE_CREW[0])
     mgr.search_cargo = AsyncMock(return_value=_paginated(SAMPLE_CARGO))
     mgr.get_cargo_manifest = AsyncMock(return_value=SAMPLE_CARGO)
+    mgr.search_narratives = AsyncMock(return_value=_paginated(SAMPLE_NARRATIVE_HITS))
     mgr.assess_position = AsyncMock(
         return_value={
             "assessment": {
@@ -768,3 +770,81 @@ class TestPagination:
         parsed = json.loads(result)
         assert parsed["has_more"] is False
         assert "next_cursor" not in parsed  # excluded by exclude_none=True
+
+
+# ---------------------------------------------------------------------------
+# Narrative tools
+# ---------------------------------------------------------------------------
+
+
+class TestNarrativeTools:
+    @pytest.fixture(autouse=True)
+    def _register(self, mock_mcp, mock_manager):
+        from chuk_mcp_maritime_archives.tools.narratives.api import register_narrative_tools
+
+        register_narrative_tools(mock_mcp, mock_manager)
+        self.mcp = mock_mcp
+        self.mgr = mock_manager
+
+    @pytest.mark.asyncio
+    async def test_search_narratives_success(self):
+        fn = self.mcp.get_tool("maritime_search_narratives")
+        result = await fn(query="wrecked")
+        parsed = json.loads(result)
+        assert parsed["result_count"] == 2
+        assert len(parsed["results"]) == 2
+        assert parsed["results"][0]["record_id"] == "das:3456"
+        assert parsed["query"] == "wrecked"
+
+    @pytest.mark.asyncio
+    async def test_search_narratives_no_results(self):
+        self.mgr.search_narratives.return_value = _paginated([])
+        fn = self.mcp.get_tool("maritime_search_narratives")
+        result = await fn(query="xyznonexistent")
+        parsed = json.loads(result)
+        assert "error" in parsed
+
+    @pytest.mark.asyncio
+    async def test_search_narratives_text_mode(self):
+        fn = self.mcp.get_tool("maritime_search_narratives")
+        result = await fn(query="wrecked", output_mode="text")
+        assert "Batavia" in result
+        assert "Abergavenny" in result
+
+    @pytest.mark.asyncio
+    async def test_search_narratives_error(self):
+        self.mgr.search_narratives.side_effect = RuntimeError("search failed")
+        fn = self.mcp.get_tool("maritime_search_narratives")
+        result = await fn(query="test")
+        parsed = json.loads(result)
+        assert "search failed" in parsed["error"]
+
+    @pytest.mark.asyncio
+    async def test_search_narratives_with_filters(self):
+        fn = self.mcp.get_tool("maritime_search_narratives")
+        result = await fn(query="wrecked", record_type="voyage", archive="das")
+        parsed = json.loads(result)
+        assert parsed["record_type"] == "voyage"
+        assert parsed["archive"] == "das"
+        self.mgr.search_narratives.assert_called_once_with(
+            query="wrecked",
+            record_type="voyage",
+            archive="das",
+            max_results=50,
+            cursor=None,
+        )
+
+    @pytest.mark.asyncio
+    async def test_search_narratives_pagination(self):
+        self.mgr.search_narratives.return_value = PaginatedResult(
+            items=SAMPLE_NARRATIVE_HITS[:1],
+            total_count=2,
+            next_cursor="eyJvIjoxfQ",
+            has_more=True,
+        )
+        fn = self.mcp.get_tool("maritime_search_narratives")
+        result = await fn(query="wrecked", max_results=1)
+        parsed = json.loads(result)
+        assert parsed["total_count"] == 2
+        assert parsed["has_more"] is True
+        assert parsed["next_cursor"] == "eyJvIjoxfQ"

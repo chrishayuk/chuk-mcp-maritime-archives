@@ -248,33 +248,59 @@ Integrated the UK Hydrographic Office wrecks and obstructions dataset -- 94,000+
 **Quality:**
 - 616 tests across 13 test modules, 97%+ branch coverage
 
+### v0.12.0 -- NOAA Wrecks & Obstructions (US Waters)
+
+Integrated NOAA's Automated Wreck and Obstruction Information System (AWOIS) -- ~13,000 wrecks in US coastal waters, public domain.
+
+**New archive:**
+- **`NOAAClient`** -- wrecks-only client following `UKHOClient` pattern with GP quality filtering
+- `scripts/download_noaa.py` -- downloads from NOAA ArcGIS REST API with paginated requests
+- `scripts/generate_noaa.py` -- curated fallback of 50 representative US wrecks (ships with repo)
+- Multi-archive dispatch: `search_wrecks(archive="noaa")` or cross-archive search
+- 10 archives across 6 nations; 7 wreck archives total
+
+**New search filter:**
+- `gp_quality` -- NOAA position accuracy code (1=High, 2=Medium, 3=Low, 4=Poor)
+
+**Expanded geographic coverage:**
+- 2 new US regions: `gulf_of_mexico`, `great_lakes`
+- `classify_region()` maps US waters to region codes
+
+**Quality:**
+- 636 tests across 13 test modules, 97%+ branch coverage
+
+### v0.13.0 -- Full-Text Narrative Search
+
+Full-text search across all free-text narrative content in all 10 archives.
+
+**New tool:**
+- `maritime_search_narratives` -- search voyage `particulars`, wreck `particulars`, and wreck `loss_location` fields across all archives
+- Simple keyword and quoted phrase matching with AND logic
+- Relevance-ranked results (by term frequency) with ~200-char text snippets
+- Filter by `record_type` (voyage/wreck) and `archive`
+- Cursor-based pagination
+
+**Architecture:**
+- `ArchiveManager.search_narratives()` scans all voyage and wreck clients, extracts narrative fields, matches against query terms, builds result dicts with snippet extraction
+- `_parse_query_terms()` supports quoted phrases and bare keywords
+- `_extract_snippet()` centres a ~200-char snippet around the first match
+- In-memory substring search (no external search engine) -- consistent with local-first pattern
+- `NarrativeHit` and `NarrativeSearchResponse` Pydantic v2 response models
+- `tools/narratives/api.py` with `register_narrative_tools()`
+
+**Narrative fields searched:**
+- Voyage `particulars`: DAS, EIC, Carreira, Galleon, SOIC
+- Wreck `particulars`: MAARER, EIC, Carreira, Galleon
+- Wreck `loss_location`: all 7 wreck archives
+
+**Quality:**
+- 647 tests across 13 test modules, 97%+ branch coverage
+
 ---
 
 ## Planned
 
-### v0.10.0 -- Full-Text Narrative Search
-
-Full-text search across incident narratives, voyage notes, and wreck descriptions.
-
-- `maritime_search_narratives` -- search across all free-text fields (incident descriptions, voyage notes, archaeological notes, wreck circumstances) with relevance ranking
-- Index incident narratives from DAS voyage records, wreck archaeological notes, and loss circumstance descriptions
-- Support for boolean operators and phrase matching
-- Return matching text snippets with highlighted context
-- Cross-archive: search narratives across all 9 archives in a single query
-- Useful for research questions like "find all mentions of monsoon" or "which wrecks mention cannon"
-
-### v0.12.0 -- NOAA Wrecks & Obstructions (US Waters)
-
-Integrate NOAA's combined wrecks and obstructions database -- ~13,000 wrecks and ~6,000 obstructions in US coastal waters.
-
-- **`NOAAWreckClient`** with ArcGIS REST and KML/XLS download support
-- `scripts/download_noaa_wrecks.py` -- download from ENC Direct / AWOIS data exports
-- Historical context and descriptive information from AWOIS records
-- Position accuracy codes and source quality codes from NOAA's own assessment system
-- Maps to existing position assessment framework (NOAA quality codes -> uncertainty types)
-- Complements UKHO for comprehensive US waters coverage
-
-### v0.13.0 -- Dutch Ships and Sailors (Linked Data)
+### v0.14.0 -- Dutch Ships and Sailors (Linked Data)
 
 Integrate the DSS Linked Data Cloud -- four curated Dutch maritime datasets as five-star linked data, hosted by Huygens ING and VU Amsterdam.
 
@@ -286,7 +312,7 @@ Integrate the DSS Linked Data Cloud -- four curated Dutch maritime datasets as f
 - `scripts/download_dss.py` -- SPARQL CONSTRUCT queries to extract and cache locally as JSON
 - Fallback to local cache when SPARQL endpoint is unavailable (consistent with local-first pattern)
 
-### v0.14.0 -- Improved Cross-Archive Entity Resolution
+### v0.15.0 -- Improved Cross-Archive Entity Resolution
 
 Improve the CLIWOC-DAS linking hit rate and add entity resolution scoring across all archives.
 
@@ -298,7 +324,7 @@ Improve the CLIWOC-DAS linking hit rate and add entity resolution scoring across
 - Currently 48 direct DAS-CLIWOC links via DAS number; target: 200+ fuzzy-matched links with scored confidence
 - `is_curated` field on expanded archive records (Carreira, Galleon, SOIC) to distinguish hand-curated from programmatically generated entries
 
-### v0.15.0 -- Additional Sailing Routes
+### v0.16.0 -- Additional Sailing Routes
 
 Extend the route library beyond the 8 existing VOC routes to cover all archive nations.
 
@@ -311,7 +337,7 @@ Extend the route library beyond the 8 existing VOC routes to cover all archive n
 - `maritime_estimate_position` works with all new route IDs
 - Enables position estimation for EIC, Carreira, Galleon, and SOIC voyages (currently only VOC routes supported)
 
-### v0.16.0 -- Crew Demographics & Network Analysis
+### v0.17.0 -- Crew Demographics & Network Analysis
 
 Analytical tools built on the 774K crew records cross-referenced with voyage data.
 
@@ -327,7 +353,7 @@ Analytical tools built on the 774K crew records cross-referenced with voyage dat
 Stable release with frozen tool signatures and response models.
 
 - Semantic versioning commitment: no breaking changes within v1.x
-- Published JSON Schema for all 29+ tool input/output models
+- Published JSON Schema for all 30+ tool input/output models
 - OpenAPI-compatible specification for HTTP mode
 - Comprehensive migration guide from v0.x
 - Performance benchmarks for all search tools across full dataset sizes
@@ -392,7 +418,7 @@ This server is the data layer in a composable stack of MCP servers:
 
 | Server | Tools | Tests | Role |
 |--------|-------|-------|------|
-| chuk-mcp-maritime-archives | 29 | 616 | Voyage, wreck, vessel, crew, cargo records |
+| chuk-mcp-maritime-archives | 30 | 647 | Voyage, wreck, vessel, crew, cargo records |
 | chuk-mcp-ocean-drift | 10 | 235 | Forward/backtrack/Monte Carlo drift |
 | chuk-mcp-dem | 4 | 711 | Bathymetry and elevation data |
 | chuk-mcp-stac | 5 | 382 | Satellite imagery via STAC catalogues |
@@ -400,7 +426,7 @@ This server is the data layer in a composable stack of MCP servers:
 | chuk-mcp-tides | 8 | 717 | Tidal current data |
 | chuk-mcp-physics | 66 | 240 | Fluid dynamics computations |
 | chuk-mcp-open-meteo | 6 | 22 | Weather and wind data |
-| **Total** | **136** | **3,177** | |
+| **Total** | **136** | **3,197** | |
 
 All servers follow the same patterns: Pydantic v2 models, dual output mode, chuk-artifacts storage.
 
@@ -436,6 +462,7 @@ Current and potential data sources for the project.
 | Manila Galleon | ~250 voyages, ~42 wrecks | `generate_galleon.py` | Curated + expanded from Schurz |
 | SOIC Archives | ~132 voyages, ~20 wrecks | `generate_soic.py` | Curated + expanded from Koninckx |
 | [UKHO Wrecks](https://www.admiralty.co.uk/access-data/marine-data) | 94,000+ wrecks worldwide | `download_ukho.py` / `generate_ukho.py` | Working (EMODnet WFS download + curated fallback) |
+| [NOAA AWOIS](https://nauticalcharts.noaa.gov/) | ~13,000 US wrecks | `download_noaa.py` / `generate_noaa.py` | Working (ArcGIS REST download + curated fallback) |
 
 > **Note:** All download and generate scripts support `--force` to regenerate data. Run `python scripts/download_all.py` to fetch/generate all datasets. Core reference data is ~35 MB; with crew data downloaded, total is ~115 MB.
 
@@ -443,8 +470,7 @@ Current and potential data sources for the project.
 
 | Source | Records | Format | Access | Target Version |
 |--------|---------|--------|--------|----------------|
-| [NOAA Wrecks & Obstructions](https://nauticalcharts.noaa.gov/) | ~13,000 wrecks, ~6,000 obstructions | KML/XLS/ArcGIS REST | Public domain | v0.12.0 |
-| [Dutch Ships and Sailors](https://datasets.iisg.amsterdam/dataverse/dss) | Linked data (4 datasets) | RDF/SPARQL | Open access, live triple store | v0.13.0 |
+| [Dutch Ships and Sailors](https://datasets.iisg.amsterdam/dataverse/dss) | Linked data (4 datasets) | RDF/SPARQL | Open access, live triple store | v0.14.0 |
 
 ### Potential
 
@@ -468,4 +494,4 @@ See [README.md](README.md#contributing) for contribution guidelines. Key areas w
 - **Test coverage** -- edge cases in position estimation, date handling, and multi-archive dispatch
 - **Cargo enrichment** -- expanding the 200-record curated cargo dataset using Glamann's "Dutch-Asiatic Trade" tables
 - **Entity resolution** -- improving fuzzy matching between CLIWOC ship names and DAS voyage records
-- **Narrative search** -- full-text indexing of incident descriptions and archaeological notes
+- **Narrative search expansion** -- improving relevance ranking and adding boolean operators to `maritime_search_narratives`

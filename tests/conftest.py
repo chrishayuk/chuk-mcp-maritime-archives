@@ -152,6 +152,29 @@ SAMPLE_CARGO = [
     },
 ]
 
+SAMPLE_NARRATIVE_HITS = [
+    {
+        "record_id": "das:3456",
+        "record_type": "voyage",
+        "archive": "das",
+        "ship_name": "Batavia",
+        "date": "1628-10-28",
+        "field": "particulars",
+        "snippet": "Wrecked on Houtman Abrolhos, Western Australia",
+        "match_count": 2,
+    },
+    {
+        "record_id": "eic_wreck:0001",
+        "record_type": "wreck",
+        "archive": "eic",
+        "ship_name": "Earl of Abergavenny",
+        "date": "1805-02-05",
+        "field": "loss_location",
+        "snippet": "Portland Bill, Dorset",
+        "match_count": 1,
+    },
+]
+
 SAMPLE_WRECKS = [
     {
         "wreck_id": "maarer:VOC-0789",

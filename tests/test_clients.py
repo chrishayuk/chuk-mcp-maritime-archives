@@ -280,6 +280,19 @@ class TestCrewClient:
         assert len(results) == 0
 
     @pytest.mark.asyncio
+    async def test_search_max_results(self):
+        results = await self.client.search(max_results=1)
+        assert len(results) == 1
+
+    @pytest.mark.asyncio
+    async def test_search_indexes_cached(self):
+        """Second search uses cached indexes (early return in _ensure_indexes)."""
+        await self.client.search()
+        # Index is now built; second call triggers the early return
+        results = await self.client.search(name="Pietersz")
+        assert len(results) == 1
+
+    @pytest.mark.asyncio
     async def test_get_by_id_success(self):
         result = await self.client.get_by_id("voc_crew:445892")
         assert result is not None
@@ -289,6 +302,65 @@ class TestCrewClient:
     async def test_get_by_id_not_found(self):
         result = await self.client.get_by_id("voc_crew:999")
         assert result is None
+
+    @pytest.mark.asyncio
+    async def test_get_by_id_empty_file(self):
+        """get_by_id returns None when crew file is empty."""
+        client = CrewClient(data_dir=Path("/tmp/nonexistent_crew_dir_12345"))
+        result = await client.get_by_id("voc_crew:445892")
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_search_empty_file(self):
+        """search returns [] when crew file is empty."""
+        client = CrewClient(data_dir=Path("/tmp/nonexistent_crew_dir_12345"))
+        results = await client.search()
+        assert results == []
+
+    @pytest.mark.asyncio
+    async def test_ensure_indexes_handles_missing_fields(self):
+        """_ensure_indexes skips records missing voyage_id or crew_id."""
+        client = CrewClient(data_dir=FIXTURES_DIR)
+        records = [
+            {"name": "No IDs at all"},
+            {"crew_id": "c1", "name": "Has crew_id only"},
+            {"voyage_id": "v1", "name": "Has voyage_id only"},
+        ]
+        client._ensure_indexes(records)
+        assert client._id_index is not None
+        assert "c1" in client._id_index
+        assert client._voyage_index is not None
+        assert "v1" in client._voyage_index
+
+    @pytest.mark.asyncio
+    async def test_get_by_id_fallback_scan(self):
+        """get_by_id falls back to linear scan when _id_index is None."""
+        client = CrewClient(data_dir=FIXTURES_DIR)
+        # Load records and build indexes, then force _id_index to None
+        await client.search()
+        client._id_index = None
+        result = await client.get_by_id("voc_crew:445892")
+        assert result is not None
+        assert result["name"] == "Jan Pietersz van der Horst"
+
+    @pytest.mark.asyncio
+    async def test_get_by_id_fallback_scan_not_found(self):
+        """get_by_id fallback scan returns None if not found."""
+        client = CrewClient(data_dir=FIXTURES_DIR)
+        await client.search()
+        client._id_index = None
+        result = await client.get_by_id("voc_crew:nonexistent")
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_search_voyage_id_without_index(self):
+        """voyage_id filter falls back to linear scan without index."""
+        client = CrewClient(data_dir=FIXTURES_DIR)
+        # Preload records & build indexes, then null out voyage index
+        await client.search()
+        client._voyage_index = None
+        results = await client.search(voyage_id="das:5678")
+        assert len(results) == 2
 
 
 # ---------------------------------------------------------------------------

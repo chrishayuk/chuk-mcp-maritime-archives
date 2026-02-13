@@ -123,16 +123,16 @@ class TestWreckOperations:
     @pytest.mark.asyncio
     async def test_search_wrecks_no_filters(self, manager: ArchiveManager):
         result = await manager.search_wrecks()
-        # 3 MAARER + 2 EIC + 1 carreira + 1 galleon + 1 SOIC + 5 UKHO
-        assert len(result.items) == 13
-        assert result.total_count == 13
+        # 3 MAARER + 2 EIC + 1 carreira + 1 galleon + 1 SOIC + 5 UKHO + 5 NOAA
+        assert len(result.items) == 18
+        assert result.total_count == 18
 
     @pytest.mark.asyncio
     async def test_search_wrecks_by_status(self, manager: ArchiveManager):
         result = await manager.search_wrecks(status="found")
         assert all(w["status"] == "found" for w in result.items)
-        # 3 MAARER + 1 EIC + 1 galleon + 1 SOIC + 4 UKHO
-        assert len(result.items) == 10
+        # 3 MAARER + 1 EIC + 1 galleon + 1 SOIC + 4 UKHO + 4 NOAA
+        assert len(result.items) == 14
 
     @pytest.mark.asyncio
     async def test_search_wrecks_by_region(self, manager: ArchiveManager):
@@ -339,7 +339,7 @@ class TestStatistics:
         assert "summary" in stats
         assert "losses_by_region" in stats
         assert "losses_by_cause" in stats
-        assert stats["summary"]["total_losses"] == 13  # all wreck archives combined
+        assert stats["summary"]["total_losses"] == 18  # all wreck archives combined
 
     @pytest.mark.asyncio
     async def test_get_statistics_with_date_range(self, manager: ArchiveManager):
@@ -370,7 +370,7 @@ class TestGeoJSONExport:
     async def test_export_geojson(self, manager: ArchiveManager):
         geojson = await manager.export_geojson()
         assert geojson["type"] == "FeatureCollection"
-        assert len(geojson["features"]) == 13  # all wreck archives combined
+        assert len(geojson["features"]) == 18  # all wreck archives combined
 
     @pytest.mark.asyncio
     async def test_export_geojson_by_status(self, manager: ArchiveManager):
@@ -642,3 +642,106 @@ class TestPaginationIntegration:
         """Requesting more than MAX_PAGE_SIZE should be clamped."""
         result = await manager.search_voyages(max_results=9999)
         assert len(result.items) <= 500
+
+
+# ---------------------------------------------------------------------------
+# Narrative search (async — searches free-text fields across all fixtures)
+# ---------------------------------------------------------------------------
+
+
+class TestNarrativeSearch:
+    @pytest.mark.asyncio
+    async def test_search_narratives_simple(self, manager: ArchiveManager):
+        """Single keyword should match across archives."""
+        result = await manager.search_narratives(query="Abrolhos")
+        assert result.total_count >= 1
+        # Should find at least the DAS voyage with "Houtman Abrolhos"
+        archives = {h["archive"] for h in result.items}
+        assert "das" in archives
+
+    @pytest.mark.asyncio
+    async def test_search_narratives_phrase(self, manager: ArchiveManager):
+        """Quoted phrase should match exactly."""
+        result = await manager.search_narratives(query='"Cape of Good Hope"')
+        assert result.total_count >= 1
+        # Carreira voyage mentions "Cape of Good Hope" in particulars
+        archives = {h["archive"] for h in result.items}
+        assert "carreira" in archives
+
+    @pytest.mark.asyncio
+    async def test_search_narratives_voyage_only(self, manager: ArchiveManager):
+        """record_type='voyage' should exclude wreck records."""
+        result = await manager.search_narratives(query="Gothenburg", record_type="voyage")
+        assert result.total_count >= 1
+        assert all(h["record_type"] == "voyage" for h in result.items)
+
+    @pytest.mark.asyncio
+    async def test_search_narratives_wreck_only(self, manager: ArchiveManager):
+        """record_type='wreck' should exclude voyage records."""
+        result = await manager.search_narratives(query="Philippines", record_type="wreck")
+        assert result.total_count >= 1
+        assert all(h["record_type"] == "wreck" for h in result.items)
+
+    @pytest.mark.asyncio
+    async def test_search_narratives_by_archive(self, manager: ArchiveManager):
+        """archive filter should restrict to one archive."""
+        result = await manager.search_narratives(query="Wrecked", archive="eic")
+        assert result.total_count >= 1
+        assert all(h["archive"] == "eic" for h in result.items)
+
+    @pytest.mark.asyncio
+    async def test_search_narratives_no_results(self, manager: ArchiveManager):
+        """Query with no matches should return empty results."""
+        result = await manager.search_narratives(query="xyznonexistent")
+        assert result.total_count == 0
+        assert len(result.items) == 0
+
+    @pytest.mark.asyncio
+    async def test_search_narratives_pagination(self, manager: ArchiveManager):
+        """Pagination should work with cursor."""
+        # "South Africa" appears in multiple records
+        result1 = await manager.search_narratives(query="South Africa", max_results=1)
+        assert result1.total_count >= 2
+        assert len(result1.items) == 1
+        assert result1.has_more is True
+        assert result1.next_cursor is not None
+
+        result2 = await manager.search_narratives(
+            query="South Africa", max_results=1, cursor=result1.next_cursor
+        )
+        assert len(result2.items) >= 1
+        # Pages should not overlap
+        ids1 = {h["record_id"] + h["field"] for h in result1.items}
+        ids2 = {h["record_id"] + h["field"] for h in result2.items}
+        assert ids1.isdisjoint(ids2)
+
+    @pytest.mark.asyncio
+    async def test_search_narratives_snippet_extraction(self, manager: ArchiveManager):
+        """Snippets should contain the matched term."""
+        result = await manager.search_narratives(query="Gothenburg")
+        assert result.total_count >= 1
+        for h in result.items:
+            assert "gothenburg" in h["snippet"].lower()
+
+    @pytest.mark.asyncio
+    async def test_search_narratives_and_logic(self, manager: ArchiveManager):
+        """Multiple terms use AND logic — both must be present."""
+        result = await manager.search_narratives(query="Wrecked Hastings")
+        assert result.total_count >= 1
+        # Only DAS voyage has both "Wrecked" and "Hastings" in particulars
+        for h in result.items:
+            assert "wrecked" in h["snippet"].lower() or "hastings" in h["snippet"].lower()
+
+    @pytest.mark.asyncio
+    async def test_search_narratives_empty_query(self, manager: ArchiveManager):
+        """Empty query should return no results."""
+        result = await manager.search_narratives(query="")
+        assert result.total_count == 0
+
+    @pytest.mark.asyncio
+    async def test_search_narratives_case_insensitive(self, manager: ArchiveManager):
+        """Search should be case-insensitive."""
+        upper = await manager.search_narratives(query="GOTHENBURG")
+        lower = await manager.search_narratives(query="gothenburg")
+        assert upper.total_count == lower.total_count
+        assert upper.total_count >= 1

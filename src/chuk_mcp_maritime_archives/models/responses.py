@@ -359,6 +359,55 @@ class WreckDetailResponse(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# Narrative search responses
+# ---------------------------------------------------------------------------
+
+
+class NarrativeHit(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    record_id: str
+    record_type: str
+    archive: str
+    ship_name: str
+    date: str | None = None
+    field: str
+    snippet: str
+    match_count: int = 1
+
+
+class NarrativeSearchResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    result_count: int
+    results: list[NarrativeHit]
+    query: str
+    record_type: str | None = None
+    archive: str | None = None
+    total_count: int | None = None
+    next_cursor: str | None = None
+    has_more: bool = False
+    message: str = ""
+
+    def to_text(self) -> str:
+        lines = [self.message, ""]
+        for r in self.results:
+            type_tag = f"[{r.record_type}]"
+            lines.append(f"  {r.record_id} {type_tag} {r.ship_name}")
+            if r.date:
+                lines.append(f"    Date: {r.date}  Archive: {r.archive}  Field: {r.field}")
+            else:
+                lines.append(f"    Archive: {r.archive}  Field: {r.field}")
+            lines.append(f"    ...{r.snippet}...")
+        footer = _pagination_footer(
+            len(self.results), self.total_count, self.has_more, self.next_cursor
+        )
+        if footer:
+            lines.append(footer)
+        return "\n".join(lines)
+
+
+# ---------------------------------------------------------------------------
 # Vessel responses
 # ---------------------------------------------------------------------------
 

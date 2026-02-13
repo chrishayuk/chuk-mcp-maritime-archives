@@ -58,6 +58,7 @@ data/cache/
 # Large data files distributed via chuk-artifacts, not git
 data/crew.json
 data/ukho_wrecks.json
+data/noaa_wrecks.json
 
 # Build
 *.log
