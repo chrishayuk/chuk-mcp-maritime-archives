@@ -675,8 +675,8 @@ async def main() -> None:
     # Cold vs warm: all ships
     cw_all = await runner.run(
         "maritime_compare_speed_groups",
-        group1_years="1750/1789",
-        group2_years="1820/1859",
+        period1_years="1750/1789",
+        period2_years="1820/1859",
         lat_min=RF_LAT_MIN,
         lat_max=RF_LAT_MAX,
         lon_min=RF_LON_MIN,
@@ -684,8 +684,8 @@ async def main() -> None:
     )
 
     print("  Cold vs Warm (all ships):")
-    print(f"    Cold period ({cw_all['group1_label']}): n={cw_all['group1_n']:,}")
-    print(f"    Warm period ({cw_all['group2_label']}): n={cw_all['group2_n']:,}")
+    print(f"    Cold period ({cw_all['period1_label']}): n={cw_all['period1_n']:,}")
+    print(f"    Warm period ({cw_all['period2_label']}): n={cw_all['period2_n']:,}")
     print(f"    U = {cw_all['mann_whitney_u']:,.0f}")
     print(f"    z = {cw_all['z_score']:.4f}")
     p_str = f"{cw_all['p_value']:.6f}" if cw_all["p_value"] > 0 else "< 1e-300"
@@ -697,8 +697,8 @@ async def main() -> None:
     # Cold vs warm: eastbound
     cw_eb = await runner.run(
         "maritime_compare_speed_groups",
-        group1_years="1750/1789",
-        group2_years="1820/1859",
+        period1_years="1750/1789",
+        period2_years="1820/1859",
         lat_min=RF_LAT_MIN,
         lat_max=RF_LAT_MAX,
         lon_min=RF_LON_MIN,
@@ -707,8 +707,8 @@ async def main() -> None:
     )
 
     print("  Cold vs Warm (eastbound only):")
-    print(f"    Cold period: n={cw_eb['group1_n']:,}")
-    print(f"    Warm period: n={cw_eb['group2_n']:,}")
+    print(f"    Cold period: n={cw_eb['period1_n']:,}")
+    print(f"    Warm period: n={cw_eb['period2_n']:,}")
     print(f"    U = {cw_eb['mann_whitney_u']:,.0f}")
     print(f"    z = {cw_eb['z_score']:.4f}")
     p_str = f"{cw_eb['p_value']:.6f}" if cw_eb["p_value"] > 0 else "< 1e-300"
@@ -731,8 +731,8 @@ async def main() -> None:
         d2 = decade_starts[i + 1]
         adj = await runner.run(
             "maritime_compare_speed_groups",
-            group1_years=f"{d1}/{d1 + 9}",
-            group2_years=f"{d2}/{d2 + 9}",
+            period1_years=f"{d1}/{d1 + 9}",
+            period2_years=f"{d2}/{d2 + 9}",
             lat_min=RF_LAT_MIN,
             lat_max=RF_LAT_MAX,
             lon_min=RF_LON_MIN,

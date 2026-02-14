@@ -778,15 +778,15 @@ class TestAggregateTrackSpeeds:
 class TestCompareSpeedGroups:
     def test_compare_two_periods(self):
         result = compare_speed_groups(
-            group1_years="1750/1789",
-            group2_years="1820/1859",
+            period1_years="1750/1789",
+            period2_years="1820/1859",
             lat_min=-50,
             lat_max=-30,
         )
-        assert result["group1_n"] > 0
-        assert result["group2_n"] > 0
-        assert result["group1_label"] == "1750/1789"
-        assert result["group2_label"] == "1820/1859"
+        assert result["period1_n"] > 0
+        assert result["period2_n"] > 0
+        assert result["period1_label"] == "1750/1789"
+        assert result["period2_label"] == "1820/1859"
         assert isinstance(result["mann_whitney_u"], float)
         assert isinstance(result["z_score"], float)
         assert isinstance(result["p_value"], float)
@@ -795,30 +795,30 @@ class TestCompareSpeedGroups:
 
     def test_compare_with_direction_filter(self):
         result = compare_speed_groups(
-            group1_years="1750/1789",
-            group2_years="1820/1859",
+            period1_years="1750/1789",
+            period2_years="1820/1859",
             lat_min=-50,
             lat_max=-30,
             direction="eastbound",
         )
-        assert result["group1_n"] > 0
-        assert result["group2_n"] > 0
+        assert result["period1_n"] > 0
+        assert result["period2_n"] > 0
 
     def test_compare_empty_period(self):
         result = compare_speed_groups(
-            group1_years="1500/1510",
-            group2_years="1520/1530",
+            period1_years="1500/1510",
+            period2_years="1520/1530",
             lat_min=-50,
             lat_max=-30,
         )
         # Should handle gracefully — no data in these periods
-        assert result["group1_n"] == 0
+        assert result["period1_n"] == 0
         assert result["p_value"] == 1.0
 
     def test_compare_with_month_filter(self):
         result = compare_speed_groups(
-            group1_years="1750/1789",
-            group2_years="1820/1859",
+            period1_years="1750/1789",
+            period2_years="1820/1859",
             lat_min=-50,
             lat_max=-30,
             month_start=6,
@@ -830,8 +830,8 @@ class TestCompareSpeedGroups:
 
     def test_compare_with_month_wrap_around(self):
         result = compare_speed_groups(
-            group1_years="1750/1789",
-            group2_years="1820/1859",
+            period1_years="1750/1789",
+            period2_years="1820/1859",
             lat_min=-50,
             lat_max=-30,
             month_start=11,
@@ -843,55 +843,55 @@ class TestCompareSpeedGroups:
     def test_compare_voyage_level(self):
         """Voyage-level comparison should give fewer data points."""
         obs_result = compare_speed_groups(
-            group1_years="1750/1789",
-            group2_years="1820/1859",
+            period1_years="1750/1789",
+            period2_years="1820/1859",
             lat_min=-50,
             lat_max=-30,
         )
         voy_result = compare_speed_groups(
-            group1_years="1750/1789",
-            group2_years="1820/1859",
+            period1_years="1750/1789",
+            period2_years="1820/1859",
             lat_min=-50,
             lat_max=-30,
             aggregate_by="voyage",
         )
         assert voy_result["aggregate_by"] == "voyage"
-        assert voy_result["group1_n"] < obs_result["group1_n"]
-        assert voy_result["group1_n"] > 0
+        assert voy_result["period1_n"] < obs_result["period1_n"]
+        assert voy_result["period1_n"] > 0
 
     def test_compare_include_samples(self):
         result = compare_speed_groups(
-            group1_years="1750/1789",
-            group2_years="1820/1859",
+            period1_years="1750/1789",
+            period2_years="1820/1859",
             lat_min=-50,
             lat_max=-30,
             include_samples=True,
         )
-        assert "group1_samples" in result
-        assert "group2_samples" in result
-        assert isinstance(result["group1_samples"], list)
-        assert len(result["group1_samples"]) == result["group1_n"]
+        assert "period1_samples" in result
+        assert "period2_samples" in result
+        assert isinstance(result["period1_samples"], list)
+        assert len(result["period1_samples"]) == result["period1_n"]
 
     def test_compare_include_samples_voyage(self):
         result = compare_speed_groups(
-            group1_years="1750/1789",
-            group2_years="1820/1859",
+            period1_years="1750/1789",
+            period2_years="1820/1859",
             lat_min=-50,
             lat_max=-30,
             aggregate_by="voyage",
             include_samples=True,
         )
-        assert len(result["group1_samples"]) == result["group1_n"]
+        assert len(result["period1_samples"]) == result["period1_n"]
         assert result["aggregate_by"] == "voyage"
 
     def test_compare_no_samples_by_default(self):
         result = compare_speed_groups(
-            group1_years="1750/1789",
-            group2_years="1820/1859",
+            period1_years="1750/1789",
+            period2_years="1820/1859",
             lat_min=-50,
             lat_max=-30,
         )
-        assert "group1_samples" not in result
+        assert "period1_samples" not in result
 
 
 # ---------------------------------------------------------------------------
@@ -1151,8 +1151,8 @@ class TestAnalyticsTools:
     async def test_compare_speed_groups_success(self):
         fn = self.mcp.get_tool("maritime_compare_speed_groups")
         result = await fn(
-            group1_years="1750/1789",
-            group2_years="1820/1859",
+            period1_years="1750/1789",
+            period2_years="1820/1859",
             lat_min=-50,
             lat_max=-30,
         )
@@ -1166,8 +1166,8 @@ class TestAnalyticsTools:
     async def test_compare_speed_groups_text_mode(self):
         fn = self.mcp.get_tool("maritime_compare_speed_groups")
         result = await fn(
-            group1_years="1750/1789",
-            group2_years="1820/1859",
+            period1_years="1750/1789",
+            period2_years="1820/1859",
             lat_min=-50,
             lat_max=-30,
             output_mode="text",
@@ -1209,7 +1209,7 @@ class TestAnalyticsTools:
             "chuk_mcp_maritime_archives.tools.analytics.api.compare_speed_groups",
             side_effect=RuntimeError("crash"),
         ):
-            result = await fn(group1_years="1750/1789", group2_years="1820/1859")
+            result = await fn(period1_years="1750/1789", period2_years="1820/1859")
         parsed = json.loads(result)
         assert "crash" in parsed["error"]
 
@@ -1231,8 +1231,8 @@ class TestAnalyticsTools:
     async def test_compare_with_month_filter(self):
         fn = self.mcp.get_tool("maritime_compare_speed_groups")
         result = await fn(
-            group1_years="1750/1789",
-            group2_years="1820/1859",
+            period1_years="1750/1789",
+            period2_years="1820/1859",
             lat_min=-50,
             lat_max=-30,
             month_start=6,
@@ -1259,15 +1259,15 @@ class TestAnalyticsTools:
     async def test_compare_include_samples_tool(self):
         fn = self.mcp.get_tool("maritime_compare_speed_groups")
         result = await fn(
-            group1_years="1750/1789",
-            group2_years="1820/1859",
+            period1_years="1750/1789",
+            period2_years="1820/1859",
             lat_min=-50,
             lat_max=-30,
             include_samples=True,
         )
         parsed = json.loads(result)
-        assert "group1_samples" in parsed
-        assert isinstance(parsed["group1_samples"], list)
+        assert "period1_samples" in parsed
+        assert isinstance(parsed["period1_samples"], list)
 
     @pytest.mark.asyncio
     async def test_did_speed_test_tool(self):
@@ -1536,16 +1536,16 @@ class TestWindForceFiltering:
 
     def test_compare_with_wind_filter(self):
         result = compare_speed_groups(
-            group1_years="1750/1789",
-            group2_years="1820/1859",
+            period1_years="1750/1789",
+            period2_years="1820/1859",
             lat_min=-50,
             lat_max=-30,
             wind_force_min=3,
         )
         assert result["wind_force_min_filter"] == 3
         # No wind data -> both groups empty
-        assert result["group1_n"] == 0
-        assert result["group2_n"] == 0
+        assert result["period1_n"] == 0
+        assert result["period2_n"] == 0
 
     def test_did_with_wind_filter(self):
         result = did_speed_test(
@@ -1792,8 +1792,8 @@ class TestWindFilterTools:
     async def test_compare_with_wind_force(self):
         fn = self.mcp.get_tool("maritime_compare_speed_groups")
         result = await fn(
-            group1_years="1750/1789",
-            group2_years="1820/1859",
+            period1_years="1750/1789",
+            period2_years="1820/1859",
             lat_min=-50,
             lat_max=-30,
             wind_force_min=3,

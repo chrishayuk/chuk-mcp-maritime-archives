@@ -138,8 +138,8 @@ async def section_laki(runner: ToolRunner) -> None:
     print("  [maritime_compare_speed_groups: pre-Laki vs post-Laki]")
     comparison = await runner.run(
         "maritime_compare_speed_groups",
-        group1_years="1778/1782",
-        group2_years="1783/1786",
+        period1_years="1778/1782",
+        period2_years="1783/1786",
         lat_min=RF_LAT_MIN,
         lat_max=RF_LAT_MAX,
         lon_min=RF_LON_MIN,
@@ -147,12 +147,12 @@ async def section_laki(runner: ToolRunner) -> None:
     )
 
     print(
-        f"  Pre-Laki  (1778-1782): n={comparison['group1_n']:,}, "
-        f"mean={comparison['group1_mean']:.1f} km/day"
+        f"  Pre-Laki  (1778-1782): n={comparison['period1_n']:,}, "
+        f"mean={comparison['period1_mean']:.1f} km/day"
     )
     print(
-        f"  Post-Laki (1783-1786): n={comparison['group2_n']:,}, "
-        f"mean={comparison['group2_mean']:.1f} km/day"
+        f"  Post-Laki (1783-1786): n={comparison['period2_n']:,}, "
+        f"mean={comparison['period2_mean']:.1f} km/day"
     )
     p_str = f"{comparison['p_value']:.6f}" if comparison["p_value"] > 0 else "< 1e-300"
     print(f"  Mann-Whitney z = {comparison['z_score']:.4f}, p = {p_str}")
@@ -466,8 +466,8 @@ async def section_laki_seasonal(runner: ToolRunner) -> None:
 
         result = await runner.run(
             "maritime_compare_speed_groups",
-            group1_years="1778/1782",
-            group2_years="1783/1786",
+            period1_years="1778/1782",
+            period2_years="1783/1786",
             lat_min=RF_LAT_MIN,
             lat_max=RF_LAT_MAX,
             lon_min=RF_LON_MIN,
@@ -477,18 +477,18 @@ async def section_laki_seasonal(runner: ToolRunner) -> None:
             month_end=m_end,
         )
 
-        n1, n2 = result["group1_n"], result["group2_n"]
+        n1, n2 = result["period1_n"], result["period2_n"]
         if n1 == 0 or n2 == 0:
             print(f"  Insufficient data: pre={n1}, post={n2}")
             continue
 
-        diff = result["group2_mean"] - result["group1_mean"]
-        pct = (diff / result["group1_mean"] * 100) if result["group1_mean"] else 0
+        diff = result["period2_mean"] - result["period1_mean"]
+        pct = (diff / result["period1_mean"] * 100) if result["period1_mean"] else 0
         p_str = f"{result['p_value']:.6f}" if result["p_value"] > 0 else "< 1e-300"
         sig = "SIGNIFICANT" if result["significant"] else "not significant"
 
-        print(f"  Pre-Laki:  n={n1:>5,}, mean={result['group1_mean']:.1f} km/day")
-        print(f"  Post-Laki: n={n2:>5,}, mean={result['group2_mean']:.1f} km/day")
+        print(f"  Pre-Laki:  n={n1:>5,}, mean={result['period1_mean']:.1f} km/day")
+        print(f"  Post-Laki: n={n2:>5,}, mean={result['period2_mean']:.1f} km/day")
         print(f"  Difference: {diff:+.1f} km/day ({pct:+.1f}%)")
         print(f"  Mann-Whitney z={result['z_score']:.4f}, p={p_str} ({sig})")
         print(f"  Cohen's d = {result['effect_size']:.3f}")

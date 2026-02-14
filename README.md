@@ -895,8 +895,8 @@ All tools accept an optional `output_mode` parameter (`"json"` default, or `"tex
 
 ```python
 {
-  "group1_years": "1750/1789",                     # required, first period
-  "group2_years": "1820/1859",                     # required, second period
+  "period1_years": "1750/1789",                     # required, first period
+  "period2_years": "1820/1859",                     # required, second period
   "lat_min": -50,                                  # optional, bounding box
   "lat_max": -30,
   "lon_min": 15,

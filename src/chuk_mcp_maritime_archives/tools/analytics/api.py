@@ -263,8 +263,8 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
 
     @mcp.tool  # type: ignore[union-attr]
     async def maritime_compare_speed_groups(
-        group1_years: str,
-        group2_years: str,
+        period1_years: str,
+        period2_years: str,
         lat_min: float | None = None,
         lat_max: float | None = None,
         lon_min: float | None = None,
@@ -289,8 +289,8 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
         Also returns Cohen's d effect size.
 
         Args:
-            group1_years: First period as "YYYY/YYYY" (e.g., "1750/1789")
-            group2_years: Second period as "YYYY/YYYY" (e.g., "1820/1859")
+            period1_years: First period as "YYYY/YYYY" (e.g., "1750/1789")
+            period2_years: Second period as "YYYY/YYYY" (e.g., "1820/1859")
             lat_min: Minimum latitude for position bounding box
             lat_max: Maximum latitude for position bounding box
             lon_min: Minimum longitude for position bounding box
@@ -321,8 +321,8 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
         """
         try:
             result = compare_speed_groups(
-                group1_years=group1_years,
-                group2_years=group2_years,
+                period1_years=period1_years,
+                period2_years=period2_years,
                 lat_min=lat_min,
                 lat_max=lat_max,
                 lon_min=lon_min,
@@ -341,29 +341,29 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
 
             return format_response(
                 SpeedComparisonResponse(
-                    group1_label=result["group1_label"],
-                    group1_n=result["group1_n"],
-                    group1_mean=result["group1_mean"],
-                    group1_std=result["group1_std"],
-                    group2_label=result["group2_label"],
-                    group2_n=result["group2_n"],
-                    group2_mean=result["group2_mean"],
-                    group2_std=result["group2_std"],
+                    period1_label=result["period1_label"],
+                    period1_n=result["period1_n"],
+                    period1_mean=result["period1_mean"],
+                    period1_std=result["period1_std"],
+                    period2_label=result["period2_label"],
+                    period2_n=result["period2_n"],
+                    period2_mean=result["period2_mean"],
+                    period2_std=result["period2_std"],
                     mann_whitney_u=result["mann_whitney_u"],
                     z_score=result["z_score"],
                     p_value=result["p_value"],
                     significant=result["significant"],
                     effect_size=result["effect_size"],
                     aggregate_by=result.get("aggregate_by", "observation"),
-                    group1_samples=result.get("group1_samples"),
-                    group2_samples=result.get("group2_samples"),
+                    period1_samples=result.get("period1_samples"),
+                    period2_samples=result.get("period2_samples"),
                     month_start_filter=result.get("month_start_filter"),
                     month_end_filter=result.get("month_end_filter"),
                     wind_force_min_filter=result.get("wind_force_min_filter"),
                     wind_force_max_filter=result.get("wind_force_max_filter"),
                     message=SuccessMessages.SPEED_GROUPS_COMPARED.format(
-                        result["group1_n"],
-                        result["group2_n"],
+                        result["period1_n"],
+                        result["period2_n"],
                         result["z_score"],
                         result["p_value"],
                     ),

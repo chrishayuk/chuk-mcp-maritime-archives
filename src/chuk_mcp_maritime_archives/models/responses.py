@@ -1226,22 +1226,22 @@ class TrackSpeedAggregationResponse(BaseModel):
 class SpeedComparisonResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    group1_label: str
-    group1_n: int
-    group1_mean: float
-    group1_std: float
-    group2_label: str
-    group2_n: int
-    group2_mean: float
-    group2_std: float
+    period1_label: str
+    period1_n: int
+    period1_mean: float
+    period1_std: float
+    period2_label: str
+    period2_n: int
+    period2_mean: float
+    period2_std: float
     mann_whitney_u: float
     z_score: float
     p_value: float
     significant: bool
     effect_size: float
     aggregate_by: str = "observation"
-    group1_samples: list[float] | None = None
-    group2_samples: list[float] | None = None
+    period1_samples: list[float] | None = None
+    period2_samples: list[float] | None = None
     month_start_filter: int | None = None
     month_end_filter: int | None = None
     wind_force_min_filter: int | None = None
@@ -1266,10 +1266,10 @@ class SpeedComparisonResponse(BaseModel):
             )
         lines.extend(
             [
-                f"Group 1 ({self.group1_label}): n={self.group1_n} {unit}, "
-                f"mean={self.group1_mean:.1f} km/day, std={self.group1_std:.1f}",
-                f"Group 2 ({self.group2_label}): n={self.group2_n} {unit}, "
-                f"mean={self.group2_mean:.1f} km/day, std={self.group2_std:.1f}",
+                f"Period 1 ({self.period1_label}): n={self.period1_n} {unit}, "
+                f"mean={self.period1_mean:.1f} km/day, std={self.period1_std:.1f}",
+                f"Period 2 ({self.period2_label}): n={self.period2_n} {unit}, "
+                f"mean={self.period2_mean:.1f} km/day, std={self.period2_std:.1f}",
                 "",
                 f"Mann-Whitney U = {self.mann_whitney_u:.1f}",
                 f"z = {self.z_score:.4f}",

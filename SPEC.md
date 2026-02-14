@@ -1030,8 +1030,8 @@ significant. Also returns Cohen's d effect size.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `group1_years` | `str` | *required* | First period as `"YYYY/YYYY"` (e.g., `"1750/1789"`) |
-| `group2_years` | `str` | *required* | Second period as `"YYYY/YYYY"` (e.g., `"1820/1859"`) |
+| `period1_years` | `str` | *required* | First period as `"YYYY/YYYY"` (e.g., `"1750/1789"`) |
+| `period2_years` | `str` | *required* | Second period as `"YYYY/YYYY"` (e.g., `"1820/1859"`) |
 | `lat_min` | `float?` | `None` | Minimum latitude for position bounding box |
 | `lat_max` | `float?` | `None` | Maximum latitude for position bounding box |
 | `lon_min` | `float?` | `None` | Minimum longitude for position bounding box |
@@ -1051,22 +1051,22 @@ significant. Also returns Cohen's d effect size.
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `group1_label` | `str` | First period label (e.g., `"1750-1789"`) |
-| `group1_n` | `int` | Observations in first period |
-| `group1_mean` | `float` | Mean speed in first period |
-| `group1_std` | `float` | Standard deviation in first period |
-| `group2_label` | `str` | Second period label |
-| `group2_n` | `int` | Observations in second period |
-| `group2_mean` | `float` | Mean speed in second period |
-| `group2_std` | `float` | Standard deviation in second period |
+| `period1_label` | `str` | First period label (e.g., `"1750-1789"`) |
+| `period1_n` | `int` | Observations in first period |
+| `period1_mean` | `float` | Mean speed in first period |
+| `period1_std` | `float` | Standard deviation in first period |
+| `period2_label` | `str` | Second period label |
+| `period2_n` | `int` | Observations in second period |
+| `period2_mean` | `float` | Mean speed in second period |
+| `period2_std` | `float` | Standard deviation in second period |
 | `mann_whitney_u` | `float` | Mann-Whitney U statistic |
 | `z_score` | `float` | Z-score (large-sample normal approximation) |
 | `p_value` | `float` | Two-tailed p-value |
 | `significant` | `bool` | Whether p < 0.05 |
 | `effect_size` | `float` | Cohen's d effect size |
 | `aggregate_by` | `str` | Unit of analysis: `"observation"` or `"voyage"` |
-| `group1_samples` | `float[]?` | Raw speed array for first period (present when `include_samples=true`) |
-| `group2_samples` | `float[]?` | Raw speed array for second period (present when `include_samples=true`) |
+| `period1_samples` | `float[]?` | Raw speed array for first period (present when `include_samples=true`) |
+| `period2_samples` | `float[]?` | Raw speed array for second period (present when `include_samples=true`) |
 | `month_start_filter` | `int?` | Season start month filter applied (null if not filtered) |
 | `month_end_filter` | `int?` | Season end month filter applied (null if not filtered) |
 | `wind_force_min_filter` | `int?` | Minimum Beaufort wind force filter applied (null if not filtered) |

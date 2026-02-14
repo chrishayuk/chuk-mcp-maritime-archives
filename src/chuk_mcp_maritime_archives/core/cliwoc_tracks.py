@@ -709,8 +709,8 @@ def aggregate_track_speeds(
 
 
 def compare_speed_groups(
-    group1_years: str,
-    group2_years: str,
+    period1_years: str,
+    period2_years: str,
     lat_min: float | None = None,
     lat_max: float | None = None,
     lon_min: float | None = None,
@@ -729,8 +729,8 @@ def compare_speed_groups(
     """Compare speed distributions between two time periods using Mann-Whitney U.
 
     Args:
-        group1_years: First period as "YYYY/YYYY" (e.g., "1750/1789")
-        group2_years: Second period as "YYYY/YYYY" (e.g., "1820/1859")
+        period1_years: First period as "YYYY/YYYY" (e.g., "1750/1789")
+        period2_years: Second period as "YYYY/YYYY" (e.g., "1820/1859")
         month_start/month_end: Filter by month (1-12), supports wrap-around
         aggregate_by: "observation" (each daily speed) or "voyage" (one mean
             per voyage, statistically independent samples)
@@ -748,8 +748,8 @@ def compare_speed_groups(
         parts = s.split("/")
         return int(parts[0]), int(parts[1])
 
-    y1_start, y1_end = _parse_year_range(group1_years)
-    y2_start, y2_end = _parse_year_range(group2_years)
+    y1_start, y1_end = _parse_year_range(period1_years)
+    y2_start, y2_end = _parse_year_range(period2_years)
 
     def _collect_speeds(yr_start: int, yr_end: int) -> list[float]:
         values: list[float] = []
@@ -808,14 +808,14 @@ def compare_speed_groups(
     cohens_d = (g2_mean - g1_mean) / pooled_std if pooled_std > 0 else 0.0
 
     result: dict[str, Any] = {
-        "group1_label": group1_years,
-        "group1_n": n1,
-        "group1_mean": round(g1_mean, 1),
-        "group1_std": round(g1_std, 1),
-        "group2_label": group2_years,
-        "group2_n": n2,
-        "group2_mean": round(g2_mean, 1),
-        "group2_std": round(g2_std, 1),
+        "period1_label": period1_years,
+        "period1_n": n1,
+        "period1_mean": round(g1_mean, 1),
+        "period1_std": round(g1_std, 1),
+        "period2_label": period2_years,
+        "period2_n": n2,
+        "period2_mean": round(g2_mean, 1),
+        "period2_std": round(g2_std, 1),
         "mann_whitney_u": round(u_stat, 1),
         "z_score": round(z_score, 4),
         "p_value": round(p_value, 6),
@@ -828,8 +828,8 @@ def compare_speed_groups(
         "wind_force_max_filter": wind_force_max,
     }
     if include_samples:
-        result["group1_samples"] = [round(v, 1) for v in g1]
-        result["group2_samples"] = [round(v, 1) for v in g2]
+        result["period1_samples"] = [round(v, 1) for v in g1]
+        result["period2_samples"] = [round(v, 1) for v in g2]
     return result
 
 
