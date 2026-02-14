@@ -488,6 +488,30 @@ Voyage-level aggregation for statistically independent samples and formal 2×2 D
 **Quality:**
 - 1075+ tests across 15 test modules, 96%+ branch coverage
 
+### v0.21.0 -- Tortuosity, Wind Force & Wind Rose
+
+Expanded to 44 tools across 19 categories. Route efficiency analysis via tortuosity metrics, Beaufort wind force stratification on existing analytics tools, and a new wind rose tool.
+
+**New tools:**
+- `maritime_track_tortuosity` -- compute tortuosity (ratio of actual track distance to great-circle distance) for a single CLIWOC voyage, measuring route efficiency
+- `maritime_aggregate_track_tortuosity` -- aggregate tortuosity statistics across matching tracks by decade, year, nationality, or direction
+- `maritime_wind_rose` -- generate wind rose distributions (frequency and mean speed by compass direction) from CLIWOC logbook wind observations
+
+**Enhanced tools (wind-force conditioning):**
+- `maritime_aggregate_track_speeds` -- added `beaufort_min` / `beaufort_max` params for Beaufort wind force stratification
+- `maritime_compare_speed_groups` -- added `beaufort_min` / `beaufort_max` params for wind-conditioned statistical testing
+- `maritime_did_speed_test` -- added `beaufort_min` / `beaufort_max` params for wind-conditioned DiD analysis
+
+**Enables:**
+- "Which nation sailed the most efficient routes to Asia?" (tortuosity by nationality)
+- "Did route efficiency improve over time?" (tortuosity by decade)
+- "What was the prevailing wind pattern in the Roaring Forties?" (wind rose)
+- "How did sailing speed vary under gale-force conditions vs light winds?" (Beaufort stratification)
+- Wind-conditioned Laki volcanic signal analysis: isolate speed changes at constant wind forcing
+
+**Quality:**
+- ~1105+ tests across 15 test modules, 96%+ branch coverage
+
 ---
 
 ## Planned
@@ -554,7 +578,7 @@ This server is the data layer in a composable stack of MCP servers:
 
 | Server | Tools | Tests | Role |
 |--------|-------|-------|------|
-| chuk-mcp-maritime-archives | 41 | 1075+ | Voyage, wreck, vessel, crew, cargo, musters, demographics, analytics |
+| chuk-mcp-maritime-archives | 44 | ~1105+ | Voyage, wreck, vessel, crew, cargo, musters, demographics, analytics |
 | chuk-mcp-ocean-drift | 10 | 235 | Forward/backtrack/Monte Carlo drift |
 | chuk-mcp-dem | 4 | 711 | Bathymetry and elevation data |
 | chuk-mcp-stac | 5 | 382 | Satellite imagery via STAC catalogues |
@@ -562,7 +586,7 @@ This server is the data layer in a composable stack of MCP servers:
 | chuk-mcp-tides | 8 | 717 | Tidal current data |
 | chuk-mcp-physics | 66 | 240 | Fluid dynamics computations |
 | chuk-mcp-open-meteo | 6 | 22 | Weather and wind data |
-| **Total** | **146** | **3,512+** | |
+| **Total** | **149** | **3,542+** | |
 
 All servers follow the same patterns: Pydantic v2 models, dual output mode, chuk-artifacts storage.
 

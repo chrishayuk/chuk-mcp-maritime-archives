@@ -1312,3 +1312,517 @@ class TestAnalyticsTools:
             )
         parsed = json.loads(result)
         assert "boom" in parsed["error"]
+
+
+# ---------------------------------------------------------------------------
+# Bootstrap Mean Difference helper
+# ---------------------------------------------------------------------------
+
+
+class TestBootstrapMeanDiff:
+    def test_known_signal(self):
+        from chuk_mcp_maritime_archives.core.cliwoc_tracks import _bootstrap_mean_diff
+
+        g1 = [100.0, 105.0, 98.0, 102.0, 101.0]
+        g2 = [130.0, 135.0, 128.0, 132.0, 131.0]
+        diff, ci_lo, ci_hi, p = _bootstrap_mean_diff(g1, g2, n_bootstrap=5000, seed=42)
+        assert diff > 25  # ~30 difference
+        assert p < 0.05
+        assert ci_lo > 0
+
+    def test_no_signal(self):
+        from chuk_mcp_maritime_archives.core.cliwoc_tracks import _bootstrap_mean_diff
+
+        vals = [100.0, 105.0, 98.0, 102.0, 101.0]
+        diff, ci_lo, ci_hi, p = _bootstrap_mean_diff(vals, vals, n_bootstrap=5000, seed=42)
+        assert abs(diff) < 1e-10
+        assert p > 0.05
+
+    def test_empty_group(self):
+        from chuk_mcp_maritime_archives.core.cliwoc_tracks import _bootstrap_mean_diff
+
+        diff, ci_lo, ci_hi, p = _bootstrap_mean_diff([], [1.0, 2.0])
+        assert diff == 0.0
+        assert p == 1.0
+
+    def test_reproducibility(self):
+        from chuk_mcp_maritime_archives.core.cliwoc_tracks import _bootstrap_mean_diff
+
+        g1 = [100.0, 110.0]
+        g2 = [130.0, 140.0]
+        r1 = _bootstrap_mean_diff(g1, g2, n_bootstrap=1000, seed=123)
+        r2 = _bootstrap_mean_diff(g1, g2, n_bootstrap=1000, seed=123)
+        assert r1 == r2
+
+
+# ---------------------------------------------------------------------------
+# Compute track tortuosity (single voyage)
+# ---------------------------------------------------------------------------
+
+
+class TestComputeTrackTortuosity:
+    def test_basic(self):
+        from chuk_mcp_maritime_archives.core.cliwoc_tracks import compute_track_tortuosity
+
+        tracks = search_tracks(lat_min=-50, lat_max=-30, max_results=5)
+        if not tracks:
+            pytest.skip("No tracks in Roaring Forties")
+        vid = tracks[0]["voyage_id"]
+        result = compute_track_tortuosity(vid, lat_min=-50, lat_max=-30)
+        if result is None:
+            pytest.skip("Insufficient positions for tortuosity")
+        assert "path_km" in result
+        assert "net_km" in result
+        assert "tortuosity_r" in result
+        assert "n_in_box" in result
+        assert "inferred_direction" in result
+
+    def test_tortuosity_positive(self):
+        from chuk_mcp_maritime_archives.core.cliwoc_tracks import compute_track_tortuosity
+
+        tracks = search_tracks(lat_min=-50, lat_max=-30, max_results=20)
+        for t in tracks:
+            result = compute_track_tortuosity(t["voyage_id"], lat_min=-50, lat_max=-30)
+            if result is not None:
+                # Tortuosity is typically >= 1.0 but can be slightly below
+                # when speed filtering drops intermediate positions
+                assert result["tortuosity_r"] > 0.5, (
+                    f"Tortuosity implausible for voyage {t['voyage_id']}: {result['tortuosity_r']}"
+                )
+
+    def test_not_found(self):
+        from chuk_mcp_maritime_archives.core.cliwoc_tracks import compute_track_tortuosity
+
+        result = compute_track_tortuosity(999999)
+        assert result is None
+
+    def test_few_positions(self):
+        from chuk_mcp_maritime_archives.core.cliwoc_tracks import compute_track_tortuosity
+
+        # Very tight bbox should have too few positions for most voyages
+        result = compute_track_tortuosity(
+            search_tracks(max_results=1)[0]["voyage_id"],
+            lat_min=0,
+            lat_max=0.01,
+            lon_min=0,
+            lon_max=0.01,
+        )
+        assert result is None
+
+    def test_direction_inferred(self):
+        from chuk_mcp_maritime_archives.core.cliwoc_tracks import compute_track_tortuosity
+
+        tracks = search_tracks(lat_min=-50, lat_max=-30, max_results=10)
+        for t in tracks:
+            result = compute_track_tortuosity(t["voyage_id"], lat_min=-50, lat_max=-30)
+            if result is not None:
+                assert result["inferred_direction"] in ("eastbound", "westbound")
+                break
+
+
+# ---------------------------------------------------------------------------
+# Aggregate track tortuosity
+# ---------------------------------------------------------------------------
+
+
+class TestAggregateTrackTortuosity:
+    def test_by_decade(self):
+        from chuk_mcp_maritime_archives.core.cliwoc_tracks import aggregate_track_tortuosity
+
+        result = aggregate_track_tortuosity(
+            group_by="decade",
+            lat_min=-50,
+            lat_max=-30,
+        )
+        assert result["total_voyages"] > 0
+        assert len(result["groups"]) > 0
+        for g in result["groups"]:
+            assert g["n"] > 0
+            assert g["mean_tortuosity"] >= 1.0
+
+    def test_by_direction(self):
+        from chuk_mcp_maritime_archives.core.cliwoc_tracks import aggregate_track_tortuosity
+
+        result = aggregate_track_tortuosity(
+            group_by="direction",
+            lat_min=-50,
+            lat_max=-30,
+        )
+        keys = {g["group_key"] for g in result["groups"]}
+        assert keys <= {"eastbound", "westbound"}
+
+    def test_min_positions_reduces_n(self):
+        from chuk_mcp_maritime_archives.core.cliwoc_tracks import aggregate_track_tortuosity
+
+        r_low = aggregate_track_tortuosity(
+            group_by="decade",
+            lat_min=-50,
+            lat_max=-30,
+            min_positions=3,
+        )
+        r_high = aggregate_track_tortuosity(
+            group_by="decade",
+            lat_min=-50,
+            lat_max=-30,
+            min_positions=20,
+        )
+        assert r_high["total_voyages"] <= r_low["total_voyages"]
+
+    def test_period_comparison(self):
+        from chuk_mcp_maritime_archives.core.cliwoc_tracks import aggregate_track_tortuosity
+
+        result = aggregate_track_tortuosity(
+            group_by="decade",
+            lat_min=-50,
+            lat_max=-30,
+            period1_years="1750/1779",
+            period2_years="1800/1829",
+            n_bootstrap=1000,
+        )
+        if result.get("comparison") is not None:
+            c = result["comparison"]
+            assert "diff" in c
+            assert "ci_lower" in c
+            assert "ci_upper" in c
+            assert "p_value" in c
+            assert "significant" in c
+            assert c["period1_n"] > 0
+            assert c["period2_n"] > 0
+
+    def test_empty_region(self):
+        from chuk_mcp_maritime_archives.core.cliwoc_tracks import aggregate_track_tortuosity
+
+        result = aggregate_track_tortuosity(
+            group_by="decade",
+            lat_min=85,
+            lat_max=89,
+            lon_min=170,
+            lon_max=180,
+        )
+        assert result["total_voyages"] == 0
+        assert len(result["groups"]) == 0
+
+    def test_tortuosity_in_range(self):
+        from chuk_mcp_maritime_archives.core.cliwoc_tracks import aggregate_track_tortuosity
+
+        result = aggregate_track_tortuosity(
+            group_by="decade",
+            lat_min=-50,
+            lat_max=-30,
+        )
+        for g in result["groups"]:
+            assert g["mean_tortuosity"] >= 1.0
+
+
+# ---------------------------------------------------------------------------
+# Wind force filtering on existing tools
+# ---------------------------------------------------------------------------
+
+
+class TestWindForceFiltering:
+    def test_aggregate_with_wind_filter(self):
+        """Wind force filter with no wind data -> zero observations."""
+        result = aggregate_track_speeds(
+            group_by="decade",
+            lat_min=-50,
+            lat_max=-30,
+            wind_force_min=4,
+            wind_force_max=6,
+        )
+        # Current data has no wind fields, so this should return 0
+        assert result["total_observations"] == 0
+        assert result["wind_force_min_filter"] == 4
+        assert result["wind_force_max_filter"] == 6
+
+    def test_compare_with_wind_filter(self):
+        result = compare_speed_groups(
+            group1_years="1750/1789",
+            group2_years="1820/1859",
+            lat_min=-50,
+            lat_max=-30,
+            wind_force_min=3,
+        )
+        assert result["wind_force_min_filter"] == 3
+        # No wind data -> both groups empty
+        assert result["group1_n"] == 0
+        assert result["group2_n"] == 0
+
+    def test_did_with_wind_filter(self):
+        result = did_speed_test(
+            period1_years="1750/1783",
+            period2_years="1784/1810",
+            lat_min=-50,
+            lat_max=-30,
+            wind_force_min=4,
+            wind_force_max=8,
+        )
+        assert result["wind_force_min_filter"] == 4
+        assert result["wind_force_max_filter"] == 8
+        # No wind data -> p=1.0
+        assert result["did_p_value"] == 1.0
+
+    def test_aggregate_by_beaufort(self):
+        result = aggregate_track_speeds(
+            group_by="beaufort",
+            lat_min=-50,
+            lat_max=-30,
+        )
+        # No wind data -> no groups, but the call should not fail
+        assert result["group_by"] == "beaufort"
+        assert isinstance(result["groups"], list)
+
+    def test_no_wind_data_graceful(self):
+        """Wind filter on data without wind -> zero observations with no error."""
+        result = aggregate_track_speeds(
+            group_by="decade",
+            lat_min=-50,
+            lat_max=-30,
+            wind_force_min=0,
+            wind_force_max=12,
+        )
+        assert result["total_observations"] == 0
+        assert len(result["groups"]) == 0
+
+
+# ---------------------------------------------------------------------------
+# Wind Rose
+# ---------------------------------------------------------------------------
+
+
+class TestWindRose:
+    def test_basic(self):
+        from chuk_mcp_maritime_archives.core.cliwoc_tracks import wind_rose
+
+        result = wind_rose(lat_min=-50, lat_max=-30)
+        assert "has_wind_data" in result
+        assert "total_with_wind" in result
+        assert "total_without_wind" in result
+        assert "beaufort_counts" in result
+        assert len(result["beaufort_counts"]) == 13  # Forces 0-12
+
+    def test_no_wind_data_graceful(self):
+        from chuk_mcp_maritime_archives.core.cliwoc_tracks import wind_rose
+
+        result = wind_rose(lat_min=-50, lat_max=-30)
+        # Current data lacks wind fields
+        assert result["has_wind_data"] is False
+        assert result["total_with_wind"] == 0
+        assert result["total_without_wind"] > 0
+
+    def test_with_periods(self):
+        from chuk_mcp_maritime_archives.core.cliwoc_tracks import wind_rose
+
+        result = wind_rose(
+            lat_min=-50,
+            lat_max=-30,
+            period1_years="1750/1779",
+            period2_years="1800/1829",
+        )
+        assert "period1_label" in result
+        assert "period1_counts" in result
+        assert "period2_label" in result
+        assert "period2_counts" in result
+
+    def test_empty_region(self):
+        from chuk_mcp_maritime_archives.core.cliwoc_tracks import wind_rose
+
+        result = wind_rose(lat_min=85, lat_max=89, lon_min=170, lon_max=180)
+        assert result["total_with_wind"] == 0
+        assert result["total_without_wind"] == 0
+
+
+# ---------------------------------------------------------------------------
+# Tortuosity MCP tool wrappers
+# ---------------------------------------------------------------------------
+
+
+class TestTortuosityTools:
+    @pytest.fixture(autouse=True)
+    def _register(self):
+        from unittest.mock import MagicMock
+
+        from chuk_mcp_maritime_archives.tools.analytics.api import register_analytics_tools
+
+        self.mcp = MockMCPServer()
+        self.mgr = MagicMock()
+        register_analytics_tools(self.mcp, self.mgr)
+
+    @pytest.mark.asyncio
+    async def test_track_tortuosity_tool(self):
+        tracks = search_tracks(lat_min=-50, lat_max=-30, max_results=5)
+        if not tracks:
+            pytest.skip("No tracks in region")
+        vid = tracks[0]["voyage_id"]
+
+        fn = self.mcp.get_tool("maritime_track_tortuosity")
+        result = await fn(voyage_id=vid, lat_min=-50, lat_max=-30)
+        parsed = json.loads(result)
+        # May be an error (insufficient positions) or success
+        if "error" not in parsed:
+            assert "tortuosity_r" in parsed
+            assert parsed["tortuosity_r"] > 0.5
+
+    @pytest.mark.asyncio
+    async def test_aggregate_tortuosity_tool(self):
+        fn = self.mcp.get_tool("maritime_aggregate_track_tortuosity")
+        result = await fn(
+            group_by="decade",
+            lat_min=-50,
+            lat_max=-30,
+        )
+        parsed = json.loads(result)
+        assert "total_voyages" in parsed
+        assert "groups" in parsed
+
+    @pytest.mark.asyncio
+    async def test_aggregate_tortuosity_text(self):
+        fn = self.mcp.get_tool("maritime_aggregate_track_tortuosity")
+        result = await fn(
+            group_by="decade",
+            lat_min=-50,
+            lat_max=-30,
+            output_mode="text",
+        )
+        assert "tortuosity" in result.lower() or "Tortuosity" in result
+
+    @pytest.mark.asyncio
+    async def test_tortuosity_error(self):
+        from unittest.mock import patch
+
+        fn = self.mcp.get_tool("maritime_track_tortuosity")
+        with patch(
+            "chuk_mcp_maritime_archives.tools.analytics.api.compute_track_tortuosity",
+            side_effect=RuntimeError("tortboom"),
+        ):
+            result = await fn(voyage_id=1)
+        parsed = json.loads(result)
+        assert "tortboom" in parsed["error"]
+
+    @pytest.mark.asyncio
+    async def test_aggregate_tortuosity_error(self):
+        from unittest.mock import patch
+
+        fn = self.mcp.get_tool("maritime_aggregate_track_tortuosity")
+        with patch(
+            "chuk_mcp_maritime_archives.tools.analytics.api.aggregate_track_tortuosity",
+            side_effect=RuntimeError("aggfail"),
+        ):
+            result = await fn(group_by="decade")
+        parsed = json.loads(result)
+        assert "aggfail" in parsed["error"]
+
+
+# ---------------------------------------------------------------------------
+# Wind rose MCP tool wrapper
+# ---------------------------------------------------------------------------
+
+
+class TestWindRoseTools:
+    @pytest.fixture(autouse=True)
+    def _register(self):
+        from unittest.mock import MagicMock
+
+        from chuk_mcp_maritime_archives.tools.analytics.api import register_analytics_tools
+
+        self.mcp = MockMCPServer()
+        self.mgr = MagicMock()
+        register_analytics_tools(self.mcp, self.mgr)
+
+    @pytest.mark.asyncio
+    async def test_wind_rose_tool(self):
+        fn = self.mcp.get_tool("maritime_wind_rose")
+        result = await fn(lat_min=-50, lat_max=-30)
+        parsed = json.loads(result)
+        assert "has_wind_data" in parsed
+        assert "beaufort_counts" in parsed
+
+    @pytest.mark.asyncio
+    async def test_wind_rose_text(self):
+        fn = self.mcp.get_tool("maritime_wind_rose")
+        result = await fn(lat_min=-50, lat_max=-30, output_mode="text")
+        assert isinstance(result, str)
+        # Should contain wind-related info or no-data message
+        assert "wind" in result.lower() or "Wind" in result
+
+    @pytest.mark.asyncio
+    async def test_wind_rose_error(self):
+        from unittest.mock import patch
+
+        fn = self.mcp.get_tool("maritime_wind_rose")
+        with patch(
+            "chuk_mcp_maritime_archives.tools.analytics.api.wind_rose",
+            side_effect=RuntimeError("wrcrash"),
+        ):
+            result = await fn()
+        parsed = json.loads(result)
+        assert "wrcrash" in parsed["error"]
+
+
+# ---------------------------------------------------------------------------
+# Wind force filter on existing tool wrappers
+# ---------------------------------------------------------------------------
+
+
+class TestWindFilterTools:
+    @pytest.fixture(autouse=True)
+    def _register(self):
+        from unittest.mock import MagicMock
+
+        from chuk_mcp_maritime_archives.tools.analytics.api import register_analytics_tools
+
+        self.mcp = MockMCPServer()
+        self.mgr = MagicMock()
+        register_analytics_tools(self.mcp, self.mgr)
+
+    @pytest.mark.asyncio
+    async def test_aggregate_with_wind_force(self):
+        fn = self.mcp.get_tool("maritime_aggregate_track_speeds")
+        result = await fn(
+            group_by="decade",
+            lat_min=-50,
+            lat_max=-30,
+            wind_force_min=4,
+            wind_force_max=6,
+        )
+        parsed = json.loads(result)
+        assert parsed["wind_force_min_filter"] == 4
+        assert parsed["wind_force_max_filter"] == 6
+
+    @pytest.mark.asyncio
+    async def test_compare_with_wind_force(self):
+        fn = self.mcp.get_tool("maritime_compare_speed_groups")
+        result = await fn(
+            group1_years="1750/1789",
+            group2_years="1820/1859",
+            lat_min=-50,
+            lat_max=-30,
+            wind_force_min=3,
+        )
+        parsed = json.loads(result)
+        assert parsed["wind_force_min_filter"] == 3
+
+    @pytest.mark.asyncio
+    async def test_did_with_wind_force(self):
+        fn = self.mcp.get_tool("maritime_did_speed_test")
+        result = await fn(
+            period1_years="1750/1783",
+            period2_years="1784/1810",
+            lat_min=-50,
+            lat_max=-30,
+            wind_force_min=4,
+            wind_force_max=8,
+        )
+        parsed = json.loads(result)
+        assert parsed["wind_force_min_filter"] == 4
+        assert parsed["wind_force_max_filter"] == 8
+
+    @pytest.mark.asyncio
+    async def test_aggregate_beaufort_group(self):
+        fn = self.mcp.get_tool("maritime_aggregate_track_speeds")
+        result = await fn(
+            group_by="beaufort",
+            lat_min=-50,
+            lat_max=-30,
+        )
+        parsed = json.loads(result)
+        assert parsed["group_by"] == "beaufort"

@@ -96,7 +96,7 @@ def extract_full_positions(db_path: Path) -> list[dict]:
         """
         SELECT ID, YR, MO, DY, latitude, longitude, C1,
                ShipName, Company, DASnumber, ShipType,
-               VoyageFrom, VoyageTo
+               VoyageFrom, VoyageTo, W, D
         FROM CLIWOC21
         WHERE latitude IS NOT NULL
           AND longitude IS NOT NULL
@@ -118,6 +118,26 @@ def extract_full_positions(db_path: Path) -> list[dict]:
         else:
             date_str = None
 
+        # Wind data: W = Beaufort force (0-12), D = wind direction (degrees 1-362)
+        wf_raw = row["W"]
+        wd_raw = row["D"]
+        wf = None
+        wd = None
+        if wf_raw is not None:
+            try:
+                wf_int = int(wf_raw)
+                if 0 <= wf_int <= 12:
+                    wf = wf_int
+            except (ValueError, TypeError):
+                pass
+        if wd_raw is not None:
+            try:
+                wd_int = int(wd_raw)
+                if 1 <= wd_int <= 362:
+                    wd = wd_int
+            except (ValueError, TypeError):
+                pass
+
         positions.append(
             {
                 "voyage_id": int(row["ID"]),
@@ -133,6 +153,9 @@ def extract_full_positions(db_path: Path) -> list[dict]:
                 "ship_type": row["ShipType"],
                 "voyage_from": row["VoyageFrom"],
                 "voyage_to": row["VoyageTo"],
+                # Wind data (None if not available)
+                "wf": wf,
+                "wd": wd,
             }
         )
 
@@ -184,7 +207,20 @@ def group_full_positions_into_tracks(positions: list[dict]) -> list[dict]:
             "year_start": min(years) if years else None,
             "year_end": max(years) if years else None,
             "position_count": len(points),
-            "positions": [{"date": p["date"], "lat": p["lat"], "lon": p["lon"]} for p in points],
+            "positions": [
+                {
+                    k: v
+                    for k, v in [
+                        ("date", p["date"]),
+                        ("lat", p["lat"]),
+                        ("lon", p["lon"]),
+                        ("wf", p.get("wf")),
+                        ("wd", p.get("wd")),
+                    ]
+                    if v is not None
+                }
+                for p in points
+            ],
         }
         # Compute duration from dates
         if track["start_date"] and track["end_date"] and len(dates) >= 2:
@@ -366,9 +402,13 @@ def main() -> None:
 
             ships_with_name = sum(1 for t in tracks if t.get("ship_name"))
             ships_with_das = sum(1 for t in tracks if t.get("das_number"))
+            pos_with_wind = sum(
+                1 for t in tracks for p in t.get("positions", []) if p.get("wf") is not None
+            )
             logger.info("  Created %d voyage tracks", len(tracks))
             logger.info("    With ship name: %d", ships_with_name)
             logger.info("    With DAS number: %d (linked to DAS voyages)", ships_with_das)
+            logger.info("    Positions with wind data: %d", pos_with_wind)
 
         except Exception as e:
             logger.warning("")

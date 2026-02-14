@@ -479,6 +479,7 @@ def _compute_daily_speeds(
                 "lon": round(mid_lon, 2),
                 "km_day": round(km_day, 1),
                 "direction": _infer_direction(lon1, lon2),
+                "wind_force": p2.get("wf"),
             }
         )
 
@@ -506,6 +507,9 @@ def _group_key(obs: dict[str, Any], group_by: str, track: dict[str, Any]) -> str
         return obs.get("direction")
     if group_by == "nationality":
         return track.get("nationality")
+    if group_by == "beaufort":
+        wf = obs.get("wind_force")
+        return str(wf) if wf is not None else None
     return None
 
 
@@ -594,11 +598,14 @@ def aggregate_track_speeds(
     aggregate_by: str = "observation",
     min_speed: float = 5.0,
     max_speed: float = 400.0,
+    wind_force_min: int | None = None,
+    wind_force_max: int | None = None,
 ) -> dict[str, Any]:
     """Aggregate daily sailing speeds across all matching tracks by dimension.
 
     Args:
-        group_by: Grouping dimension — "decade", "month", "direction", "nationality"
+        group_by: Grouping dimension — "decade", "month", "direction",
+            "nationality", "beaufort"
         lat_min/lat_max/lon_min/lon_max: Bounding box for position filtering
         nationality: Filter tracks by nationality code
         year_start/year_end: Filter tracks by year range
@@ -607,6 +614,8 @@ def aggregate_track_speeds(
         aggregate_by: Unit of analysis — "observation" (each daily speed) or
             "voyage" (one mean speed per voyage, statistically independent)
         min_speed/max_speed: Speed bounds in km/day
+        wind_force_min/wind_force_max: Beaufort force bounds (0-12).
+            Requires wind data in positions (re-run download script).
 
     Returns:
         Dict with total_observations, total_voyages, groups list, methodology.
@@ -644,6 +653,16 @@ def aggregate_track_speeds(
             if month_start is not None or month_end is not None:
                 d = _parse_date(obs["date"])
                 if d is None or not _month_in_range(d.month, month_start, month_end):
+                    continue
+
+            # Apply wind force filter
+            if wind_force_min is not None or wind_force_max is not None:
+                wf = obs.get("wind_force")
+                if wf is None:
+                    continue
+                if wind_force_min is not None and wf < wind_force_min:
+                    continue
+                if wind_force_max is not None and wf > wind_force_max:
                     continue
 
             key = _group_key(obs, group_by, track)
@@ -684,6 +703,8 @@ def aggregate_track_speeds(
         "nationality_filter": nationality,
         "month_start_filter": month_start,
         "month_end_filter": month_end,
+        "wind_force_min_filter": wind_force_min,
+        "wind_force_max_filter": wind_force_max,
     }
 
 
@@ -702,6 +723,8 @@ def compare_speed_groups(
     include_samples: bool = False,
     min_speed: float = 5.0,
     max_speed: float = 400.0,
+    wind_force_min: int | None = None,
+    wind_force_max: int | None = None,
 ) -> dict[str, Any]:
     """Compare speed distributions between two time periods using Mann-Whitney U.
 
@@ -712,6 +735,7 @@ def compare_speed_groups(
         aggregate_by: "observation" (each daily speed) or "voyage" (one mean
             per voyage, statistically independent samples)
         include_samples: If True, include raw speed arrays in response
+        wind_force_min/wind_force_max: Beaufort force bounds (0-12)
         Other args: same as aggregate_track_speeds
 
     Returns:
@@ -749,6 +773,14 @@ def compare_speed_groups(
                 if d and yr_start <= d.year <= yr_end:
                     if month_start is not None or month_end is not None:
                         if not _month_in_range(d.month, month_start, month_end):
+                            continue
+                    if wind_force_min is not None or wind_force_max is not None:
+                        wf = obs.get("wind_force")
+                        if wf is None:
+                            continue
+                        if wind_force_min is not None and wf < wind_force_min:
+                            continue
+                        if wind_force_max is not None and wf > wind_force_max:
                             continue
                     if voyage_level:
                         per_voyage[track["voyage_id"]].append(obs["km_day"])
@@ -792,6 +824,8 @@ def compare_speed_groups(
         "aggregate_by": aggregate_by,
         "month_start_filter": month_start,
         "month_end_filter": month_end,
+        "wind_force_min_filter": wind_force_min,
+        "wind_force_max_filter": wind_force_max,
     }
     if include_samples:
         result["group1_samples"] = [round(v, 1) for v in g1]
@@ -859,6 +893,8 @@ def did_speed_test(
     seed: int = 42,
     min_speed: float = 5.0,
     max_speed: float = 400.0,
+    wind_force_min: int | None = None,
+    wind_force_max: int | None = None,
 ) -> dict[str, Any]:
     """Formal 2×2 Difference-in-Differences test: direction × period.
 
@@ -881,6 +917,7 @@ def did_speed_test(
             "observation" (more data points but autocorrelated)
         n_bootstrap: Number of bootstrap iterations (default: 10000)
         seed: Random seed for reproducibility (default: 42)
+        wind_force_min/wind_force_max: Beaufort force bounds (0-12)
         min_speed/max_speed: Speed bounds in km/day
 
     Returns:
@@ -922,6 +959,14 @@ def did_speed_test(
                     continue
                 if month_start is not None or month_end is not None:
                     if not _month_in_range(d.month, month_start, month_end):
+                        continue
+                if wind_force_min is not None or wind_force_max is not None:
+                    wf = obs.get("wind_force")
+                    if wf is None:
+                        continue
+                    if wind_force_min is not None and wf < wind_force_min:
+                        continue
+                    if wind_force_max is not None and wf > wind_force_max:
                         continue
                 direction = obs.get("direction", "")
                 if direction == "eastbound":
@@ -987,6 +1032,8 @@ def did_speed_test(
         "nationality_filter": nationality,
         "month_start_filter": month_start,
         "month_end_filter": month_end,
+        "wind_force_min_filter": wind_force_min,
+        "wind_force_max_filter": wind_force_max,
     }
 
 
@@ -1033,6 +1080,541 @@ def _mann_whitney_u(x: list[float], y: list[float]) -> tuple[float, float, float
     p = math.erfc(abs(z) / math.sqrt(2))
 
     return u1, z, p
+
+
+# ---------------------------------------------------------------------------
+# Bootstrap Mean Difference (two-sample)
+# ---------------------------------------------------------------------------
+
+
+def _bootstrap_mean_diff(
+    group1: list[float],
+    group2: list[float],
+    n_bootstrap: int = 10000,
+    seed: int = 42,
+) -> tuple[float, float, float, float]:
+    """Bootstrap difference in means with CI and p-value.
+
+    Returns (diff, ci_lower, ci_upper, p_value).
+    """
+    if not group1 or not group2:
+        return 0.0, 0.0, 0.0, 1.0
+
+    def _mean(xs: list[float]) -> float:
+        return sum(xs) / len(xs)
+
+    diff = _mean(group2) - _mean(group1)
+
+    rng = random.Random(seed)
+    boot_diffs: list[float] = []
+    for _ in range(n_bootstrap):
+        b1 = rng.choices(group1, k=len(group1))
+        b2 = rng.choices(group2, k=len(group2))
+        boot_diffs.append(_mean(b2) - _mean(b1))
+
+    boot_diffs.sort()
+    ci_lower = boot_diffs[max(0, int(0.025 * n_bootstrap) - 1)]
+    ci_upper = boot_diffs[min(n_bootstrap - 1, int(0.975 * n_bootstrap))]
+
+    n_le_zero = sum(1 for d in boot_diffs if d <= 0)
+    n_ge_zero = sum(1 for d in boot_diffs if d >= 0)
+    p_value = 2 * min(n_le_zero, n_ge_zero) / n_bootstrap
+    p_value = min(p_value, 1.0)
+    if p_value == 0.0:
+        p_value = 1.0 / n_bootstrap
+
+    return diff, ci_lower, ci_upper, p_value
+
+
+# ---------------------------------------------------------------------------
+# Tortuosity — per-voyage route efficiency
+# ---------------------------------------------------------------------------
+
+
+def compute_track_tortuosity(
+    voyage_id: int,
+    lat_min: float | None = None,
+    lat_max: float | None = None,
+    lon_min: float | None = None,
+    lon_max: float | None = None,
+    min_speed: float = 5.0,
+    max_speed: float = 400.0,
+) -> dict[str, Any] | None:
+    """Compute route tortuosity for a single voyage within a bounding box.
+
+    Tortuosity = path_km / net_km. Values >= 1.0, where 1.0 = perfectly
+    direct route and higher = more meandering.
+
+    Returns dict with path_km, net_km, tortuosity_r, inferred_direction,
+    n_in_box, or None if voyage not found or insufficient positions.
+    """
+    _load_tracks()
+    track = _TRACK_INDEX.get(voyage_id)
+    if track is None:
+        return None
+
+    has_bbox = any(v is not None for v in (lat_min, lat_max, lon_min, lon_max))
+
+    # Collect positions within bbox
+    in_box: list[dict[str, Any]] = []
+    for pos in track.get("positions", []):
+        lat, lon = pos.get("lat"), pos.get("lon")
+        if lat is None or lon is None:
+            continue
+        if has_bbox and not _pos_in_bbox(lat, lon, lat_min, lat_max, lon_min, lon_max):
+            continue
+        in_box.append(pos)
+
+    if len(in_box) < 2:
+        return None
+
+    # Compute actual path distance, filtering by speed bounds
+    path_km = 0.0
+    valid_positions: list[dict[str, Any]] = [in_box[0]]
+    for i in range(1, len(in_box)):
+        p1, p2 = in_box[i - 1], in_box[i]
+        d1 = _parse_date(p1.get("date", ""))
+        d2 = _parse_date(p2.get("date", ""))
+        if d1 is None or d2 is None:
+            continue
+        days = (d2 - d1).days
+        if days <= 0:
+            continue
+        dist = _haversine_km(p1["lat"], p1["lon"], p2["lat"], p2["lon"])
+        km_day = dist / days
+        if km_day < min_speed or km_day > max_speed:
+            continue
+        path_km += dist
+        valid_positions.append(p2)
+
+    if len(valid_positions) < 2 or path_km <= 0:
+        return None
+
+    first = valid_positions[0]
+    last = valid_positions[-1]
+    net_km = _haversine_km(first["lat"], first["lon"], last["lat"], last["lon"])
+
+    if net_km <= 0:
+        return None
+
+    tortuosity_r = path_km / net_km
+    inferred_direction = _infer_direction(first["lon"], last["lon"])
+
+    return {
+        "voyage_id": voyage_id,
+        "ship_name": track.get("ship_name"),
+        "nationality": track.get("nationality"),
+        "path_km": round(path_km, 1),
+        "net_km": round(net_km, 1),
+        "tortuosity_r": round(tortuosity_r, 4),
+        "inferred_direction": inferred_direction,
+        "n_in_box": len(valid_positions),
+    }
+
+
+def _compute_voyage_tortuosity(
+    track: dict[str, Any],
+    lat_min: float | None,
+    lat_max: float | None,
+    lon_min: float | None,
+    lon_max: float | None,
+    min_speed: float,
+    max_speed: float,
+    min_positions: int,
+    month_start: int | None,
+    month_end: int | None,
+) -> dict[str, Any] | None:
+    """Compute tortuosity for a track within bbox. Returns dict or None."""
+    has_bbox = any(v is not None for v in (lat_min, lat_max, lon_min, lon_max))
+
+    in_box: list[dict[str, Any]] = []
+    for pos in track.get("positions", []):
+        lat, lon = pos.get("lat"), pos.get("lon")
+        if lat is None or lon is None:
+            continue
+        if has_bbox and not _pos_in_bbox(lat, lon, lat_min, lat_max, lon_min, lon_max):
+            continue
+        # Apply month filter
+        if month_start is not None or month_end is not None:
+            d = _parse_date(pos.get("date", ""))
+            if d is None or not _month_in_range(d.month, month_start, month_end):
+                continue
+        in_box.append(pos)
+
+    if len(in_box) < min_positions:
+        return None
+
+    path_km = 0.0
+    valid_positions: list[dict[str, Any]] = [in_box[0]]
+    for i in range(1, len(in_box)):
+        p1, p2 = in_box[i - 1], in_box[i]
+        d1 = _parse_date(p1.get("date", ""))
+        d2 = _parse_date(p2.get("date", ""))
+        if d1 is None or d2 is None:
+            continue
+        days = (d2 - d1).days
+        if days <= 0:
+            continue
+        dist = _haversine_km(p1["lat"], p1["lon"], p2["lat"], p2["lon"])
+        km_day = dist / days
+        if km_day < min_speed or km_day > max_speed:
+            continue
+        path_km += dist
+        valid_positions.append(p2)
+
+    if len(valid_positions) < min_positions or path_km <= 0:
+        return None
+
+    first = valid_positions[0]
+    last = valid_positions[-1]
+    net_km = _haversine_km(first["lat"], first["lon"], last["lat"], last["lon"])
+    if net_km <= 0:
+        return None
+
+    tortuosity_r = path_km / net_km
+    inferred_direction = _infer_direction(first["lon"], last["lon"])
+
+    # Determine the year from the midpoint of the segment
+    mid_pos = valid_positions[len(valid_positions) // 2]
+    mid_date = _parse_date(mid_pos.get("date", ""))
+
+    return {
+        "voyage_id": track["voyage_id"],
+        "tortuosity_r": tortuosity_r,
+        "path_km": path_km,
+        "net_km": net_km,
+        "inferred_direction": inferred_direction,
+        "n_in_box": len(valid_positions),
+        "year": mid_date.year if mid_date else None,
+        "nationality": track.get("nationality"),
+    }
+
+
+def _tortuosity_group_key(info: dict[str, Any], group_by: str) -> str | None:
+    """Compute group key for a tortuosity result."""
+    if group_by == "decade":
+        yr = info.get("year")
+        return str((yr // 10) * 10) if yr else None
+    if group_by == "year":
+        yr = info.get("year")
+        return str(yr) if yr else None
+    if group_by == "direction":
+        return info.get("inferred_direction")
+    if group_by == "nationality":
+        return info.get("nationality")
+    return None
+
+
+def _compute_tortuosity_stats(values: list[float]) -> dict[str, Any]:
+    """Compute descriptive statistics for tortuosity values."""
+    n = len(values)
+    if n == 0:
+        return {
+            "n": 0,
+            "mean_tortuosity": 0,
+            "median_tortuosity": 0,
+            "std_tortuosity": 0,
+            "ci_lower": 0,
+            "ci_upper": 0,
+        }
+
+    mean = statistics.mean(values)
+    med = statistics.median(values)
+    std = statistics.stdev(values) if n > 1 else 0.0
+    se = std / math.sqrt(n) if n > 0 else 0.0
+    sorted_vals = sorted(values)
+    p25_idx = max(0, int(n * 0.25) - 1)
+    p75_idx = min(n - 1, int(n * 0.75))
+
+    return {
+        "n": n,
+        "mean_tortuosity": round(mean, 4),
+        "median_tortuosity": round(med, 4),
+        "std_tortuosity": round(std, 4),
+        "ci_lower": round(mean - 1.96 * se, 4),
+        "ci_upper": round(mean + 1.96 * se, 4),
+        "p25_tortuosity": round(sorted_vals[p25_idx], 4),
+        "p75_tortuosity": round(sorted_vals[p75_idx], 4),
+    }
+
+
+def aggregate_track_tortuosity(
+    group_by: str = "decade",
+    lat_min: float | None = None,
+    lat_max: float | None = None,
+    lon_min: float | None = None,
+    lon_max: float | None = None,
+    nationality: str | None = None,
+    year_start: int | None = None,
+    year_end: int | None = None,
+    direction: str | None = None,
+    month_start: int | None = None,
+    month_end: int | None = None,
+    min_speed: float = 5.0,
+    max_speed: float = 400.0,
+    min_positions: int = 5,
+    period1_years: str | None = None,
+    period2_years: str | None = None,
+    n_bootstrap: int = 10000,
+    seed: int = 42,
+) -> dict[str, Any]:
+    """Aggregate route tortuosity across matching tracks.
+
+    For each voyage, computes path_km/net_km within the bbox.
+    Groups by decade/year/direction/nationality.
+    Optionally compares two periods with bootstrap CI/p-value.
+
+    Args:
+        group_by: Grouping dimension — "decade", "year", "direction", "nationality"
+        lat_min/lat_max/lon_min/lon_max: Bounding box
+        nationality: Filter by nationality code
+        year_start/year_end: Filter by year range
+        direction: Filter by inferred direction ("eastbound" or "westbound")
+        month_start/month_end: Month filter (supports wrap-around)
+        min_speed/max_speed: Speed bounds for position pair validation
+        min_positions: Minimum positions in bbox segment (default: 5)
+        period1_years/period2_years: Two periods for bootstrap comparison
+        n_bootstrap: Bootstrap iterations (default: 10000)
+        seed: Random seed (default: 42)
+
+    Returns:
+        Dict with groups, optional comparison, filter metadata.
+    """
+    _load_tracks()
+
+    groups: dict[str, list[float]] = defaultdict(list)
+    period1_vals: list[float] = []
+    period2_vals: list[float] = []
+    total_voyages = 0
+
+    # Parse period ranges if provided
+    p1_start = p1_end = p2_start = p2_end = None
+    if period1_years and period2_years:
+        parts1 = period1_years.split("/")
+        parts2 = period2_years.split("/")
+        p1_start, p1_end = int(parts1[0]), int(parts1[1])
+        p2_start, p2_end = int(parts2[0]), int(parts2[1])
+
+    for track in _TRACKS:
+        if nationality and track.get("nationality") != nationality.upper():
+            continue
+        if year_start and (track.get("year_start") or 9999) < year_start:
+            continue
+        if year_end and (track.get("year_end") or 0) > year_end:
+            continue
+
+        info = _compute_voyage_tortuosity(
+            track,
+            lat_min,
+            lat_max,
+            lon_min,
+            lon_max,
+            min_speed,
+            max_speed,
+            min_positions,
+            month_start,
+            month_end,
+        )
+        if info is None:
+            continue
+
+        # Apply direction filter
+        if direction and info["inferred_direction"] != direction:
+            continue
+
+        total_voyages += 1
+        tort = info["tortuosity_r"]
+
+        # Group
+        key = _tortuosity_group_key(info, group_by)
+        if key is not None:
+            groups[key].append(tort)
+
+        # Period comparison
+        yr = info.get("year")
+        if yr and p1_start is not None:
+            if p1_start <= yr <= p1_end:
+                period1_vals.append(tort)
+            elif p2_start <= yr <= p2_end:
+                period2_vals.append(tort)
+
+    # Compute group stats
+    group_results = []
+    for key in sorted(groups.keys(), key=lambda k: (k.isdigit(), int(k) if k.isdigit() else 0, k)):
+        stats = _compute_tortuosity_stats(groups[key])
+        stats["group_key"] = key
+        group_results.append(stats)
+
+    result: dict[str, Any] = {
+        "total_voyages": total_voyages,
+        "min_positions_required": min_positions,
+        "group_by": group_by,
+        "groups": group_results,
+        "latitude_band": [lat_min, lat_max] if lat_min is not None or lat_max is not None else None,
+        "longitude_band": [lon_min, lon_max]
+        if lon_min is not None or lon_max is not None
+        else None,
+        "direction_filter": direction,
+        "nationality_filter": nationality,
+        "month_start_filter": month_start,
+        "month_end_filter": month_end,
+    }
+
+    # Period comparison
+    if period1_years and period2_years and period1_vals and period2_vals:
+        diff, ci_lo, ci_hi, p_val = _bootstrap_mean_diff(
+            period1_vals, period2_vals, n_bootstrap, seed
+        )
+        result["comparison"] = {
+            "period1_label": period1_years,
+            "period1_n": len(period1_vals),
+            "period1_mean": round(statistics.mean(period1_vals), 4),
+            "period2_label": period2_years,
+            "period2_n": len(period2_vals),
+            "period2_mean": round(statistics.mean(period2_vals), 4),
+            "diff": round(diff, 4),
+            "ci_lower": round(ci_lo, 4),
+            "ci_upper": round(ci_hi, 4),
+            "p_value": round(p_val, 6),
+            "significant": p_val < 0.05,
+        }
+
+    return result
+
+
+# ---------------------------------------------------------------------------
+# Wind Rose — Beaufort force distribution
+# ---------------------------------------------------------------------------
+
+
+def wind_rose(
+    lat_min: float | None = None,
+    lat_max: float | None = None,
+    lon_min: float | None = None,
+    lon_max: float | None = None,
+    nationality: str | None = None,
+    year_start: int | None = None,
+    year_end: int | None = None,
+    direction: str | None = None,
+    month_start: int | None = None,
+    month_end: int | None = None,
+    period1_years: str | None = None,
+    period2_years: str | None = None,
+    min_speed: float = 5.0,
+    max_speed: float = 400.0,
+) -> dict[str, Any]:
+    """Count observations by Beaufort wind force, with optional period comparison.
+
+    Returns dict with beaufort_counts, period splits, and wind data availability.
+    Each count includes force, count, percent, and mean_speed_km_day.
+    """
+    _load_tracks()
+
+    # Counters: force -> [speeds]
+    all_counts: dict[int, list[float]] = defaultdict(list)
+    p1_counts: dict[int, list[float]] = defaultdict(list)
+    p2_counts: dict[int, list[float]] = defaultdict(list)
+    total_with_wind = 0
+    total_without_wind = 0
+    voyage_ids: set[int] = set()
+
+    # Parse periods
+    p1_start = p1_end = p2_start = p2_end = None
+    if period1_years and period2_years:
+        parts1 = period1_years.split("/")
+        parts2 = period2_years.split("/")
+        p1_start, p1_end = int(parts1[0]), int(parts1[1])
+        p2_start, p2_end = int(parts2[0]), int(parts2[1])
+
+    for track in _TRACKS:
+        if nationality and track.get("nationality") != nationality.upper():
+            continue
+        if year_start and (track.get("year_start") or 9999) < year_start:
+            continue
+        if year_end and (track.get("year_end") or 0) > year_end:
+            continue
+
+        speeds = _compute_daily_speeds(
+            track, lat_min, lat_max, lon_min, lon_max, min_speed, max_speed
+        )
+        if not speeds:
+            continue
+
+        for obs in speeds:
+            if direction and obs.get("direction") != direction:
+                continue
+            if month_start is not None or month_end is not None:
+                d = _parse_date(obs["date"])
+                if d is None or not _month_in_range(d.month, month_start, month_end):
+                    continue
+
+            wf = obs.get("wind_force")
+            if wf is None:
+                total_without_wind += 1
+                continue
+
+            total_with_wind += 1
+            voyage_ids.add(track["voyage_id"])
+            all_counts[wf].append(obs["km_day"])
+
+            # Period split
+            if (
+                p1_start is not None
+                and p1_end is not None
+                and p2_start is not None
+                and p2_end is not None
+            ):
+                d = _parse_date(obs["date"])
+                if d:
+                    if p1_start <= d.year <= p1_end:
+                        p1_counts[wf].append(obs["km_day"])
+                    elif p2_start <= d.year <= p2_end:
+                        p2_counts[wf].append(obs["km_day"])
+
+    has_wind = total_with_wind > 0
+
+    def _make_counts(counts: dict[int, list[float]], total: int) -> list[dict[str, Any]]:
+        result = []
+        for force in range(13):  # 0-12
+            speeds_list = counts.get(force, [])
+            count = len(speeds_list)
+            pct = (100 * count / total) if total > 0 else 0.0
+            mean_spd = statistics.mean(speeds_list) if speeds_list else None
+            result.append(
+                {
+                    "force": force,
+                    "count": count,
+                    "percent": round(pct, 1),
+                    "mean_speed_km_day": round(mean_spd, 1) if mean_spd is not None else None,
+                }
+            )
+        return result
+
+    result: dict[str, Any] = {
+        "total_with_wind": total_with_wind,
+        "total_without_wind": total_without_wind,
+        "total_voyages": len(voyage_ids),
+        "has_wind_data": has_wind,
+        "beaufort_counts": _make_counts(all_counts, total_with_wind),
+        "latitude_band": [lat_min, lat_max] if lat_min is not None or lat_max is not None else None,
+        "longitude_band": [lon_min, lon_max]
+        if lon_min is not None or lon_max is not None
+        else None,
+        "direction_filter": direction,
+        "nationality_filter": nationality,
+        "month_start_filter": month_start,
+        "month_end_filter": month_end,
+    }
+
+    if period1_years and period2_years:
+        p1_total = sum(len(v) for v in p1_counts.values())
+        p2_total = sum(len(v) for v in p2_counts.values())
+        result["period1_label"] = period1_years
+        result["period1_counts"] = _make_counts(p1_counts, p1_total)
+        result["period2_label"] = period2_years
+        result["period2_counts"] = _make_counts(p2_counts, p2_total)
+
+    return result
 
 
 # Load on import

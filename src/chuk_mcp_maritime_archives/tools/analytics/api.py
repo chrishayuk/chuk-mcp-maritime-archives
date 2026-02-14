@@ -5,18 +5,27 @@ import logging
 from ...constants import SuccessMessages
 from ...core.cliwoc_tracks import (
     aggregate_track_speeds,
+    aggregate_track_tortuosity,
     compare_speed_groups,
     compute_track_speeds,
+    compute_track_tortuosity,
     did_speed_test,
+    wind_rose,
 )
 from ...models import (
+    BeaufortCount,
     DailySpeed,
     DiDSpeedTestResponse,
     ErrorResponse,
     SpeedAggregationGroup,
     SpeedComparisonResponse,
+    TortuosityAggregationGroup,
+    TortuosityAggregationResponse,
+    TortuosityComparisonResult,
     TrackSpeedAggregationResponse,
     TrackSpeedsResponse,
+    TrackTortuosityResponse,
+    WindRoseResponse,
     format_response,
 )
 
@@ -134,6 +143,8 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
         aggregate_by: str = "observation",
         min_speed_km_day: float = 5.0,
         max_speed_km_day: float = 400.0,
+        wind_force_min: int | None = None,
+        wind_force_max: int | None = None,
         output_mode: str = "json",
     ) -> str:
         """
@@ -150,6 +161,7 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
                 - "month" — group by month (1-12)
                 - "direction" — group by eastbound/westbound
                 - "nationality" — group by ship nationality (NL, UK, ES, ...)
+                - "beaufort" — group by Beaufort wind force (0-12)
             lat_min: Minimum latitude for position bounding box
             lat_max: Maximum latitude for position bounding box
             lon_min: Minimum longitude for position bounding box
@@ -166,6 +178,8 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
                 per voyage, statistically independent samples)
             min_speed_km_day: Minimum speed filter (default: 5.0)
             max_speed_km_day: Maximum speed filter (default: 400.0)
+            wind_force_min: Minimum Beaufort force (0-12). Requires wind data
+            wind_force_max: Maximum Beaufort force (0-12). Requires wind data
             output_mode: Response format - "json" (default) or "text"
 
         Returns:
@@ -176,12 +190,11 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
             - Use lat_min=-50, lat_max=-30 for the Roaring Forties wind belt
             - group_by="decade" shows speed trends over time
             - group_by="direction" shows eastbound vs westbound asymmetry
+            - group_by="beaufort" shows speed profiles by wind force
             - Use aggregate_by="voyage" for statistically independent samples
-              (daily observations within a voyage are autocorrelated)
-            - Use month_start=6, month_end=8 for austral winter (Jun-Aug)
-            - Use month_start=12, month_end=2 for austral summer (Dec-Feb)
+            - Use wind_force_min/max to condition on wind strength
             - Use maritime_compare_speed_groups for significance testing
-            - Use maritime_did_speed_test for direction × period interaction
+            - Use maritime_did_speed_test for direction x period interaction
         """
         try:
             result = aggregate_track_speeds(
@@ -199,6 +212,8 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
                 aggregate_by=aggregate_by,
                 min_speed=min_speed_km_day,
                 max_speed=max_speed_km_day,
+                wind_force_min=wind_force_min,
+                wind_force_max=wind_force_max,
             )
 
             groups = [
@@ -229,6 +244,8 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
                     nationality_filter=result.get("nationality_filter"),
                     month_start_filter=result.get("month_start_filter"),
                     month_end_filter=result.get("month_end_filter"),
+                    wind_force_min_filter=result.get("wind_force_min_filter"),
+                    wind_force_max_filter=result.get("wind_force_max_filter"),
                     message=SuccessMessages.SPEEDS_AGGREGATED.format(
                         result["total_observations"],
                         result["total_voyages"],
@@ -260,6 +277,8 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
         include_samples: bool = False,
         min_speed_km_day: float = 5.0,
         max_speed_km_day: float = 400.0,
+        wind_force_min: int | None = None,
+        wind_force_max: int | None = None,
         output_mode: str = "json",
     ) -> str:
         """
@@ -279,13 +298,14 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
             nationality: Filter tracks by nationality code
             direction: Filter by "eastbound" or "westbound"
             month_start: Filter by start month (1-12). Supports wrap-around
-                with month_end (e.g., month_start=6, month_end=8 = Jun-Aug)
             month_end: Filter by end month (1-12). Used with month_start
             aggregate_by: Unit of analysis — "observation" (default) or
                 "voyage" (one mean per voyage, statistically independent)
             include_samples: If True, include raw speed arrays in response
             min_speed_km_day: Minimum speed filter (default: 5.0)
             max_speed_km_day: Maximum speed filter (default: 400.0)
+            wind_force_min: Minimum Beaufort force (0-12). Requires wind data
+            wind_force_max: Maximum Beaufort force (0-12). Requires wind data
             output_mode: Response format - "json" (default) or "text"
 
         Returns:
@@ -294,12 +314,10 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
 
         Tips for LLMs:
             - Use aggregate_by="voyage" for statistically independent samples
-            - Use include_samples=True to get raw speed arrays for custom analysis
-            - Use maritime_did_speed_test for formal direction × period interaction
+            - Use wind_force_min/max to condition on Beaufort force
+            - Use maritime_did_speed_test for formal direction x period interaction
             - p < 0.05 indicates statistically significant difference
             - Cohen's d > 0.8 indicates a large effect size
-            - Use with direction="eastbound" for clearest wind signal
-            - Seasonal filtering isolates volcanic aerosol signals
         """
         try:
             result = compare_speed_groups(
@@ -317,6 +335,8 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
                 include_samples=include_samples,
                 min_speed=min_speed_km_day,
                 max_speed=max_speed_km_day,
+                wind_force_min=wind_force_min,
+                wind_force_max=wind_force_max,
             )
 
             return format_response(
@@ -339,6 +359,8 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
                     group2_samples=result.get("group2_samples"),
                     month_start_filter=result.get("month_start_filter"),
                     month_end_filter=result.get("month_end_filter"),
+                    wind_force_min_filter=result.get("wind_force_min_filter"),
+                    wind_force_max_filter=result.get("wind_force_max_filter"),
                     message=SuccessMessages.SPEED_GROUPS_COMPARED.format(
                         result["group1_n"],
                         result["group2_n"],
@@ -370,6 +392,8 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
         n_bootstrap: int = 10000,
         min_speed_km_day: float = 5.0,
         max_speed_km_day: float = 400.0,
+        wind_force_min: int | None = None,
+        wind_force_max: int | None = None,
         output_mode: str = "json",
     ) -> str:
         """
@@ -401,6 +425,8 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
             n_bootstrap: Bootstrap iterations (default: 10000)
             min_speed_km_day: Minimum speed filter (default: 5.0)
             max_speed_km_day: Maximum speed filter (default: 400.0)
+            wind_force_min: Minimum Beaufort force (0-12). Requires wind data
+            wind_force_max: Maximum Beaufort force (0-12). Requires wind data
             output_mode: Response format - "json" (default) or "text"
 
         Returns:
@@ -411,10 +437,9 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
             - Always splits by direction (eastbound vs westbound)
             - Use lat_min=-50, lat_max=-30 for the Roaring Forties
             - Positive DiD = eastbound gained more = wind strengthened
+            - Use wind_force_min/max for Beaufort-stratified DiD
             - Default aggregate_by="voyage" gives correct p-values
-            - Add month_start=6, month_end=8 for austral winter only
-            - Combine with maritime_compare_speed_groups for per-direction
-              Mann-Whitney U tests
+            - If DiD scales with Beaufort, that is genuine wind change
         """
         try:
             result = did_speed_test(
@@ -431,6 +456,8 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
                 n_bootstrap=n_bootstrap,
                 min_speed=min_speed_km_day,
                 max_speed=max_speed_km_day,
+                wind_force_min=wind_force_min,
+                wind_force_max=wind_force_max,
             )
 
             return format_response(
@@ -459,6 +486,8 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
                     nationality_filter=result.get("nationality_filter"),
                     month_start_filter=result.get("month_start_filter"),
                     month_end_filter=result.get("month_end_filter"),
+                    wind_force_min_filter=result.get("wind_force_min_filter"),
+                    wind_force_max_filter=result.get("wind_force_max_filter"),
                     message=SuccessMessages.DID_TEST_COMPLETE.format(
                         result["did_estimate"],
                         result["period1_eastbound_n"] + result["period1_westbound_n"],
@@ -472,5 +501,367 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
             logger.error("DiD speed test failed: %s", e)
             return format_response(
                 ErrorResponse(error=str(e), message="DiD speed test failed"),
+                output_mode,
+            )
+
+    # ------------------------------------------------------------------
+    # Tortuosity tools
+    # ------------------------------------------------------------------
+
+    @mcp.tool  # type: ignore[union-attr]
+    async def maritime_track_tortuosity(
+        voyage_id: int,
+        lat_min: float | None = None,
+        lat_max: float | None = None,
+        lon_min: float | None = None,
+        lon_max: float | None = None,
+        min_speed_km_day: float = 5.0,
+        max_speed_km_day: float = 400.0,
+        output_mode: str = "json",
+    ) -> str:
+        """
+        Compute route tortuosity for a single CLIWOC voyage.
+
+        Tortuosity = path_km / net_km. A value of 1.0 means perfectly
+        direct; higher values indicate meandering. Compares actual sailed
+        distance (sum of position-to-position haversine legs) to
+        great-circle distance (first to last position in bbox).
+
+        Args:
+            voyage_id: CLIWOC voyage ID (from maritime_search_tracks)
+            lat_min: Minimum latitude for bounding box
+            lat_max: Maximum latitude for bounding box
+            lon_min: Minimum longitude for bounding box
+            lon_max: Maximum longitude for bounding box
+            min_speed_km_day: Minimum speed filter (default: 5.0)
+            max_speed_km_day: Maximum speed filter (default: 400.0)
+            output_mode: Response format - "json" (default) or "text"
+
+        Returns:
+            JSON or text with path_km, net_km, tortuosity_r,
+            inferred_direction, n_in_box
+
+        Tips for LLMs:
+            - Use lat_min=-50, lat_max=-30 for the Roaring Forties
+            - Tortuosity ~1.0-1.1 = direct sailing, >1.3 = detours
+            - Compare pre/post-chronometer voyages to test navigation
+            - Use maritime_aggregate_track_tortuosity for bulk analysis
+        """
+        try:
+            result = compute_track_tortuosity(
+                voyage_id=voyage_id,
+                lat_min=lat_min,
+                lat_max=lat_max,
+                lon_min=lon_min,
+                lon_max=lon_max,
+                min_speed=min_speed_km_day,
+                max_speed=max_speed_km_day,
+            )
+
+            if result is None:
+                return format_response(
+                    ErrorResponse(
+                        error=f"CLIWOC voyage {voyage_id} not found or insufficient "
+                        "positions in bounding box."
+                    ),
+                    output_mode,
+                )
+
+            return format_response(
+                TrackTortuosityResponse(
+                    voyage_id=result["voyage_id"],
+                    ship_name=result.get("ship_name"),
+                    nationality=result.get("nationality"),
+                    path_km=result["path_km"],
+                    net_km=result["net_km"],
+                    tortuosity_r=result["tortuosity_r"],
+                    inferred_direction=result["inferred_direction"],
+                    n_in_box=result["n_in_box"],
+                    message=SuccessMessages.TRACK_TORTUOSITY_COMPUTED.format(
+                        result["voyage_id"], result["tortuosity_r"]
+                    ),
+                ),
+                output_mode,
+            )
+        except Exception as e:
+            logger.error("Tortuosity computation failed for voyage %s: %s", voyage_id, e)
+            return format_response(
+                ErrorResponse(error=str(e), message="Tortuosity computation failed"),
+                output_mode,
+            )
+
+    @mcp.tool  # type: ignore[union-attr]
+    async def maritime_aggregate_track_tortuosity(
+        group_by: str = "decade",
+        lat_min: float | None = None,
+        lat_max: float | None = None,
+        lon_min: float | None = None,
+        lon_max: float | None = None,
+        nationality: str | None = None,
+        year_start: int | None = None,
+        year_end: int | None = None,
+        direction: str | None = None,
+        month_start: int | None = None,
+        month_end: int | None = None,
+        min_speed_km_day: float = 5.0,
+        max_speed_km_day: float = 400.0,
+        min_positions: int = 5,
+        period1_years: str | None = None,
+        period2_years: str | None = None,
+        n_bootstrap: int = 10000,
+        output_mode: str = "json",
+    ) -> str:
+        """
+        Aggregate route tortuosity across CLIWOC tracks with optional comparison.
+
+        Tests the chronometer hypothesis: if marine chronometers improved
+        navigation, tortuosity should decrease over time. If tortuosity stays
+        constant while speed DiD shows asymmetric gains, that confirms wind
+        change rather than better routing.
+
+        Args:
+            group_by: "decade", "year", "direction", "nationality"
+            lat_min/lat_max/lon_min/lon_max: Bounding box
+            nationality: Filter by nationality code
+            year_start/year_end: Filter by year range
+            direction: Filter by "eastbound" or "westbound"
+            month_start/month_end: Month filter (supports wrap-around)
+            min_speed_km_day: Minimum speed filter (default: 5.0)
+            max_speed_km_day: Maximum speed filter (default: 400.0)
+            min_positions: Minimum positions in bbox (default: 5)
+            period1_years: First period as "YYYY/YYYY" for comparison
+            period2_years: Second period as "YYYY/YYYY" for comparison
+            n_bootstrap: Bootstrap iterations (default: 10000)
+            output_mode: Response format - "json" (default) or "text"
+
+        Returns:
+            JSON or text with per-group tortuosity stats, optional comparison
+
+        Tips for LLMs:
+            - group_by="decade" to see tortuosity trends over time
+            - Use direction="eastbound" vs "westbound" separately
+            - period1_years/period2_years for formal comparison with CI
+            - Combine with maritime_did_speed_test for complete decomposition
+            - min_positions=5 filters out short transits
+        """
+        try:
+            result = aggregate_track_tortuosity(
+                group_by=group_by,
+                lat_min=lat_min,
+                lat_max=lat_max,
+                lon_min=lon_min,
+                lon_max=lon_max,
+                nationality=nationality,
+                year_start=year_start,
+                year_end=year_end,
+                direction=direction,
+                month_start=month_start,
+                month_end=month_end,
+                min_speed=min_speed_km_day,
+                max_speed=max_speed_km_day,
+                min_positions=min_positions,
+                period1_years=period1_years,
+                period2_years=period2_years,
+                n_bootstrap=n_bootstrap,
+            )
+
+            groups = [
+                TortuosityAggregationGroup(
+                    group_key=g["group_key"],
+                    n=g["n"],
+                    mean_tortuosity=g["mean_tortuosity"],
+                    median_tortuosity=g["median_tortuosity"],
+                    std_tortuosity=g["std_tortuosity"],
+                    ci_lower=g["ci_lower"],
+                    ci_upper=g["ci_upper"],
+                    p25_tortuosity=g.get("p25_tortuosity"),
+                    p75_tortuosity=g.get("p75_tortuosity"),
+                )
+                for g in result["groups"]
+            ]
+
+            comparison = None
+            if result.get("comparison"):
+                c = result["comparison"]
+                comparison = TortuosityComparisonResult(
+                    period1_label=c["period1_label"],
+                    period1_n=c["period1_n"],
+                    period1_mean=c["period1_mean"],
+                    period2_label=c["period2_label"],
+                    period2_n=c["period2_n"],
+                    period2_mean=c["period2_mean"],
+                    diff=c["diff"],
+                    ci_lower=c["ci_lower"],
+                    ci_upper=c["ci_upper"],
+                    p_value=c["p_value"],
+                    significant=c["significant"],
+                )
+
+            return format_response(
+                TortuosityAggregationResponse(
+                    total_voyages=result["total_voyages"],
+                    min_positions_required=result["min_positions_required"],
+                    group_by=result["group_by"],
+                    groups=groups,
+                    comparison=comparison,
+                    latitude_band=result.get("latitude_band"),
+                    longitude_band=result.get("longitude_band"),
+                    direction_filter=result.get("direction_filter"),
+                    nationality_filter=result.get("nationality_filter"),
+                    month_start_filter=result.get("month_start_filter"),
+                    month_end_filter=result.get("month_end_filter"),
+                    message=SuccessMessages.TORTUOSITY_AGGREGATED.format(
+                        result["total_voyages"], min_positions
+                    ),
+                ),
+                output_mode,
+            )
+        except Exception as e:
+            logger.error("Tortuosity aggregation failed: %s", e)
+            return format_response(
+                ErrorResponse(error=str(e), message="Tortuosity aggregation failed"),
+                output_mode,
+            )
+
+    # ------------------------------------------------------------------
+    # Wind rose tool
+    # ------------------------------------------------------------------
+
+    @mcp.tool  # type: ignore[union-attr]
+    async def maritime_wind_rose(
+        lat_min: float | None = None,
+        lat_max: float | None = None,
+        lon_min: float | None = None,
+        lon_max: float | None = None,
+        nationality: str | None = None,
+        year_start: int | None = None,
+        year_end: int | None = None,
+        direction: str | None = None,
+        month_start: int | None = None,
+        month_end: int | None = None,
+        period1_years: str | None = None,
+        period2_years: str | None = None,
+        min_speed_km_day: float = 5.0,
+        max_speed_km_day: float = 400.0,
+        output_mode: str = "json",
+    ) -> str:
+        """
+        Beaufort wind force distributions from CLIWOC logbook observations.
+
+        Counts observations by Beaufort force (0-12) with mean speed at each
+        force level. Optionally compares distributions between two periods.
+
+        Key tool for the Kelly and O Grada approach: if recorded Beaufort
+        distributions shift between periods, that indicates genuine wind
+        change. If distributions are stable while speeds increase, that
+        indicates technology improvement (hull, sails, routing).
+
+        Requires CLIWOC 2.1 Full with wind data. Returns has_wind_data=false
+        with a helpful message if wind data is not available.
+
+        Args:
+            lat_min/lat_max/lon_min/lon_max: Bounding box
+            nationality: Filter by nationality code
+            year_start/year_end: Filter by year range
+            direction: Filter by "eastbound" or "westbound"
+            month_start/month_end: Month filter (supports wrap-around)
+            period1_years: First period as "YYYY/YYYY" for comparison
+            period2_years: Second period as "YYYY/YYYY" for comparison
+            min_speed_km_day: Minimum speed filter (default: 5.0)
+            max_speed_km_day: Maximum speed filter (default: 400.0)
+            output_mode: Response format - "json" (default) or "text"
+
+        Returns:
+            JSON or text with Beaufort distribution, optional period split
+
+        Tips for LLMs:
+            - Use period1_years/period2_years to compare distributions
+            - Combine with group_by="beaufort" on aggregate tool for
+              speed profiles at each wind force
+            - Requires re-running download script for wind data
+        """
+        try:
+            result = wind_rose(
+                lat_min=lat_min,
+                lat_max=lat_max,
+                lon_min=lon_min,
+                lon_max=lon_max,
+                nationality=nationality,
+                year_start=year_start,
+                year_end=year_end,
+                direction=direction,
+                month_start=month_start,
+                month_end=month_end,
+                period1_years=period1_years,
+                period2_years=period2_years,
+                min_speed=min_speed_km_day,
+                max_speed=max_speed_km_day,
+            )
+
+            if not result["has_wind_data"]:
+                msg = SuccessMessages.WIND_ROSE_NO_DATA
+            else:
+                msg = SuccessMessages.WIND_ROSE_COMPUTED.format(
+                    result["total_with_wind"], result["total_voyages"]
+                )
+
+            beaufort_counts = [
+                BeaufortCount(
+                    force=bc["force"],
+                    count=bc["count"],
+                    percent=bc["percent"],
+                    mean_speed_km_day=bc.get("mean_speed_km_day"),
+                )
+                for bc in result["beaufort_counts"]
+            ]
+
+            p1_counts = None
+            p2_counts = None
+            if result.get("period1_counts"):
+                p1_counts = [
+                    BeaufortCount(
+                        force=bc["force"],
+                        count=bc["count"],
+                        percent=bc["percent"],
+                        mean_speed_km_day=bc.get("mean_speed_km_day"),
+                    )
+                    for bc in result["period1_counts"]
+                ]
+            if result.get("period2_counts"):
+                p2_counts = [
+                    BeaufortCount(
+                        force=bc["force"],
+                        count=bc["count"],
+                        percent=bc["percent"],
+                        mean_speed_km_day=bc.get("mean_speed_km_day"),
+                    )
+                    for bc in result["period2_counts"]
+                ]
+
+            return format_response(
+                WindRoseResponse(
+                    total_with_wind=result["total_with_wind"],
+                    total_without_wind=result["total_without_wind"],
+                    total_voyages=result["total_voyages"],
+                    has_wind_data=result["has_wind_data"],
+                    beaufort_counts=beaufort_counts,
+                    period1_label=result.get("period1_label"),
+                    period1_counts=p1_counts,
+                    period2_label=result.get("period2_label"),
+                    period2_counts=p2_counts,
+                    latitude_band=result.get("latitude_band"),
+                    longitude_band=result.get("longitude_band"),
+                    direction_filter=result.get("direction_filter"),
+                    nationality_filter=result.get("nationality_filter"),
+                    month_start_filter=result.get("month_start_filter"),
+                    month_end_filter=result.get("month_end_filter"),
+                    message=msg,
+                ),
+                output_mode,
+            )
+        except Exception as e:
+            logger.error("Wind rose computation failed: %s", e)
+            return format_response(
+                ErrorResponse(error=str(e), message="Wind rose computation failed"),
                 output_mode,
             )

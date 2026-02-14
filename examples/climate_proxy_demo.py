@@ -838,7 +838,7 @@ async def main() -> None:
     print("  tree rings, and the instrumental era.")
     print()
     print("  Data source: CLIWOC 2.1 Full -- ~261K daily positions, 1662-1855")
-    print("  Tools: chuk-mcp-maritime-archives MCP server (37 tools)")
+    print("  Tools: chuk-mcp-maritime-archives MCP server (44 tools)")
     print("=" * 72)
 
 

@@ -1194,6 +1194,8 @@ class TrackSpeedAggregationResponse(BaseModel):
     nationality_filter: str | None = None
     month_start_filter: int | None = None
     month_end_filter: int | None = None
+    wind_force_min_filter: int | None = None
+    wind_force_max_filter: int | None = None
     message: str = ""
 
     def to_text(self) -> str:
@@ -1204,6 +1206,11 @@ class TrackSpeedAggregationResponse(BaseModel):
             lines.append(
                 f"Season filter: months {self.month_start_filter or 1}"
                 f"-{self.month_end_filter or 12}"
+            )
+        if self.wind_force_min_filter is not None or self.wind_force_max_filter is not None:
+            lines.append(
+                f"Wind force filter: Beaufort {self.wind_force_min_filter or 0}"
+                f"-{self.wind_force_max_filter or 12}"
             )
         lines.append("")
         for g in self.groups:
@@ -1237,6 +1244,8 @@ class SpeedComparisonResponse(BaseModel):
     group2_samples: list[float] | None = None
     month_start_filter: int | None = None
     month_end_filter: int | None = None
+    wind_force_min_filter: int | None = None
+    wind_force_max_filter: int | None = None
     message: str = ""
 
     def to_text(self) -> str:
@@ -1249,6 +1258,11 @@ class SpeedComparisonResponse(BaseModel):
             lines.append(
                 f"Season filter: months {self.month_start_filter or 1}"
                 f"-{self.month_end_filter or 12}"
+            )
+        if self.wind_force_min_filter is not None or self.wind_force_max_filter is not None:
+            lines.append(
+                f"Wind force filter: Beaufort {self.wind_force_min_filter or 0}"
+                f"-{self.wind_force_max_filter or 12}"
             )
         lines.extend(
             [
@@ -1293,6 +1307,8 @@ class DiDSpeedTestResponse(BaseModel):
     nationality_filter: str | None = None
     month_start_filter: int | None = None
     month_end_filter: int | None = None
+    wind_force_min_filter: int | None = None
+    wind_force_max_filter: int | None = None
     message: str = ""
 
     def to_text(self) -> str:
@@ -1301,32 +1317,202 @@ class DiDSpeedTestResponse(BaseModel):
         lines = [
             self.message,
             f"Aggregated by: {self.aggregate_by}",
-            "",
-            "2x2 Cell Summary:",
-            f"  Period 1 ({self.period1_label}):",
-            f"    Eastbound: n={self.period1_eastbound_n} {unit}, "
-            f"mean={self.period1_eastbound_mean:.1f} km/day",
-            f"    Westbound: n={self.period1_westbound_n} {unit}, "
-            f"mean={self.period1_westbound_mean:.1f} km/day",
-            f"  Period 2 ({self.period2_label}):",
-            f"    Eastbound: n={self.period2_eastbound_n} {unit}, "
-            f"mean={self.period2_eastbound_mean:.1f} km/day",
-            f"    Westbound: n={self.period2_westbound_n} {unit}, "
-            f"mean={self.period2_westbound_mean:.1f} km/day",
-            "",
-            f"Eastbound diff: {self.eastbound_diff:+.1f} km/day",
-            f"Westbound diff: {self.westbound_diff:+.1f} km/day",
-            "",
-            f"DiD estimate: {self.did_estimate:+.1f} km/day",
-            f"95% CI: [{self.did_ci_lower:.1f}, {self.did_ci_upper:.1f}]",
-            f"p = {self.did_p_value:.6f} ({sig} at p<0.05)",
-            f"Bootstrap iterations: {self.n_bootstrap}",
         ]
+        if self.wind_force_min_filter is not None or self.wind_force_max_filter is not None:
+            lines.append(
+                f"Wind force filter: Beaufort {self.wind_force_min_filter or 0}"
+                f"-{self.wind_force_max_filter or 12}"
+            )
+        lines.extend(
+            [
+                "",
+                "2x2 Cell Summary:",
+                f"  Period 1 ({self.period1_label}):",
+                f"    Eastbound: n={self.period1_eastbound_n} {unit}, "
+                f"mean={self.period1_eastbound_mean:.1f} km/day",
+                f"    Westbound: n={self.period1_westbound_n} {unit}, "
+                f"mean={self.period1_westbound_mean:.1f} km/day",
+                f"  Period 2 ({self.period2_label}):",
+                f"    Eastbound: n={self.period2_eastbound_n} {unit}, "
+                f"mean={self.period2_eastbound_mean:.1f} km/day",
+                f"    Westbound: n={self.period2_westbound_n} {unit}, "
+                f"mean={self.period2_westbound_mean:.1f} km/day",
+                "",
+                f"Eastbound diff: {self.eastbound_diff:+.1f} km/day",
+                f"Westbound diff: {self.westbound_diff:+.1f} km/day",
+                "",
+                f"DiD estimate: {self.did_estimate:+.1f} km/day",
+                f"95% CI: [{self.did_ci_lower:.1f}, {self.did_ci_upper:.1f}]",
+                f"p = {self.did_p_value:.6f} ({sig} at p<0.05)",
+                f"Bootstrap iterations: {self.n_bootstrap}",
+            ]
+        )
         if self.month_start_filter is not None or self.month_end_filter is not None:
             lines.append(
                 f"Season filter: months {self.month_start_filter or 1}"
                 f"-{self.month_end_filter or 12}"
             )
+        return "\n".join(lines)
+
+
+# ---------------------------------------------------------------------------
+# Tortuosity
+# ---------------------------------------------------------------------------
+
+
+class TrackTortuosityResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    voyage_id: int
+    ship_name: str | None = None
+    nationality: str | None = None
+    path_km: float
+    net_km: float
+    tortuosity_r: float
+    inferred_direction: str
+    n_in_box: int
+    message: str = ""
+
+    def to_text(self) -> str:
+        lines = [
+            self.message,
+            f"Voyage {self.voyage_id}",
+            f"  Path distance: {self.path_km:.1f} km",
+            f"  Net distance:  {self.net_km:.1f} km",
+            f"  Tortuosity:    {self.tortuosity_r:.4f} (1.0 = perfectly direct)",
+            f"  Direction:     {self.inferred_direction}",
+            f"  Positions:     {self.n_in_box}",
+        ]
+        return "\n".join(lines)
+
+
+class TortuosityAggregationGroup(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    group_key: str
+    n: int
+    mean_tortuosity: float
+    median_tortuosity: float
+    std_tortuosity: float
+    ci_lower: float
+    ci_upper: float
+    p25_tortuosity: float | None = None
+    p75_tortuosity: float | None = None
+
+
+class TortuosityComparisonResult(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    period1_label: str
+    period1_n: int
+    period1_mean: float
+    period2_label: str
+    period2_n: int
+    period2_mean: float
+    diff: float
+    ci_lower: float
+    ci_upper: float
+    p_value: float
+    significant: bool
+
+
+class TortuosityAggregationResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    total_voyages: int
+    min_positions_required: int
+    group_by: str
+    groups: list[TortuosityAggregationGroup]
+    comparison: TortuosityComparisonResult | None = None
+    latitude_band: list[float] | None = None
+    longitude_band: list[float] | None = None
+    direction_filter: str | None = None
+    nationality_filter: str | None = None
+    month_start_filter: int | None = None
+    month_end_filter: int | None = None
+    message: str = ""
+
+    def to_text(self) -> str:
+        lines = [self.message, f"Grouped by: {self.group_by}", ""]
+        for g in self.groups:
+            lines.append(
+                f"  {g.group_key:>12s}: {g.mean_tortuosity:.4f} "
+                f"(median {g.median_tortuosity:.4f}, std {g.std_tortuosity:.4f}, n={g.n})"
+            )
+        lines.append(
+            f"\nTotal: {self.total_voyages} voyages "
+            f"(min {self.min_positions_required} positions required)"
+        )
+        if self.comparison:
+            c = self.comparison
+            sig = "SIGNIFICANT" if c.significant else "not significant"
+            lines.extend(
+                [
+                    "",
+                    "Period comparison:",
+                    f"  {c.period1_label}: n={c.period1_n}, mean={c.period1_mean:.4f}",
+                    f"  {c.period2_label}: n={c.period2_n}, mean={c.period2_mean:.4f}",
+                    f"  Diff: {c.diff:+.4f}",
+                    f"  95% CI: [{c.ci_lower:.4f}, {c.ci_upper:.4f}]",
+                    f"  p = {c.p_value:.6f} ({sig})",
+                ]
+            )
+        return "\n".join(lines)
+
+
+# ---------------------------------------------------------------------------
+# Wind Rose
+# ---------------------------------------------------------------------------
+
+
+class BeaufortCount(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    force: int
+    count: int
+    percent: float
+    mean_speed_km_day: float | None = None
+
+
+class WindRoseResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    total_with_wind: int
+    total_without_wind: int
+    total_voyages: int
+    has_wind_data: bool
+    beaufort_counts: list[BeaufortCount]
+    period1_label: str | None = None
+    period1_counts: list[BeaufortCount] | None = None
+    period2_label: str | None = None
+    period2_counts: list[BeaufortCount] | None = None
+    latitude_band: list[float] | None = None
+    longitude_band: list[float] | None = None
+    direction_filter: str | None = None
+    nationality_filter: str | None = None
+    month_start_filter: int | None = None
+    month_end_filter: int | None = None
+    message: str = ""
+
+    def to_text(self) -> str:
+        if not self.has_wind_data:
+            return self.message
+        lines = [self.message, ""]
+        for bc in self.beaufort_counts:
+            if bc.count > 0:
+                bar = "#" * max(1, int(bc.percent / 2))
+                spd = f"{bc.mean_speed_km_day:.1f} km/day" if bc.mean_speed_km_day else ""
+                lines.append(
+                    f"  Beaufort {bc.force:>2d}: {bc.count:>6,} "
+                    f"({bc.percent:5.1f}%)  {spd:>12s}  {bar}"
+                )
+        lines.append(f"\nWith wind data: {self.total_with_wind:,}")
+        lines.append(f"Without wind data: {self.total_without_wind:,}")
+        if self.period1_label and self.period1_counts:
+            p1_n = sum(c.count for c in self.period1_counts)
+            p2_n = sum(c.count for c in (self.period2_counts or []))
+            lines.append(f"\nPeriod 1 ({self.period1_label}): {p1_n:,} obs")
+            lines.append(f"Period 2 ({self.period2_label}): {p2_n:,} obs")
         return "\n".join(lines)
 
 

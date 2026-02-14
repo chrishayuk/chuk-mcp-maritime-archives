@@ -1,6 +1,6 @@
 # chuk-mcp-maritime-archives Specification
 
-Version 0.20.0
+Version 0.21.0
 
 ## Overview
 
@@ -11,7 +11,7 @@ through the colonial era and beyond, 1497-2024. Covers Dutch (VOC), English (EIC
 (Carreira da India), Spanish (Manila Galleon), Swedish (SOIC), UK Hydrographic Office (UKHO), and NOAA maritime archives.
 
 - **Public server**: `https://maritime-archives.chukai.io/mcp`
-- **41 tools** for searching, retrieving, analysing, and exporting maritime archival data
+- **44 tools** for searching, retrieving, analysing, and exporting maritime archival data
 - **Cursor-based pagination** -- all 8 search tools support `cursor` / `next_cursor` / `has_more` for paging through large result sets
 - **Dual output mode** -- all tools return JSON (default) or human-readable text via `output_mode` parameter
 - **Async-first** -- tool entry points are async; sync HTTP I/O runs in thread pools
@@ -968,7 +968,7 @@ by the requested dimension.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `group_by` | `str` | `"decade"` | Grouping dimension: `"decade"`, `"year"`, `"month"`, `"direction"`, `"nationality"` |
+| `group_by` | `str` | `"decade"` | Grouping dimension: `"decade"`, `"year"`, `"month"`, `"direction"`, `"nationality"`, `"beaufort"` |
 | `lat_min` | `float?` | `None` | Minimum latitude for position bounding box |
 | `lat_max` | `float?` | `None` | Maximum latitude for position bounding box |
 | `lon_min` | `float?` | `None` | Minimum longitude for position bounding box |
@@ -982,6 +982,8 @@ by the requested dimension.
 | `aggregate_by` | `str` | `"observation"` | Unit of analysis: `"observation"` (each daily speed) or `"voyage"` (one mean per voyage, statistically independent) |
 | `min_speed_km_day` | `float` | `5.0` | Minimum speed filter |
 | `max_speed_km_day` | `float` | `400.0` | Maximum speed filter |
+| `wind_force_min` | `int?` | `None` | Minimum Beaufort wind force (0-12) |
+| `wind_force_max` | `int?` | `None` | Maximum Beaufort wind force (0-12) |
 
 **Response:** `TrackSpeedAggregationResponse`
 
@@ -998,6 +1000,8 @@ by the requested dimension.
 | `nationality_filter` | `str?` | Nationality filter applied |
 | `month_start_filter` | `int?` | Season start month filter applied (null if not filtered) |
 | `month_end_filter` | `int?` | Season end month filter applied (null if not filtered) |
+| `wind_force_min_filter` | `int?` | Minimum Beaufort wind force filter applied (null if not filtered) |
+| `wind_force_max_filter` | `int?` | Maximum Beaufort wind force filter applied (null if not filtered) |
 | `message` | `str` | Result message |
 
 **SpeedAggregationGroup fields:**
@@ -1040,6 +1044,8 @@ significant. Also returns Cohen's d effect size.
 | `include_samples` | `bool` | `false` | Include raw speed arrays in response |
 | `min_speed_km_day` | `float` | `5.0` | Minimum speed filter |
 | `max_speed_km_day` | `float` | `400.0` | Maximum speed filter |
+| `wind_force_min` | `int?` | `None` | Minimum Beaufort wind force (0-12) |
+| `wind_force_max` | `int?` | `None` | Maximum Beaufort wind force (0-12) |
 
 **Response:** `SpeedComparisonResponse`
 
@@ -1063,6 +1069,8 @@ significant. Also returns Cohen's d effect size.
 | `group2_samples` | `float[]?` | Raw speed array for second period (present when `include_samples=true`) |
 | `month_start_filter` | `int?` | Season start month filter applied (null if not filtered) |
 | `month_end_filter` | `int?` | Season end month filter applied (null if not filtered) |
+| `wind_force_min_filter` | `int?` | Minimum Beaufort wind force filter applied (null if not filtered) |
+| `wind_force_max_filter` | `int?` | Maximum Beaufort wind force filter applied (null if not filtered) |
 | `message` | `str` | Result message |
 
 ---
@@ -1090,6 +1098,8 @@ whether one direction experienced a differential speed change relative to the ot
 | `n_bootstrap` | `int` | `10000` | Number of bootstrap iterations for confidence intervals |
 | `min_speed_km_day` | `float?` | `None` | Minimum speed filter (km/day) |
 | `max_speed_km_day` | `float?` | `None` | Maximum speed filter (km/day) |
+| `wind_force_min` | `int?` | `None` | Minimum Beaufort wind force (0-12) |
+| `wind_force_max` | `int?` | `None` | Maximum Beaufort wind force (0-12) |
 | `output_mode` | `str` | `"json"` | `"json"` or `"text"` |
 
 **Response:** `DIDSpeedTestResponse`
@@ -1120,7 +1130,177 @@ whether one direction experienced a differential speed change relative to the ot
 | `nationality_filter` | `str?` | Nationality filter applied |
 | `month_start_filter` | `int?` | Season start month filter applied (null if not filtered) |
 | `month_end_filter` | `int?` | Season end month filter applied (null if not filtered) |
+| `wind_force_min_filter` | `int?` | Minimum Beaufort wind force filter applied (null if not filtered) |
+| `wind_force_max_filter` | `int?` | Maximum Beaufort wind force filter applied (null if not filtered) |
 | `message` | `str` | Result message |
+
+---
+
+#### `maritime_track_tortuosity`
+
+Compute route tortuosity (path_km/net_km) for a single CLIWOC voyage. Tortuosity
+measures how much a ship's actual path deviates from the straight-line distance
+between its start and end points.
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `voyage_id` | `int` | *required* | CLIWOC voyage ID (from `maritime_search_tracks`) |
+| `lat_min` | `float?` | `None` | Minimum latitude for position filtering |
+| `lat_max` | `float?` | `None` | Maximum latitude for position filtering |
+| `lon_min` | `float?` | `None` | Minimum longitude for position filtering |
+| `lon_max` | `float?` | `None` | Maximum longitude for position filtering |
+| `min_speed_km_day` | `float` | `5.0` | Minimum speed to include (filters out anchored/drifting) |
+| `max_speed_km_day` | `float` | `400.0` | Maximum speed to include (filters out data errors) |
+
+**Response:** `TrackTortuosityResponse`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `voyage_id` | `int` | CLIWOC voyage identifier |
+| `ship_name` | `str?` | Ship name (if available) |
+| `nationality` | `str?` | Two-letter nationality code |
+| `path_km` | `float` | Total path distance in km (sum of haversine legs) |
+| `net_km` | `float` | Net straight-line distance in km (start to end) |
+| `tortuosity_r` | `float` | Tortuosity ratio (path_km / net_km; 1.0 = perfectly straight) |
+| `inferred_direction` | `str` | Inferred voyage direction |
+| `n_in_box` | `int` | Number of positions used (after filtering) |
+| `message` | `str` | Result message |
+
+---
+
+#### `maritime_aggregate_track_tortuosity`
+
+Aggregate route tortuosity across CLIWOC tracks with optional period comparison.
+Computes tortuosity for each qualifying voyage, then groups and aggregates by the
+requested dimension. Supports bootstrap comparison between two time periods.
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `group_by` | `str` | `"decade"` | Grouping dimension: `"decade"`, `"year"`, `"month"`, `"direction"`, `"nationality"` |
+| `lat_min` | `float?` | `None` | Minimum latitude for position bounding box |
+| `lat_max` | `float?` | `None` | Maximum latitude for position bounding box |
+| `lon_min` | `float?` | `None` | Minimum longitude for position bounding box |
+| `lon_max` | `float?` | `None` | Maximum longitude for position bounding box |
+| `nationality` | `str?` | `None` | Filter tracks by nationality code (NL, UK, ES, FR, etc.) |
+| `year_start` | `int?` | `None` | Filter tracks starting from this year |
+| `year_end` | `int?` | `None` | Filter tracks ending at this year |
+| `direction` | `str?` | `None` | Filter by `"eastbound"` or `"westbound"` |
+| `month_start` | `int?` | `None` | Start month (1-12) for seasonal filtering |
+| `month_end` | `int?` | `None` | End month (1-12) for seasonal filtering |
+| `min_speed_km_day` | `float` | `5.0` | Minimum speed filter |
+| `max_speed_km_day` | `float` | `400.0` | Maximum speed filter |
+| `min_positions` | `int` | `5` | Minimum number of positions required per voyage |
+| `period1_years` | `str?` | `None` | First comparison period as `"YYYY/YYYY"` |
+| `period2_years` | `str?` | `None` | Second comparison period as `"YYYY/YYYY"` |
+| `n_bootstrap` | `int` | `10000` | Number of bootstrap iterations for confidence intervals |
+
+**Response:** `TortuosityAggregationResponse`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `total_voyages` | `int` | Total voyages contributing data |
+| `min_positions_required` | `int` | Minimum positions threshold used |
+| `group_by` | `str` | Grouping dimension used |
+| `groups` | `TortuosityAggregationGroup[]` | Per-group tortuosity statistics |
+| `comparison` | `TortuosityComparisonResult?` | Period comparison result (present when period1_years and period2_years provided) |
+| `latitude_band` | `list[float]?` | Latitude filter applied |
+| `longitude_band` | `list[float]?` | Longitude filter applied |
+| `direction_filter` | `str?` | Direction filter applied |
+| `nationality_filter` | `str?` | Nationality filter applied |
+| `month_start_filter` | `int?` | Season start month filter applied (null if not filtered) |
+| `month_end_filter` | `int?` | Season end month filter applied (null if not filtered) |
+| `message` | `str` | Result message |
+
+**TortuosityAggregationGroup fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `group_key` | `str` | Group identifier (e.g., `"1750"`, `"eastbound"`) |
+| `n` | `int` | Number of voyages in group |
+| `mean_tortuosity` | `float` | Mean tortuosity ratio |
+| `median_tortuosity` | `float` | Median tortuosity ratio |
+| `std_tortuosity` | `float` | Standard deviation |
+| `ci_lower` | `float` | 95% confidence interval lower bound |
+| `ci_upper` | `float` | 95% confidence interval upper bound |
+| `p25_tortuosity` | `float?` | 25th percentile tortuosity |
+| `p75_tortuosity` | `float?` | 75th percentile tortuosity |
+
+**TortuosityComparisonResult fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `period1_label` | `str` | First period label (e.g., `"1750-1789"`) |
+| `period1_n` | `int` | Voyages in first period |
+| `period1_mean` | `float` | Mean tortuosity in first period |
+| `period2_label` | `str` | Second period label |
+| `period2_n` | `int` | Voyages in second period |
+| `period2_mean` | `float` | Mean tortuosity in second period |
+| `diff` | `float` | Difference in means (period2 - period1) |
+| `ci_lower` | `float` | Bootstrap 95% confidence interval lower bound |
+| `ci_upper` | `float` | Bootstrap 95% confidence interval upper bound |
+| `p_value` | `float` | Bootstrap p-value |
+| `significant` | `bool` | Whether p < 0.05 |
+
+---
+
+#### `maritime_wind_rose`
+
+Beaufort wind force distributions from CLIWOC logbook observations. Computes
+frequency and mean speed for each Beaufort force level, with optional geographic,
+temporal, and directional filters. Supports period comparison.
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `lat_min` | `float?` | `None` | Minimum latitude for position bounding box |
+| `lat_max` | `float?` | `None` | Maximum latitude for position bounding box |
+| `lon_min` | `float?` | `None` | Minimum longitude for position bounding box |
+| `lon_max` | `float?` | `None` | Maximum longitude for position bounding box |
+| `nationality` | `str?` | `None` | Filter tracks by nationality code (NL, UK, ES, FR, etc.) |
+| `year_start` | `int?` | `None` | Filter tracks starting from this year |
+| `year_end` | `int?` | `None` | Filter tracks ending at this year |
+| `direction` | `str?` | `None` | Filter by `"eastbound"` or `"westbound"` |
+| `month_start` | `int?` | `None` | Start month (1-12) for seasonal filtering |
+| `month_end` | `int?` | `None` | End month (1-12) for seasonal filtering |
+| `period1_years` | `str?` | `None` | First comparison period as `"YYYY/YYYY"` |
+| `period2_years` | `str?` | `None` | Second comparison period as `"YYYY/YYYY"` |
+| `min_speed_km_day` | `float` | `5.0` | Minimum speed filter |
+| `max_speed_km_day` | `float` | `400.0` | Maximum speed filter |
+
+**Response:** `WindRoseResponse`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `total_with_wind` | `int` | Total observations with wind force data |
+| `total_without_wind` | `int` | Total observations without wind force data |
+| `total_voyages` | `int` | Total voyages contributing data |
+| `has_wind_data` | `bool` | Whether any wind data was found |
+| `beaufort_counts` | `BeaufortCount[]` | Frequency distribution by Beaufort force |
+| `period1_label` | `str?` | First period label (present when period comparison requested) |
+| `period2_label` | `str?` | Second period label (present when period comparison requested) |
+| `period1_counts` | `BeaufortCount[]?` | First period Beaufort distribution (present when period comparison requested) |
+| `period2_counts` | `BeaufortCount[]?` | Second period Beaufort distribution (present when period comparison requested) |
+| `latitude_band` | `list[float]?` | Latitude filter applied |
+| `longitude_band` | `list[float]?` | Longitude filter applied |
+| `direction_filter` | `str?` | Direction filter applied |
+| `nationality_filter` | `str?` | Nationality filter applied |
+| `month_start_filter` | `int?` | Season start month filter applied (null if not filtered) |
+| `month_end_filter` | `int?` | Season end month filter applied (null if not filtered) |
+| `message` | `str` | Result message |
+
+**BeaufortCount fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `force` | `int` | Beaufort wind force level (0-12) |
+| `count` | `int` | Number of observations at this force level |
+| `percent` | `float` | Percentage of total observations |
+| `mean_speed_km_day` | `float?` | Mean sailing speed at this wind force (km/day) |
 
 ---
 

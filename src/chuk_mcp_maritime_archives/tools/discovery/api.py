@@ -220,17 +220,32 @@ def register_discovery_tools(mcp: object, manager: object) -> None:
                 ToolInfo(
                     name="maritime_aggregate_track_speeds",
                     category="analytics",
-                    description="Aggregate track speeds with voyage-level aggregation and seasonal filtering",
+                    description="Aggregate track speeds with Beaufort/voyage-level grouping and wind-force conditioning",
                 ),
                 ToolInfo(
                     name="maritime_compare_speed_groups",
                     category="analytics",
-                    description="Compare speed distributions with voyage-level aggregation, raw samples, and seasonal filtering (Mann-Whitney U)",
+                    description="Compare speed distributions with wind-force conditioning, voyage-level aggregation (Mann-Whitney U)",
                 ),
                 ToolInfo(
                     name="maritime_did_speed_test",
                     category="analytics",
-                    description="Formal 2x2 Difference-in-Differences test (direction x period) with bootstrap CI",
+                    description="Formal 2x2 DiD test (direction x period) with wind-force conditioning and bootstrap CI",
+                ),
+                ToolInfo(
+                    name="maritime_track_tortuosity",
+                    category="analytics",
+                    description="Compute route tortuosity (path_km/net_km) for a single voyage",
+                ),
+                ToolInfo(
+                    name="maritime_aggregate_track_tortuosity",
+                    category="analytics",
+                    description="Aggregate tortuosity across tracks with period comparison and bootstrap CI",
+                ),
+                ToolInfo(
+                    name="maritime_wind_rose",
+                    category="analytics",
+                    description="Beaufort wind force distributions with period comparison",
                 ),
                 ToolInfo(
                     name="maritime_crew_demographics",

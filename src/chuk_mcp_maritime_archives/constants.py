@@ -13,7 +13,7 @@ from typing import Literal
 
 class ServerConfig(str, Enum):
     NAME = "chuk-mcp-maritime-archives"
-    VERSION = "0.20.0"
+    VERSION = "0.21.0"
     DESCRIPTION = "Historical Maritime Archives"
 
 
@@ -574,3 +574,10 @@ class SuccessMessages:
     MUSTERS_FOUND = "Found {} muster records"
     WAGES_COMPARED = "Compared wages: {} ({} records) vs {} ({} records)"
     LINKS_AUDITED = "Audited {} cross-archive links ({} wreck, {} CLIWOC)"
+    TRACK_TORTUOSITY_COMPUTED = "Tortuosity for voyage {}: R={:.4f}"
+    TORTUOSITY_AGGREGATED = "Aggregated tortuosity for {} voyages (min {} positions)"
+    WIND_ROSE_COMPUTED = "Wind rose: {} observations with wind data across {} voyages"
+    WIND_ROSE_NO_DATA = (
+        "No wind force data found. Wind fields (W, D) are only available in "
+        "CLIWOC 2.1 Full. Re-run scripts/download_cliwoc.py to extract wind data."
+    )
