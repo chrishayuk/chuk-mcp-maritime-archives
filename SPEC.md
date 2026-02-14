@@ -10,6 +10,7 @@ crew muster rolls, cargo manifests, and shipwreck databases from the Age of Expl
 through the colonial era and beyond, 1497-2024. Covers Dutch (VOC), English (EIC), Portuguese
 (Carreira da India), Spanish (Manila Galleon), Swedish (SOIC), UK Hydrographic Office (UKHO), and NOAA maritime archives.
 
+- **Public server**: `https://maritime-archives.chukai.io/mcp`
 - **40 tools** for searching, retrieving, analysing, and exporting maritime archival data
 - **Cursor-based pagination** -- all 8 search tools support `cursor` / `next_cursor` / `has_more` for paging through large result sets
 - **Dual output mode** -- all tools return JSON (default) or human-readable text via `output_mode` parameter

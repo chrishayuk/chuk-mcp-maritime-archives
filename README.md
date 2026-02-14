@@ -158,6 +158,16 @@ List full server capabilities for LLM workflow planning:
 - All registered tools with descriptions
 - Ship types and geographic regions
 
+## Public MCP Server
+
+A hosted instance is available at:
+
+```
+https://maritime-archives.chukai.io/mcp
+```
+
+Use this with any MCP client -- no installation required. All 40 tools and 774K crew records are available.
+
 ## Installation
 
 ### Using uvx (Recommended -- No Installation Required!)
@@ -185,6 +195,10 @@ pip install chuk-mcp-maritime-archives
 ```
 
 ## Usage
+
+### With the Public Server
+
+Point any MCP client at `https://maritime-archives.chukai.io/mcp` -- no local setup needed.
 
 ### With Claude Desktop
 

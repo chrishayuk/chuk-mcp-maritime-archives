@@ -58,7 +58,7 @@ ENV PYTHONUNBUFFERED=1 \
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD python -c "import sys; sys.path.insert(0, '/app/src'); import chuk_mcp_maritime_archives; print('OK')" || exit 1
 
-CMD ["python", "-m", "chuk_mcp_maritime_archives.server", "http"]
+CMD ["python", "-m", "chuk_mcp_maritime_archives.server", "http", "--host", "0.0.0.0"]
 
 EXPOSE 8005
 
