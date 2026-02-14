@@ -1,22 +1,31 @@
 """Tests for response model to_text() methods and format_response edge cases."""
 
+import pytest
+
 from chuk_mcp_maritime_archives.models.responses import (
     ArchiveDetailResponse,
     ArchiveInfo,
     ArchiveListResponse,
     CapabilitiesResponse,
+    CareerRecord,
+    CareerVoyage,
     CargoDetailResponse,
     CargoInfo,
     CargoSearchResponse,
+    CrewCareerResponse,
+    CrewDemographicsResponse,
     CrewDetailResponse,
     CrewInfo,
     CrewSearchResponse,
+    CrewSurvivalResponse,
+    DemographicsGroup,
     ErrorResponse,
     GeoJSONExportResponse,
     HullProfileListResponse,
     HullProfileResponse,
     PositionAssessmentResponse,
     StatisticsResponse,
+    SurvivalGroup,
     ToolInfo,
     VesselDetailResponse,
     VesselInfo,
@@ -597,3 +606,277 @@ class TestFormatResponseEdgeCases:
         resp = ErrorResponse(error="test error")
         result = format_response(resp, "text")
         assert "Error: test error" in result
+
+
+# ---------------------------------------------------------------------------
+# Demographics response models
+# ---------------------------------------------------------------------------
+
+
+class TestDemographicsGroup:
+    def test_basic(self):
+        g = DemographicsGroup(
+            group_key="matroos",
+            count=1000,
+            percentage=32.3,
+            fate_distribution={"returned": 500, "died_voyage": 300},
+        )
+        assert g.group_key == "matroos"
+        assert g.count == 1000
+        assert g.percentage == 32.3
+        assert g.fate_distribution["returned"] == 500
+
+    def test_extra_forbid(self):
+        with pytest.raises(Exception):
+            DemographicsGroup(
+                group_key="x",
+                count=1,
+                percentage=1.0,
+                extra_field="bad",
+            )
+
+    def test_serialization(self):
+        g = DemographicsGroup(group_key="soldaat", count=50, percentage=10.0)
+        data = g.model_dump()
+        assert data["group_key"] == "soldaat"
+        assert data["fate_distribution"] == {}
+
+
+class TestCrewDemographicsResponse:
+    def test_basic(self):
+        resp = CrewDemographicsResponse(
+            total_records=100,
+            total_filtered=80,
+            group_by="rank",
+            group_count=2,
+            groups=[
+                DemographicsGroup(group_key="matroos", count=50, percentage=62.5),
+                DemographicsGroup(group_key="schipper", count=30, percentage=37.5),
+            ],
+            message="test",
+        )
+        assert resp.total_records == 100
+        assert resp.group_count == 2
+
+    def test_to_text(self):
+        resp = CrewDemographicsResponse(
+            total_records=100,
+            total_filtered=80,
+            group_by="rank",
+            group_count=1,
+            groups=[DemographicsGroup(group_key="matroos", count=80, percentage=100.0)],
+            other_count=0,
+            message="Demographics",
+        )
+        text = resp.to_text()
+        assert "Grouped by: rank" in text
+        assert "matroos" in text
+        assert "100.0%" in text
+
+    def test_to_text_with_other(self):
+        resp = CrewDemographicsResponse(
+            total_records=100,
+            total_filtered=100,
+            group_by="origin",
+            group_count=1,
+            groups=[DemographicsGroup(group_key="Amsterdam", count=60, percentage=60.0)],
+            other_count=40,
+            message="test",
+        )
+        text = resp.to_text()
+        assert "(other)" in text
+
+    def test_extra_forbid(self):
+        with pytest.raises(Exception):
+            CrewDemographicsResponse(
+                total_records=1,
+                total_filtered=1,
+                group_by="rank",
+                group_count=0,
+                groups=[],
+                bad_field=True,
+            )
+
+
+class TestCareerVoyage:
+    def test_basic(self):
+        v = CareerVoyage(
+            crew_id="voc_crew:1",
+            ship_name="Batavia",
+            voyage_id="das:3456",
+            rank="matroos",
+            embarkation_date="1628-10-28",
+            service_end_reason="returned",
+        )
+        assert v.crew_id == "voc_crew:1"
+        assert v.rank == "matroos"
+
+    def test_optional_fields(self):
+        v = CareerVoyage(crew_id="voc_crew:1")
+        assert v.ship_name is None
+        assert v.rank is None
+
+
+class TestCareerRecord:
+    def test_basic(self):
+        rec = CareerRecord(
+            name="Jan Pietersz",
+            voyage_count=3,
+            distinct_ships=["A", "B"],
+            ranks_held=["matroos", "schipper"],
+            final_fate="returned",
+        )
+        assert rec.voyage_count == 3
+        assert len(rec.distinct_ships) == 2
+
+    def test_extra_forbid(self):
+        with pytest.raises(Exception):
+            CareerRecord(name="x", voyage_count=1, bad="field")
+
+
+class TestCrewCareerResponse:
+    def test_basic(self):
+        resp = CrewCareerResponse(
+            query_name="Jan",
+            individual_count=1,
+            total_matches=3,
+            individuals=[
+                CareerRecord(
+                    name="Jan Pietersz",
+                    voyage_count=3,
+                    ranks_held=["matroos", "schipper"],
+                    distinct_ships=["Batavia"],
+                    final_fate="returned",
+                ),
+            ],
+            message="test",
+        )
+        assert resp.individual_count == 1
+
+    def test_to_text(self):
+        resp = CrewCareerResponse(
+            query_name="Jan",
+            individual_count=1,
+            total_matches=2,
+            individuals=[
+                CareerRecord(
+                    name="Jan Pietersz",
+                    origin="Amsterdam",
+                    voyage_count=2,
+                    first_date="1694-01-03",
+                    last_date="1699-03-15",
+                    ranks_held=["schipper", "stuurman"],
+                    distinct_ships=["Ship A", "Ship B"],
+                    final_fate="returned",
+                ),
+            ],
+            message="Found 1 individual",
+        )
+        text = resp.to_text()
+        assert "Jan Pietersz" in text
+        assert "Ranks:" in text
+        assert "Ships:" in text
+
+    def test_extra_forbid(self):
+        with pytest.raises(Exception):
+            CrewCareerResponse(
+                query_name="x",
+                individual_count=0,
+                total_matches=0,
+                individuals=[],
+                bad="field",
+            )
+
+
+class TestSurvivalGroup:
+    def test_basic(self):
+        g = SurvivalGroup(
+            group_key="matroos",
+            total=100,
+            survived=40,
+            died_voyage=30,
+            died_asia=10,
+            deserted=15,
+            discharged=5,
+            survival_rate=40.0,
+            mortality_rate=40.0,
+            desertion_rate=15.0,
+        )
+        assert g.total == 100
+        assert g.survival_rate == 40.0
+
+    def test_defaults(self):
+        g = SurvivalGroup(group_key="test", total=0)
+        assert g.survived == 0
+        assert g.survival_rate == 0.0
+
+    def test_extra_forbid(self):
+        with pytest.raises(Exception):
+            SurvivalGroup(group_key="x", total=1, bad="field")
+
+
+class TestCrewSurvivalResponse:
+    def test_basic(self):
+        resp = CrewSurvivalResponse(
+            total_records=1000,
+            total_with_known_fate=800,
+            group_by="rank",
+            group_count=2,
+            groups=[
+                SurvivalGroup(
+                    group_key="matroos",
+                    total=500,
+                    survival_rate=40.0,
+                    mortality_rate=45.0,
+                    desertion_rate=10.0,
+                ),
+                SurvivalGroup(
+                    group_key="schipper",
+                    total=300,
+                    survival_rate=75.0,
+                    mortality_rate=17.5,
+                    desertion_rate=2.5,
+                ),
+            ],
+            message="test",
+        )
+        assert resp.total_with_known_fate == 800
+
+    def test_to_text(self):
+        resp = CrewSurvivalResponse(
+            total_records=100,
+            total_with_known_fate=80,
+            group_by="rank",
+            group_count=1,
+            groups=[
+                SurvivalGroup(
+                    group_key="matroos",
+                    total=80,
+                    survived=32,
+                    died_voyage=24,
+                    died_asia=8,
+                    deserted=12,
+                    discharged=4,
+                    survival_rate=40.0,
+                    mortality_rate=40.0,
+                    desertion_rate=15.0,
+                ),
+            ],
+            message="Survival analysis",
+        )
+        text = resp.to_text()
+        assert "Grouped by: rank" in text
+        assert "matroos" in text
+        assert "survived=" in text
+        assert "mortality=" in text
+
+    def test_extra_forbid(self):
+        with pytest.raises(Exception):
+            CrewSurvivalResponse(
+                total_records=1,
+                total_with_known_fate=1,
+                group_by="rank",
+                group_count=0,
+                groups=[],
+                bad="field",
+            )

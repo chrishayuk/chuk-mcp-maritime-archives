@@ -1,6 +1,6 @@
 # chuk-mcp-maritime-archives Specification
 
-Version 0.17.0
+Version 0.18.1
 
 ## Overview
 
@@ -10,7 +10,7 @@ crew muster rolls, cargo manifests, and shipwreck databases from the Age of Expl
 through the colonial era and beyond, 1497-2024. Covers Dutch (VOC), English (EIC), Portuguese
 (Carreira da India), Spanish (Manila Galleon), Swedish (SOIC), UK Hydrographic Office (UKHO), and NOAA maritime archives.
 
-- **37 tools** for searching, retrieving, analysing, and exporting maritime archival data
+- **40 tools** for searching, retrieving, analysing, and exporting maritime archival data
 - **Cursor-based pagination** -- all 8 search tools support `cursor` / `next_cursor` / `has_more` for paging through large result sets
 - **Dual output mode** -- all tools return JSON (default) or human-readable text via `output_mode` parameter
 - **Async-first** -- tool entry points are async; sync HTTP I/O runs in thread pools
@@ -1047,6 +1047,94 @@ significant. Also returns Cohen's d effect size.
 | `p_value` | `float` | Two-tailed p-value |
 | `significant` | `bool` | Whether p < 0.05 |
 | `effect_size` | `float` | Cohen's d effect size |
+| `message` | `str` | Result message |
+
+---
+
+### Crew Demographics Tools
+
+#### `maritime_crew_demographics`
+
+Aggregate crew demographics across the VOC Opvarenden dataset (774K crew records), grouped by rank, origin, fate, decade, or ship.
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `group_by` | `str` | `"rank"` | Dimension: `"rank"`, `"origin"`, `"fate"`, `"decade"`, `"ship_name"` |
+| `date_range` | `str?` | `None` | Filter by embarkation date (e.g. `"1700/1750"`) |
+| `rank` | `str?` | `None` | Filter by rank substring |
+| `origin` | `str?` | `None` | Filter by origin substring |
+| `fate` | `str?` | `None` | Filter by exact fate |
+| `ship_name` | `str?` | `None` | Filter by ship name substring |
+| `top_n` | `int` | `25` | Number of top groups to return |
+| `output_mode` | `str` | `"json"` | `"json"` or `"text"` |
+
+**Response:** `CrewDemographicsResponse`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `total_records` | `int` | Total crew records in dataset |
+| `total_filtered` | `int` | Records after applying filters |
+| `group_by` | `str` | Grouping dimension used |
+| `group_count` | `int` | Number of groups returned |
+| `groups` | `DemographicsGroup[]` | Groups with count, percentage, fate_distribution |
+| `other_count` | `int` | Records not in top_n groups |
+| `filters_applied` | `dict` | Active filter values |
+| `message` | `str` | Result message |
+
+---
+
+#### `maritime_crew_career`
+
+Reconstruct career history for crew members matching a name. Groups by (name, origin) to identify distinct individuals.
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `name` | `str` | *required* | Name to search (substring, case-insensitive) |
+| `origin` | `str?` | `None` | Origin city for disambiguation (exact match) |
+| `output_mode` | `str` | `"json"` | `"json"` or `"text"` |
+
+**Response:** `CrewCareerResponse`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `query_name` | `str` | Search name used |
+| `query_origin` | `str?` | Origin filter used |
+| `individual_count` | `int` | Distinct individuals found |
+| `total_matches` | `int` | Total matching crew records |
+| `individuals` | `CareerRecord[]` | Career reconstructions with voyages, rank progression, ships |
+| `message` | `str` | Result message |
+
+---
+
+#### `maritime_crew_survival_analysis`
+
+Compute survival, mortality, and desertion rates grouped by dimension.
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `group_by` | `str` | `"rank"` | Dimension: `"rank"`, `"origin"`, `"fate"`, `"decade"`, `"ship_name"` |
+| `date_range` | `str?` | `None` | Filter by embarkation date |
+| `rank` | `str?` | `None` | Filter by rank substring |
+| `origin` | `str?` | `None` | Filter by origin substring |
+| `top_n` | `int` | `25` | Number of top groups to return |
+| `output_mode` | `str` | `"json"` | `"json"` or `"text"` |
+
+**Response:** `CrewSurvivalResponse`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `total_records` | `int` | Total crew records |
+| `total_with_known_fate` | `int` | Records with known service_end_reason |
+| `group_by` | `str` | Grouping dimension used |
+| `group_count` | `int` | Number of groups returned |
+| `groups` | `SurvivalGroup[]` | Groups with survival_rate, mortality_rate, desertion_rate |
+| `filters_applied` | `dict` | Active filter values |
 | `message` | `str` | Result message |
 
 ---

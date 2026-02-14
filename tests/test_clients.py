@@ -224,6 +224,21 @@ class TestDASClient:
         result = await self.client.get_vessel_by_id("das_vessel:999")
         assert result is None
 
+    def test_get_vessel_for_voyage_prefixed(self):
+        result = self.client.get_vessel_for_voyage("das:3456")
+        assert result is not None
+        assert result["name"] == "Batavia"
+
+    def test_get_vessel_for_voyage_unprefixed(self):
+        """Unprefixed voyage ID should still find the vessel."""
+        result = self.client.get_vessel_for_voyage("3456")
+        assert result is not None
+        assert result["name"] == "Batavia"
+
+    def test_get_vessel_for_voyage_not_found(self):
+        result = self.client.get_vessel_for_voyage("das:9999")
+        assert result is None
+
 
 # ---------------------------------------------------------------------------
 # CrewClient
@@ -237,42 +252,42 @@ class TestCrewClient:
     @pytest.mark.asyncio
     async def test_search_no_filters(self):
         results = await self.client.search()
-        assert len(results) == 2
+        assert len(results) == 12
 
     @pytest.mark.asyncio
     async def test_search_filters_by_name(self):
         results = await self.client.search(name="Pietersz")
-        assert len(results) == 1
+        assert len(results) == 3  # Jan Pietersz van der Horst on 3 voyages
 
     @pytest.mark.asyncio
     async def test_search_filters_by_rank(self):
         results = await self.client.search(rank="matroos")
-        assert len(results) == 1
+        assert len(results) == 3
 
     @pytest.mark.asyncio
     async def test_search_filters_by_ship_name(self):
         results = await self.client.search(ship_name="Ridderschap")
-        assert len(results) == 2
+        assert len(results) == 4
 
     @pytest.mark.asyncio
     async def test_search_filters_by_voyage_id(self):
         results = await self.client.search(voyage_id="das:5678")
-        assert len(results) == 2
+        assert len(results) == 4
 
     @pytest.mark.asyncio
     async def test_search_filters_by_origin(self):
         results = await self.client.search(origin="Amsterdam")
-        assert len(results) == 1
+        assert len(results) == 5
 
     @pytest.mark.asyncio
     async def test_search_filters_by_fate(self):
-        results = await self.client.search(fate="died")
-        assert len(results) == 1
+        results = await self.client.search(fate="died_voyage")
+        assert len(results) == 2
 
     @pytest.mark.asyncio
     async def test_search_filters_by_date_range(self):
         results = await self.client.search(date_range="1690/1700")
-        assert len(results) == 2
+        assert len(results) == 7
 
     @pytest.mark.asyncio
     async def test_search_no_match(self):
@@ -290,7 +305,7 @@ class TestCrewClient:
         await self.client.search()
         # Index is now built; second call triggers the early return
         results = await self.client.search(name="Pietersz")
-        assert len(results) == 1
+        assert len(results) == 3
 
     @pytest.mark.asyncio
     async def test_get_by_id_success(self):
@@ -360,7 +375,7 @@ class TestCrewClient:
         await client.search()
         client._voyage_index = None
         results = await client.search(voyage_id="das:5678")
-        assert len(results) == 2
+        assert len(results) == 4
 
 
 # ---------------------------------------------------------------------------
@@ -497,6 +512,24 @@ class TestWreckClient:
         result = await self.client.get_by_id("VOC-0789")
         assert result is not None
         assert result["ship_name"] == "Batavia"
+
+    @pytest.mark.asyncio
+    async def test_get_by_voyage_id_prefixed(self):
+        result = await self.client.get_by_voyage_id("das:3456")
+        assert result is not None
+        assert result["ship_name"] == "Batavia"
+
+    @pytest.mark.asyncio
+    async def test_get_by_voyage_id_unprefixed(self):
+        """Unprefixed voyage ID should still match wreck with das: prefix."""
+        result = await self.client.get_by_voyage_id("3456")
+        assert result is not None
+        assert result["voyage_id"] == "das:3456"
+
+    @pytest.mark.asyncio
+    async def test_get_by_voyage_id_not_found(self):
+        result = await self.client.get_by_voyage_id("das:9999")
+        assert result is None
 
     @pytest.mark.asyncio
     async def test_get_by_id_not_found(self):

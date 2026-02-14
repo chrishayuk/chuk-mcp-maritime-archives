@@ -1359,6 +1359,135 @@ class TimelineResponse(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# Crew demographics / career / survival responses
+# ---------------------------------------------------------------------------
+
+
+class DemographicsGroup(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    group_key: str
+    count: int
+    percentage: float
+    fate_distribution: dict[str, int] = Field(default_factory=dict)
+
+
+class CrewDemographicsResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    total_records: int
+    total_filtered: int
+    group_by: str
+    group_count: int
+    groups: list[DemographicsGroup]
+    other_count: int = 0
+    filters_applied: dict[str, str] = Field(default_factory=dict)
+    message: str = ""
+
+    def to_text(self) -> str:
+        lines = [self.message, f"Grouped by: {self.group_by}", ""]
+        for g in self.groups:
+            lines.append(f"  {g.group_key:>20s}: {g.count:>6d}  ({g.percentage:.1f}%)")
+        if self.other_count:
+            lines.append(f"  {'(other)':>20s}: {self.other_count:>6d}")
+        lines.append(f"\nTotal filtered: {self.total_filtered} of {self.total_records}")
+        return "\n".join(lines)
+
+
+class CareerVoyage(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    crew_id: str
+    ship_name: str | None = None
+    voyage_id: str | None = None
+    rank: str | None = None
+    embarkation_date: str | None = None
+    service_end_reason: str | None = None
+
+
+class CareerRecord(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    name: str
+    origin: str | None = None
+    voyage_count: int
+    first_date: str | None = None
+    last_date: str | None = None
+    career_span_years: float | None = None
+    distinct_ships: list[str] = Field(default_factory=list)
+    ranks_held: list[str] = Field(default_factory=list)
+    final_fate: str | None = None
+    voyages: list[CareerVoyage] = Field(default_factory=list)
+
+
+class CrewCareerResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    query_name: str
+    query_origin: str | None = None
+    individual_count: int
+    total_matches: int
+    individuals: list[CareerRecord]
+    message: str = ""
+
+    def to_text(self) -> str:
+        lines = [self.message, ""]
+        for ind in self.individuals:
+            lines.append(f"  {ind.name} (origin: {ind.origin or '?'})")
+            lines.append(
+                f"    {ind.voyage_count} voyages, {ind.first_date or '?'} to {ind.last_date or '?'}"
+            )
+            if ind.ranks_held:
+                lines.append(f"    Ranks: {' -> '.join(ind.ranks_held)}")
+            if ind.distinct_ships:
+                lines.append(f"    Ships: {', '.join(ind.distinct_ships)}")
+            if ind.final_fate:
+                lines.append(f"    Final fate: {ind.final_fate}")
+        return "\n".join(lines)
+
+
+class SurvivalGroup(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    group_key: str
+    total: int
+    survived: int = 0
+    died_voyage: int = 0
+    died_asia: int = 0
+    deserted: int = 0
+    discharged: int = 0
+    survival_rate: float = 0.0
+    mortality_rate: float = 0.0
+    desertion_rate: float = 0.0
+
+
+class CrewSurvivalResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    total_records: int
+    total_with_known_fate: int
+    group_by: str
+    group_count: int
+    groups: list[SurvivalGroup]
+    filters_applied: dict[str, str] = Field(default_factory=dict)
+    message: str = ""
+
+    def to_text(self) -> str:
+        lines = [self.message, f"Grouped by: {self.group_by}", ""]
+        for g in self.groups:
+            lines.append(
+                f"  {g.group_key:>20s}: n={g.total:>5d}  "
+                f"survived={g.survival_rate:.1f}%  "
+                f"mortality={g.mortality_rate:.1f}%  "
+                f"desertion={g.desertion_rate:.1f}%"
+            )
+        lines.append(
+            f"\nTotal with known fate: {self.total_with_known_fate} of {self.total_records}"
+        )
+        return "\n".join(lines)
+
+
+# ---------------------------------------------------------------------------
 # Discovery / capabilities
 # ---------------------------------------------------------------------------
 

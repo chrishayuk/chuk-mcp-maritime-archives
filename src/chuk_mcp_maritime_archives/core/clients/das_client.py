@@ -143,7 +143,10 @@ class DASClient(BaseArchiveClient):
             for v in self._get_vessels():
                 for vid in v.get("voyage_ids", []):
                     self._voyage_vessel_index[vid] = v
-        return self._voyage_vessel_index.get(voyage_id)
+        result = self._voyage_vessel_index.get(voyage_id)
+        if result is None and ":" not in voyage_id:
+            result = self._voyage_vessel_index.get(f"das:{voyage_id}")
+        return result
 
     async def get_vessel_by_id(self, vessel_id: str) -> dict | None:
         """Retrieve a single vessel by ID."""

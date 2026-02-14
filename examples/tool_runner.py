@@ -26,6 +26,7 @@ from chuk_mcp_maritime_archives.tools import (
     register_archive_tools,
     register_cargo_tools,
     register_crew_tools,
+    register_demographics_tools,
     register_discovery_tools,
     register_export_tools,
     register_linking_tools,
@@ -105,6 +106,7 @@ class ToolRunner:
         register_muster_tools(self._mcp, self.manager)
         register_narrative_tools(self._mcp, self.manager)
         register_analytics_tools(self._mcp, self.manager)
+        register_demographics_tools(self._mcp, self.manager)
         register_discovery_tools(self._mcp, self.manager)
 
     @property

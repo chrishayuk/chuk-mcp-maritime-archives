@@ -13,7 +13,7 @@ from typing import Literal
 
 class ServerConfig(str, Enum):
     NAME = "chuk-mcp-maritime-archives"
-    VERSION = "0.17.0"
+    VERSION = "0.18.1"
     DESCRIPTION = "Historical Maritime Archives"
 
 

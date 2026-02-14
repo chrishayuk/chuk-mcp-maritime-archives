@@ -228,6 +228,21 @@ def register_discovery_tools(mcp: object, manager: object) -> None:
                     description="Compare speed distributions between two time periods (Mann-Whitney U)",
                 ),
                 ToolInfo(
+                    name="maritime_crew_demographics",
+                    category="demographics",
+                    description="Aggregate crew demographics by rank, origin, fate, decade, or ship",
+                ),
+                ToolInfo(
+                    name="maritime_crew_career",
+                    category="demographics",
+                    description="Reconstruct career history for crew members by name",
+                ),
+                ToolInfo(
+                    name="maritime_crew_survival_analysis",
+                    category="demographics",
+                    description="Analyse survival, mortality, and desertion rates",
+                ),
+                ToolInfo(
                     name="maritime_capabilities",
                     category="discovery",
                     description="List full server capabilities",

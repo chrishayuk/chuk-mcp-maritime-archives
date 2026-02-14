@@ -14,6 +14,7 @@ from .tools import (
     register_archive_tools,
     register_cargo_tools,
     register_crew_tools,
+    register_demographics_tools,
     register_discovery_tools,
     register_export_tools,
     register_linking_tools,
@@ -51,4 +52,5 @@ register_timeline_tools(mcp, manager)
 register_muster_tools(mcp, manager)
 register_narrative_tools(mcp, manager)
 register_analytics_tools(mcp, manager)
+register_demographics_tools(mcp, manager)
 register_discovery_tools(mcp, manager)

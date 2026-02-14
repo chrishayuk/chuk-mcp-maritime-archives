@@ -9,10 +9,13 @@ from chuk_mcp_maritime_archives.core.archive_manager import PaginatedResult
 
 from .conftest import (
     MockMCPServer,
+    SAMPLE_CAREER,
     SAMPLE_CARGO,
     SAMPLE_CREW,
+    SAMPLE_DEMOGRAPHICS,
     SAMPLE_MUSTERS,
     SAMPLE_NARRATIVE_HITS,
+    SAMPLE_SURVIVAL,
     SAMPLE_VESSELS,
     SAMPLE_VOYAGES,
     SAMPLE_WAGE_COMPARISON,
@@ -967,3 +970,190 @@ class TestMusterTools:
         )
         parsed = json.loads(result)
         assert "wage err" in parsed["error"]
+
+
+# ---------------------------------------------------------------------------
+# Demographics tools
+# ---------------------------------------------------------------------------
+
+
+class TestDemographicsTools:
+    def setup_method(self):
+        self.mcp = MockMCPServer()
+        self.mgr = MagicMock()
+        self.mgr.crew_demographics = MagicMock(return_value=SAMPLE_DEMOGRAPHICS)
+        self.mgr.crew_career = MagicMock(return_value=SAMPLE_CAREER)
+        self.mgr.crew_survival = MagicMock(return_value=SAMPLE_SURVIVAL)
+
+        from chuk_mcp_maritime_archives.tools.demographics.api import (
+            register_demographics_tools,
+        )
+
+        register_demographics_tools(self.mcp, self.mgr)
+
+    # --- maritime_crew_demographics ---
+
+    @pytest.mark.asyncio
+    async def test_demographics_success(self):
+        fn = self.mcp.get_tool("maritime_crew_demographics")
+        result = await fn()
+        parsed = json.loads(result)
+        assert parsed["group_by"] == "rank"
+        assert parsed["group_count"] == 3
+        assert len(parsed["groups"]) == 3
+
+    @pytest.mark.asyncio
+    async def test_demographics_with_filters(self):
+        fn = self.mcp.get_tool("maritime_crew_demographics")
+        result = await fn(
+            group_by="origin",
+            date_range="1700/1750",
+            rank="matroos",
+        )
+        parsed = json.loads(result)
+        assert parsed["group_by"] == "rank"  # from sample data
+        self.mgr.crew_demographics.assert_called_once_with(
+            group_by="origin",
+            date_range="1700/1750",
+            rank="matroos",
+            origin=None,
+            fate=None,
+            ship_name=None,
+            top_n=25,
+        )
+
+    @pytest.mark.asyncio
+    async def test_demographics_text_mode(self):
+        fn = self.mcp.get_tool("maritime_crew_demographics")
+        result = await fn(output_mode="text")
+        assert "Grouped by:" in result
+        assert "matroos" in result
+
+    @pytest.mark.asyncio
+    async def test_demographics_invalid_group_by(self):
+        self.mgr.crew_demographics.side_effect = ValueError("Invalid group_by 'bad'")
+        fn = self.mcp.get_tool("maritime_crew_demographics")
+        result = await fn(group_by="bad")
+        parsed = json.loads(result)
+        assert "error" in parsed
+
+    @pytest.mark.asyncio
+    async def test_demographics_error(self):
+        self.mgr.crew_demographics.side_effect = RuntimeError("demo err")
+        fn = self.mcp.get_tool("maritime_crew_demographics")
+        result = await fn()
+        parsed = json.loads(result)
+        assert "demo err" in parsed["error"]
+
+    # --- maritime_crew_career ---
+
+    @pytest.mark.asyncio
+    async def test_career_success(self):
+        fn = self.mcp.get_tool("maritime_crew_career")
+        result = await fn(name="Jan Pietersz")
+        parsed = json.loads(result)
+        assert parsed["individual_count"] == 1
+        assert len(parsed["individuals"]) == 1
+        ind = parsed["individuals"][0]
+        assert ind["name"] == "Jan Pietersz van der Horst"
+        assert len(ind["voyages"]) == 2
+
+    @pytest.mark.asyncio
+    async def test_career_with_origin(self):
+        fn = self.mcp.get_tool("maritime_crew_career")
+        result = await fn(name="Jan Pietersz", origin="Amsterdam")
+        json.loads(result)
+        self.mgr.crew_career.assert_called_once_with(
+            name="Jan Pietersz",
+            origin="Amsterdam",
+        )
+
+    @pytest.mark.asyncio
+    async def test_career_text_mode(self):
+        fn = self.mcp.get_tool("maritime_crew_career")
+        result = await fn(name="Jan Pietersz", output_mode="text")
+        assert "Jan Pietersz van der Horst" in result
+        assert "voyages" in result.lower() or "Ranks:" in result
+
+    @pytest.mark.asyncio
+    async def test_career_no_matches(self):
+        self.mgr.crew_career.return_value = {
+            "query_name": "Nobody",
+            "query_origin": None,
+            "individual_count": 0,
+            "total_matches": 0,
+            "individuals": [],
+        }
+        fn = self.mcp.get_tool("maritime_crew_career")
+        result = await fn(name="Nobody")
+        parsed = json.loads(result)
+        assert parsed["individual_count"] == 0
+
+    @pytest.mark.asyncio
+    async def test_career_error(self):
+        self.mgr.crew_career.side_effect = RuntimeError("career err")
+        fn = self.mcp.get_tool("maritime_crew_career")
+        result = await fn(name="test")
+        parsed = json.loads(result)
+        assert "career err" in parsed["error"]
+
+    # --- maritime_crew_survival_analysis ---
+
+    @pytest.mark.asyncio
+    async def test_survival_success(self):
+        fn = self.mcp.get_tool("maritime_crew_survival_analysis")
+        result = await fn()
+        parsed = json.loads(result)
+        assert parsed["group_by"] == "rank"
+        assert parsed["group_count"] > 0
+        assert parsed["total_with_known_fate"] == 600000
+
+    @pytest.mark.asyncio
+    async def test_survival_with_filters(self):
+        fn = self.mcp.get_tool("maritime_crew_survival_analysis")
+        result = await fn(
+            group_by="decade",
+            date_range="1700/1750",
+            rank="soldaat",
+        )
+        json.loads(result)
+        self.mgr.crew_survival.assert_called_once_with(
+            group_by="decade",
+            date_range="1700/1750",
+            rank="soldaat",
+            origin=None,
+            top_n=25,
+        )
+
+    @pytest.mark.asyncio
+    async def test_survival_text_mode(self):
+        fn = self.mcp.get_tool("maritime_crew_survival_analysis")
+        result = await fn(output_mode="text")
+        assert "Grouped by:" in result
+        assert "survived=" in result or "survival=" in result
+
+    @pytest.mark.asyncio
+    async def test_survival_rates_present(self):
+        fn = self.mcp.get_tool("maritime_crew_survival_analysis")
+        result = await fn()
+        parsed = json.loads(result)
+        for g in parsed["groups"]:
+            assert "survival_rate" in g
+            assert "mortality_rate" in g
+            assert "desertion_rate" in g
+
+    @pytest.mark.asyncio
+    async def test_survival_invalid_group_by(self):
+        self.mgr.crew_survival.side_effect = ValueError("Invalid group_by 'bad'")
+        fn = self.mcp.get_tool("maritime_crew_survival_analysis")
+        result = await fn(group_by="bad")
+        parsed = json.loads(result)
+        assert "error" in parsed
+
+    @pytest.mark.asyncio
+    async def test_survival_error(self):
+        self.mgr.crew_survival.side_effect = RuntimeError("surv err")
+        fn = self.mcp.get_tool("maritime_crew_survival_analysis")
+        result = await fn()
+        parsed = json.loads(result)
+        assert "surv err" in parsed["error"]

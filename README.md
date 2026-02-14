@@ -8,7 +8,7 @@
 
 ## Features
 
-This MCP server provides structured access to historical maritime archives and reference data through 37 tools across 11 archives and 6 nations.
+This MCP server provides structured access to historical maritime archives and reference data through 40 tools across 11 archives and 6 nations.
 
 **All tools return fully-typed Pydantic v2 models** for type safety, validation, and excellent IDE support. All tools support `output_mode="text"` for human-readable output alongside the default JSON.
 
@@ -379,6 +379,9 @@ All tools accept an optional `output_mode` parameter (`"json"` default, or `"tex
 | `maritime_compute_track_speeds` | Analytics | Compute daily sailing speeds for a CLIWOC voyage |
 | `maritime_aggregate_track_speeds` | Analytics | Aggregate track speeds by decade, year, month, direction, or nationality |
 | `maritime_compare_speed_groups` | Analytics | Compare speed distributions between two time periods (Mann-Whitney U) |
+| `maritime_crew_demographics` | Demographics | Aggregate crew statistics by rank, origin, fate, decade, or ship |
+| `maritime_crew_career` | Demographics | Reconstruct individual crew careers across multiple voyages |
+| `maritime_crew_survival_analysis` | Demographics | Crew survival, mortality, and desertion rates by dimension |
 | `maritime_capabilities` | Discovery | Server capabilities and reference data |
 
 ### maritime_search_narratives
@@ -846,10 +849,10 @@ Built on top of chuk-mcp-server, this server uses:
 - **Indexed Lookups**: Lazy-built in-memory indexes for large datasets (774K crew records)
 - **Cross-Archive Linking**: Unified voyage view with wreck, vessel, hull profile, and CLIWOC track linking
 - **Multi-Archive Dispatch**: 11 archives across 6 nations (Dutch, English, Portuguese, Spanish, Swedish, American) with unified query interface
-- **Dual Output**: All 37 tools support `output_mode="text"` for human-readable responses
+- **Dual Output**: All 40 tools support `output_mode="text"` for human-readable responses
 - **Domain Reference Data**: ~170 place gazetteer, 18 routes (5 nations), 6 hull profiles, 215 speed profiles, ~261K ship positions, 22 regions, 7 navigation eras
 - **Cursor-Based Pagination**: All 8 search tools support `cursor` / `next_cursor` / `has_more` for paging through large result sets
-- **968+ Tests**: Across 14 test modules with 96%+ branch coverage
+- **1040+ Tests**: Across 14 test modules with 96%+ branch coverage
 
 ### Supported Archives
 
@@ -987,6 +990,15 @@ See [ROADMAP.md](ROADMAP.md) for the development roadmap and planned features.
 - **Gazetteer expansion**: ~170 places including London, Lisbon, Gothenburg, Acapulco, Guam, Azores
 - **Position estimation**: works with all 18 routes across all archive nations
 - 968+ tests, 96%+ branch coverage
+
+### Completed (v0.18.0 - v0.18.1)
+
+- **40 MCP tools** across 20 categories (added crew demographics & network analysis)
+- **Crew demographics**: `maritime_crew_demographics` for aggregate statistics by rank, origin, fate, decade, or ship
+- **Career reconstruction**: `maritime_crew_career` reconstructs individual careers across multiple voyages with rank progression
+- **Survival analysis**: `maritime_crew_survival_analysis` for mortality and desertion rates by dimension
+- **Voyage ID prefix normalisation fix**: cross-archive wreck and vessel lookups now handle unprefixed IDs (e.g. `"0372.1"` matching `"das:0372.1"`)
+- 1040+ tests, 96%+ branch coverage
 
 ### Planned
 

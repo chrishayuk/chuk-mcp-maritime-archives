@@ -212,6 +212,107 @@ SAMPLE_WAGE_COMPARISON = {
     "difference_pct": 13.0,
 }
 
+SAMPLE_DEMOGRAPHICS = {
+    "total_records": 774200,
+    "total_filtered": 774200,
+    "group_by": "rank",
+    "group_count": 3,
+    "groups": [
+        {
+            "group_key": "matroos",
+            "count": 250000,
+            "percentage": 32.3,
+            "fate_distribution": {"returned": 100000, "died_voyage": 80000, "deserted": 70000},
+        },
+        {
+            "group_key": "soldaat",
+            "count": 200000,
+            "percentage": 25.8,
+            "fate_distribution": {"returned": 80000, "died_asia": 120000},
+        },
+        {
+            "group_key": "schipper",
+            "count": 50000,
+            "percentage": 6.5,
+            "fate_distribution": {"returned": 40000, "died_voyage": 10000},
+        },
+    ],
+    "other_count": 274200,
+    "filters_applied": {},
+}
+
+SAMPLE_CAREER = {
+    "query_name": "Jan Pietersz",
+    "query_origin": None,
+    "individual_count": 1,
+    "total_matches": 3,
+    "individuals": [
+        {
+            "name": "Jan Pietersz van der Horst",
+            "origin": "Amsterdam",
+            "voyage_count": 3,
+            "first_date": "1694-01-03",
+            "last_date": "1705-06-10",
+            "career_span_years": 11.5,
+            "distinct_ships": ["Ridderschap van Holland", "Huis te Manpad", "Zeelandia"],
+            "ranks_held": ["schipper", "stuurman"],
+            "final_fate": "died_asia",
+            "voyages": [
+                {
+                    "crew_id": "voc_crew:445892",
+                    "ship_name": "Ridderschap van Holland",
+                    "voyage_id": "das:5678",
+                    "rank": "schipper",
+                    "embarkation_date": "1694-01-03",
+                    "service_end_reason": "returned",
+                },
+                {
+                    "crew_id": "voc_crew:445896",
+                    "ship_name": "Huis te Manpad",
+                    "voyage_id": "das:7890",
+                    "rank": "stuurman",
+                    "embarkation_date": "1699-03-15",
+                    "service_end_reason": "returned",
+                },
+            ],
+        }
+    ],
+}
+
+SAMPLE_SURVIVAL = {
+    "total_records": 774200,
+    "total_with_known_fate": 600000,
+    "group_by": "rank",
+    "group_count": 3,
+    "groups": [
+        {
+            "group_key": "matroos",
+            "total": 200000,
+            "survived": 80000,
+            "died_voyage": 60000,
+            "died_asia": 30000,
+            "deserted": 20000,
+            "discharged": 10000,
+            "survival_rate": 40.0,
+            "mortality_rate": 45.0,
+            "desertion_rate": 10.0,
+        },
+        {
+            "group_key": "schipper",
+            "total": 40000,
+            "survived": 30000,
+            "died_voyage": 5000,
+            "died_asia": 2000,
+            "deserted": 1000,
+            "discharged": 2000,
+            "survival_rate": 75.0,
+            "mortality_rate": 17.5,
+            "desertion_rate": 2.5,
+        },
+    ],
+    "filters_applied": {},
+}
+
 SAMPLE_WRECKS = [
     {
         "wreck_id": "maarer:VOC-0789",

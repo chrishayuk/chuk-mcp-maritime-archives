@@ -4,6 +4,7 @@ from .analytics.api import register_analytics_tools
 from .archives.api import register_archive_tools
 from .cargo.api import register_cargo_tools
 from .crew.api import register_crew_tools
+from .demographics.api import register_demographics_tools
 from .discovery.api import register_discovery_tools
 from .export.api import register_export_tools
 from .linking.api import register_linking_tools
@@ -24,6 +25,7 @@ __all__ = [
     "register_archive_tools",
     "register_cargo_tools",
     "register_crew_tools",
+    "register_demographics_tools",
     "register_discovery_tools",
     "register_export_tools",
     "register_linking_tools",

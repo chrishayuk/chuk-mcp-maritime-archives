@@ -383,10 +383,12 @@ class ArchiveManager:
     async def _find_wreck_for_voyage(self, voyage_id: str) -> dict | None:
         """Find a wreck record linked to a voyage, checking the appropriate client."""
         prefix = voyage_id.split(":")[0] if ":" in voyage_id else "das"
+        # Normalise to prefixed form for consistent matching
+        normalised = voyage_id if ":" in voyage_id else f"{prefix}:{voyage_id}"
 
         # For DAS voyages, check the MAARER wreck client
         if prefix == "das":
-            return await self._wreck_client.get_by_voyage_id(voyage_id)
+            return await self._wreck_client.get_by_voyage_id(normalised)
 
         # For other archives, the archive client handles its own wrecks
         client = self._voyage_clients.get(prefix)
@@ -1371,6 +1373,330 @@ class ArchiveManager:
         return {
             "type": "FeatureCollection",
             "features": features,
+        }
+
+    # --- Crew Demographics / Career / Survival -------------------------------
+
+    _DEMOGRAPHICS_GROUP_BY = {"rank", "origin", "fate", "decade", "ship_name"}
+
+    @staticmethod
+    def _crew_group_key(record: dict, group_by: str) -> str:
+        """Extract the grouping value from a crew record."""
+        if group_by == "rank":
+            return record.get("rank") or "unknown"
+        if group_by == "origin":
+            return record.get("origin") or "unknown"
+        if group_by == "fate":
+            return record.get("service_end_reason") or "unknown"
+        if group_by == "decade":
+            date = record.get("embarkation_date") or ""
+            if len(date) >= 4:
+                try:
+                    year = int(date[:4])
+                    return f"{year // 10 * 10}s"
+                except ValueError:
+                    pass
+            return "unknown"
+        if group_by == "ship_name":
+            return record.get("ship_name") or "unknown"
+        return "unknown"
+
+    def _apply_crew_filters(
+        self,
+        records: list[dict],
+        *,
+        date_range: str | None = None,
+        rank: str | None = None,
+        origin: str | None = None,
+        fate: str | None = None,
+        ship_name: str | None = None,
+    ) -> list[dict]:
+        """Apply optional filters to crew records."""
+        if rank:
+            records = [r for r in records if self._contains(r.get("rank"), rank)]
+        if origin:
+            records = [r for r in records if self._contains(r.get("origin"), origin)]
+        if fate:
+            records = [r for r in records if r.get("service_end_reason") == fate]
+        if ship_name:
+            records = [r for r in records if self._contains(r.get("ship_name"), ship_name)]
+        if date_range:
+            records = self._filter_by_date_range(records, date_range, "embarkation_date")
+        return records
+
+    @staticmethod
+    def _contains(haystack: str | None, needle: str) -> bool:
+        """Case-insensitive substring match."""
+        if not haystack:
+            return False
+        return needle.lower() in haystack.lower()
+
+    def crew_demographics(
+        self,
+        group_by: str = "rank",
+        *,
+        date_range: str | None = None,
+        rank: str | None = None,
+        origin: str | None = None,
+        fate: str | None = None,
+        ship_name: str | None = None,
+        top_n: int = 25,
+    ) -> dict:
+        """Aggregate crew demographics by a chosen dimension."""
+        if group_by not in self._DEMOGRAPHICS_GROUP_BY:
+            raise ValueError(
+                f"Invalid group_by '{group_by}'. "
+                f"Valid: {', '.join(sorted(self._DEMOGRAPHICS_GROUP_BY))}"
+            )
+
+        all_records = self._crew_client.all_records()
+        total_records = len(all_records)
+        filtered = self._apply_crew_filters(
+            all_records,
+            date_range=date_range,
+            rank=rank,
+            origin=origin,
+            fate=fate,
+            ship_name=ship_name,
+        )
+        total_filtered = len(filtered)
+
+        # Group
+        groups: dict[str, dict] = {}
+        for rec in filtered:
+            key = self._crew_group_key(rec, group_by)
+            if key not in groups:
+                groups[key] = {"count": 0, "fate_distribution": {}}
+            groups[key]["count"] += 1
+            fate_val = rec.get("service_end_reason") or "unknown"
+            groups[key]["fate_distribution"][fate_val] = (
+                groups[key]["fate_distribution"].get(fate_val, 0) + 1
+            )
+
+        # Sort descending by count
+        sorted_groups = sorted(groups.items(), key=lambda x: x[1]["count"], reverse=True)
+
+        # Apply top_n
+        top_groups = sorted_groups[:top_n]
+        other_count = sum(g[1]["count"] for g in sorted_groups[top_n:])
+
+        result_groups = []
+        for key, data in top_groups:
+            pct = round(data["count"] / total_filtered * 100, 1) if total_filtered else 0.0
+            result_groups.append(
+                {
+                    "group_key": key,
+                    "count": data["count"],
+                    "percentage": pct,
+                    "fate_distribution": data["fate_distribution"],
+                }
+            )
+
+        filters_applied: dict[str, str] = {}
+        if date_range:
+            filters_applied["date_range"] = date_range
+        if rank:
+            filters_applied["rank"] = rank
+        if origin:
+            filters_applied["origin"] = origin
+        if fate:
+            filters_applied["fate"] = fate
+        if ship_name:
+            filters_applied["ship_name"] = ship_name
+
+        return {
+            "total_records": total_records,
+            "total_filtered": total_filtered,
+            "group_by": group_by,
+            "group_count": len(top_groups),
+            "groups": result_groups,
+            "other_count": other_count,
+            "filters_applied": filters_applied,
+        }
+
+    def crew_career(
+        self,
+        name: str,
+        origin: str | None = None,
+    ) -> dict:
+        """Reconstruct career(s) for individuals matching a name."""
+        all_records = self._crew_client.all_records()
+
+        # Filter by name substring
+        matches = [r for r in all_records if self._contains(r.get("name"), name)]
+        if origin:
+            matches = [r for r in matches if r.get("origin", "").lower() == origin.lower()]
+
+        total_matches = len(matches)
+
+        # Group by (name_lower, origin_lower) to identify distinct individuals
+        individuals: dict[tuple[str, str], list[dict]] = {}
+        for rec in matches:
+            key = (rec.get("name", "").lower(), (rec.get("origin") or "unknown").lower())
+            if key not in individuals:
+                individuals[key] = []
+            individuals[key].append(rec)
+
+        # Build career records (cap at 10 individuals)
+        career_records = []
+        for (_name_key, _origin_key), voyages in sorted(individuals.items())[:10]:
+            # Sort voyages chronologically
+            voyages.sort(key=lambda v: v.get("embarkation_date") or "9999")
+            voyages = voyages[:50]  # Cap per individual
+
+            dates = [v.get("embarkation_date") for v in voyages if v.get("embarkation_date")]
+            first_date = dates[0] if dates else None
+            last_date = dates[-1] if dates else None
+
+            career_span = None
+            if first_date and last_date and len(first_date) >= 4 and len(last_date) >= 4:
+                try:
+                    span = int(last_date[:4]) - int(first_date[:4])
+                    career_span = round(span + 0.5, 1) if span > 0 else 0.0
+                except ValueError:
+                    pass
+
+            # Ordered unique ranks and ships
+            ranks_seen: list[str] = []
+            ships_seen: list[str] = []
+            for v in voyages:
+                r = v.get("rank")
+                if r and r not in ranks_seen:
+                    ranks_seen.append(r)
+                s = v.get("ship_name")
+                if s and s not in ships_seen:
+                    ships_seen.append(s)
+
+            final_fate = voyages[-1].get("service_end_reason") if voyages else None
+
+            career_records.append(
+                {
+                    "name": voyages[0].get("name", ""),
+                    "origin": voyages[0].get("origin"),
+                    "voyage_count": len(voyages),
+                    "first_date": first_date,
+                    "last_date": last_date,
+                    "career_span_years": career_span,
+                    "distinct_ships": ships_seen,
+                    "ranks_held": ranks_seen,
+                    "final_fate": final_fate,
+                    "voyages": [
+                        {
+                            "crew_id": v.get("crew_id", ""),
+                            "ship_name": v.get("ship_name"),
+                            "voyage_id": v.get("voyage_id"),
+                            "rank": v.get("rank"),
+                            "embarkation_date": v.get("embarkation_date"),
+                            "service_end_reason": v.get("service_end_reason"),
+                        }
+                        for v in voyages
+                    ],
+                }
+            )
+
+        return {
+            "query_name": name,
+            "query_origin": origin,
+            "individual_count": len(career_records),
+            "total_matches": total_matches,
+            "individuals": career_records,
+        }
+
+    def crew_survival(
+        self,
+        group_by: str = "rank",
+        *,
+        date_range: str | None = None,
+        rank: str | None = None,
+        origin: str | None = None,
+        top_n: int = 25,
+    ) -> dict:
+        """Compute survival / mortality / desertion rates by dimension."""
+        if group_by not in self._DEMOGRAPHICS_GROUP_BY:
+            raise ValueError(
+                f"Invalid group_by '{group_by}'. "
+                f"Valid: {', '.join(sorted(self._DEMOGRAPHICS_GROUP_BY))}"
+            )
+
+        all_records = self._crew_client.all_records()
+        total_records = len(all_records)
+        filtered = self._apply_crew_filters(
+            all_records,
+            date_range=date_range,
+            rank=rank,
+            origin=origin,
+        )
+
+        # Only records with known fate
+        known_fate_map = {
+            "returned": "survived",
+            "survived": "survived",
+            "died_voyage": "died_voyage",
+            "died_asia": "died_asia",
+            "deserted": "deserted",
+            "discharged": "discharged",
+        }
+        with_fate = [r for r in filtered if r.get("service_end_reason") in known_fate_map]
+        total_with_known_fate = len(with_fate)
+
+        # Group
+        groups: dict[str, dict[str, int]] = {}
+        for rec in with_fate:
+            key = self._crew_group_key(rec, group_by)
+            if key not in groups:
+                groups[key] = {
+                    "total": 0,
+                    "survived": 0,
+                    "died_voyage": 0,
+                    "died_asia": 0,
+                    "deserted": 0,
+                    "discharged": 0,
+                }
+            groups[key]["total"] += 1
+            category = known_fate_map[rec["service_end_reason"]]
+            groups[key][category] += 1
+
+        # Sort descending by total
+        sorted_groups = sorted(groups.items(), key=lambda x: x[1]["total"], reverse=True)
+        top_groups = sorted_groups[:top_n]
+
+        result_groups = []
+        for key, data in top_groups:
+            total = data["total"]
+            if total == 0:
+                continue
+            result_groups.append(
+                {
+                    "group_key": key,
+                    "total": total,
+                    "survived": data["survived"],
+                    "died_voyage": data["died_voyage"],
+                    "died_asia": data["died_asia"],
+                    "deserted": data["deserted"],
+                    "discharged": data["discharged"],
+                    "survival_rate": round(data["survived"] / total * 100, 1),
+                    "mortality_rate": round(
+                        (data["died_voyage"] + data["died_asia"]) / total * 100, 1
+                    ),
+                    "desertion_rate": round(data["deserted"] / total * 100, 1),
+                }
+            )
+
+        filters_applied: dict[str, str] = {}
+        if date_range:
+            filters_applied["date_range"] = date_range
+        if rank:
+            filters_applied["rank"] = rank
+        if origin:
+            filters_applied["origin"] = origin
+
+        return {
+            "total_records": total_records,
+            "total_with_known_fate": total_with_known_fate,
+            "group_by": group_by,
+            "group_count": len(result_groups),
+            "groups": result_groups,
+            "filters_applied": filters_applied,
         }
 
     # --- Private Helpers ----------------------------------------------------

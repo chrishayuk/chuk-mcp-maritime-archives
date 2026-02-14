@@ -196,12 +196,12 @@ class TestCrewOperations:
     @pytest.mark.asyncio
     async def test_search_crew(self, manager: ArchiveManager):
         result = await manager.search_crew()
-        assert len(result.items) == 2
+        assert len(result.items) == 12
 
     @pytest.mark.asyncio
     async def test_search_crew_by_ship(self, manager: ArchiveManager):
         result = await manager.search_crew(ship_name="Ridderschap")
-        assert len(result.items) == 2
+        assert len(result.items) == 4
         assert all("Ridderschap" in c["ship_name"] for c in result.items)
 
     @pytest.mark.asyncio
@@ -900,6 +900,13 @@ class TestFindWreckForVoyage:
         assert result is None or isinstance(result, dict)
 
     @pytest.mark.asyncio
+    async def test_unprefixed_voyage_id(self, manager: ArchiveManager):
+        """Unprefixed ID like '3456' should still find wreck with voyage_id 'das:3456'."""
+        result = await manager._find_wreck_for_voyage("3456")
+        assert result is not None
+        assert result["voyage_id"] == "das:3456"
+
+    @pytest.mark.asyncio
     async def test_non_das_unknown_prefix(self, manager: ArchiveManager):
         """Unknown prefix without a registered client should return None."""
         result = await manager._find_wreck_for_voyage("unknown:001")
@@ -1315,3 +1322,187 @@ class TestGeoJSONExtended:
         geojson = await manager.export_geojson(wreck_ids=["maarer:NONEXISTENT"])
         assert geojson["type"] == "FeatureCollection"
         assert len(geojson["features"]) == 0
+
+
+# ---------------------------------------------------------------------------
+# Crew demographics
+# ---------------------------------------------------------------------------
+
+
+class TestCrewDemographics:
+    def test_group_by_rank(self, manager: ArchiveManager):
+        result = manager.crew_demographics(group_by="rank")
+        assert result["total_records"] == 12
+        assert result["total_filtered"] == 12
+        assert result["group_by"] == "rank"
+        assert result["group_count"] > 0
+        # schipper, matroos, stuurman all have 3 records
+        keys = [g["group_key"] for g in result["groups"]]
+        assert "schipper" in keys
+        assert "matroos" in keys
+
+    def test_group_by_origin(self, manager: ArchiveManager):
+        result = manager.crew_demographics(group_by="origin")
+        keys = {g["group_key"] for g in result["groups"]}
+        assert "Amsterdam" in keys
+        assert "Rotterdam" in keys
+        assert "Hamburg" in keys
+
+    def test_group_by_fate(self, manager: ArchiveManager):
+        result = manager.crew_demographics(group_by="fate")
+        keys = {g["group_key"] for g in result["groups"]}
+        assert "returned" in keys
+        assert "died_voyage" in keys
+
+    def test_group_by_decade(self, manager: ArchiveManager):
+        result = manager.crew_demographics(group_by="decade")
+        keys = {g["group_key"] for g in result["groups"]}
+        assert "1690s" in keys
+        assert "1740s" in keys
+
+    def test_group_by_ship_name(self, manager: ArchiveManager):
+        result = manager.crew_demographics(group_by="ship_name")
+        keys = {g["group_key"] for g in result["groups"]}
+        assert "Ridderschap van Holland" in keys
+
+    def test_filter_by_rank(self, manager: ArchiveManager):
+        result = manager.crew_demographics(group_by="origin", rank="matroos")
+        assert result["total_filtered"] == 3
+        assert result["filters_applied"]["rank"] == "matroos"
+
+    def test_filter_by_origin(self, manager: ArchiveManager):
+        result = manager.crew_demographics(group_by="rank", origin="Amsterdam")
+        assert result["total_filtered"] == 5
+
+    def test_filter_by_date_range(self, manager: ArchiveManager):
+        result = manager.crew_demographics(group_by="rank", date_range="1700/1750")
+        assert result["total_filtered"] == 5  # Zeelandia (2) + Delftland (3)
+
+    def test_top_n(self, manager: ArchiveManager):
+        result = manager.crew_demographics(group_by="origin", top_n=2)
+        assert result["group_count"] == 2
+        assert result["other_count"] > 0
+
+    def test_percentages_sum(self, manager: ArchiveManager):
+        result = manager.crew_demographics(group_by="rank")
+        total_pct = sum(g["percentage"] for g in result["groups"])
+        assert 99.0 <= total_pct <= 101.0
+
+    def test_fate_distribution_in_groups(self, manager: ArchiveManager):
+        result = manager.crew_demographics(group_by="rank")
+        for g in result["groups"]:
+            assert isinstance(g["fate_distribution"], dict)
+            assert sum(g["fate_distribution"].values()) == g["count"]
+
+    def test_empty_result(self, manager: ArchiveManager):
+        result = manager.crew_demographics(group_by="rank", origin="Nonexistent")
+        assert result["total_filtered"] == 0
+        assert result["group_count"] == 0
+
+    def test_invalid_group_by(self, manager: ArchiveManager):
+        with pytest.raises(ValueError, match="Invalid group_by"):
+            manager.crew_demographics(group_by="invalid")
+
+
+# ---------------------------------------------------------------------------
+# Crew career
+# ---------------------------------------------------------------------------
+
+
+class TestCrewCareer:
+    def test_basic_career(self, manager: ArchiveManager):
+        result = manager.crew_career(name="Jan Pietersz van der Horst")
+        assert result["individual_count"] >= 1
+        assert result["total_matches"] == 3  # 3 records for this name
+
+    def test_career_with_origin(self, manager: ArchiveManager):
+        result = manager.crew_career(name="Jan Pietersz", origin="Amsterdam")
+        assert result["individual_count"] == 1
+        ind = result["individuals"][0]
+        assert ind["origin"] == "Amsterdam"
+
+    def test_career_chronological(self, manager: ArchiveManager):
+        result = manager.crew_career(name="Jan Pietersz van der Horst", origin="Amsterdam")
+        ind = result["individuals"][0]
+        dates = [v["embarkation_date"] for v in ind["voyages"] if v.get("embarkation_date")]
+        assert dates == sorted(dates)
+
+    def test_career_rank_progression(self, manager: ArchiveManager):
+        result = manager.crew_career(name="Jan Pietersz van der Horst", origin="Amsterdam")
+        ind = result["individuals"][0]
+        assert "schipper" in ind["ranks_held"]
+        assert "stuurman" in ind["ranks_held"]
+
+    def test_career_distinct_ships(self, manager: ArchiveManager):
+        result = manager.crew_career(name="Jan Pietersz van der Horst", origin="Amsterdam")
+        ind = result["individuals"][0]
+        assert len(ind["distinct_ships"]) >= 2
+
+    def test_career_no_matches(self, manager: ArchiveManager):
+        result = manager.crew_career(name="Nonexistent Person")
+        assert result["individual_count"] == 0
+        assert result["total_matches"] == 0
+
+    def test_career_span(self, manager: ArchiveManager):
+        result = manager.crew_career(name="Jan Pietersz van der Horst", origin="Amsterdam")
+        ind = result["individuals"][0]
+        assert ind["career_span_years"] is not None
+        assert ind["career_span_years"] > 0
+
+
+# ---------------------------------------------------------------------------
+# Crew survival
+# ---------------------------------------------------------------------------
+
+
+class TestCrewSurvival:
+    def test_group_by_rank(self, manager: ArchiveManager):
+        result = manager.crew_survival(group_by="rank")
+        assert result["total_records"] == 12
+        assert result["total_with_known_fate"] > 0
+        assert result["group_count"] > 0
+
+    def test_group_by_origin(self, manager: ArchiveManager):
+        result = manager.crew_survival(group_by="origin")
+        keys = {g["group_key"] for g in result["groups"]}
+        assert "Amsterdam" in keys
+
+    def test_group_by_decade(self, manager: ArchiveManager):
+        result = manager.crew_survival(group_by="decade")
+        keys = {g["group_key"] for g in result["groups"]}
+        assert "1690s" in keys
+
+    def test_rates_bounded(self, manager: ArchiveManager):
+        result = manager.crew_survival(group_by="rank")
+        for g in result["groups"]:
+            assert 0.0 <= g["survival_rate"] <= 100.0
+            assert 0.0 <= g["mortality_rate"] <= 100.0
+            assert 0.0 <= g["desertion_rate"] <= 100.0
+
+    def test_counts_consistent(self, manager: ArchiveManager):
+        result = manager.crew_survival(group_by="rank")
+        for g in result["groups"]:
+            total = (
+                g["survived"] + g["died_voyage"] + g["died_asia"] + g["deserted"] + g["discharged"]
+            )
+            assert total == g["total"]
+
+    def test_filter_by_rank(self, manager: ArchiveManager):
+        result = manager.crew_survival(group_by="origin", rank="matroos")
+        assert result["filters_applied"]["rank"] == "matroos"
+        total_in_groups = sum(g["total"] for g in result["groups"])
+        assert total_in_groups <= 3
+
+    def test_filter_by_date_range(self, manager: ArchiveManager):
+        result = manager.crew_survival(group_by="rank", date_range="1740/1750")
+        total_in_groups = sum(g["total"] for g in result["groups"])
+        assert total_in_groups == 3  # Delftland crew
+
+    def test_empty_result(self, manager: ArchiveManager):
+        result = manager.crew_survival(group_by="rank", origin="Nonexistent")
+        assert result["total_with_known_fate"] == 0
+        assert result["group_count"] == 0
+
+    def test_invalid_group_by(self, manager: ArchiveManager):
+        with pytest.raises(ValueError, match="Invalid group_by"):
+            manager.crew_survival(group_by="invalid")

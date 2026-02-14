@@ -84,6 +84,12 @@ class WreckClient(BaseArchiveClient):
         for w in self._get_wrecks():
             if w.get("voyage_id") == voyage_id:
                 return w
+        # Support unprefixed IDs (e.g. "0372.1" matching "das:0372.1")
+        if ":" not in voyage_id:
+            prefixed = f"das:{voyage_id}"
+            for w in self._get_wrecks():
+                if w.get("voyage_id") == prefixed:
+                    return w
         return None
 
     async def get_by_id(self, record_id: str) -> dict | None:

@@ -417,20 +417,37 @@ Extended the route library from 8 VOC routes to 18 routes across all 5 archive n
 **Quality:**
 - 968+ tests across 14 test modules, 96%+ branch coverage
 
----
-
-## Planned
-
 ### v0.18.0 -- Crew Demographics & Network Analysis
 
 Analytical tools built on the 774K crew records cross-referenced with voyage data.
 
-- `maritime_crew_demographics` -- aggregate statistics: origins, ranks, fates, pay distributions, filtered by date range, ship, route
-- `maritime_crew_career` -- reconstruct an individual's career across multiple voyages (name + origin matching across records)
-- `maritime_crew_survival_analysis` -- survival rates by route, ship type, rank, decade
-- **Desertion mapping** -- cross-reference crew "deserted" fate with voyage port-of-call data to identify desertion hotspots
-- **Labour migration patterns** -- where the VOC recruited from, how this changed over 160 years
-- Useful for digital humanities research and documentary narrative construction
+- `maritime_crew_demographics` -- aggregate statistics by rank, origin, fate, decade, or ship with sub-distributions
+- `maritime_crew_career` -- reconstruct individual careers across multiple voyages (name + origin matching, rank progression)
+- `maritime_crew_survival_analysis` -- survival, mortality, and desertion rates by dimension
+- `CrewClient.all_records()` for bulk analytics across the full 774K record dataset
+- 7 new Pydantic response models: `DemographicsGroup`, `CrewDemographicsResponse`, `CareerVoyage`, `CareerRecord`, `CrewCareerResponse`, `SurvivalGroup`, `CrewSurvivalResponse`
+- `examples/crew_demographics_demo.py` -- 8-section demo: rank distribution, origin distribution, decade trends, fate breakdown, career reconstruction, survival by rank, survival by decade, text mode
+
+**Quality:**
+- 1033+ tests across 14 test modules, 96%+ branch coverage
+
+### v0.18.1 -- Voyage ID Prefix Normalisation Fix
+
+Bugfix: cross-archive lookups silently failed when LLMs passed unprefixed voyage IDs (e.g. `"0372.1"` instead of `"das:0372.1"`).
+
+**Bug**: `_find_wreck_for_voyage("0372.1")` would default prefix to `"das"` correctly, but then pass the raw `"0372.1"` to `wreck_client.get_by_voyage_id()`, which did an exact match against stored `"das:0372.1"` — returning `None`. Same issue affected `get_vessel_for_voyage()`. Discovered during GPT-5.2 testing of the Batavia voyage timeline.
+
+**Fixes (defense in depth):**
+- `ArchiveManager._find_wreck_for_voyage()` -- normalises voyage_id to prefixed form before calling wreck clients
+- `WreckClient.get_by_voyage_id()` -- tries `das:` prefix fallback (matching existing `get_by_id()` pattern)
+- `DASClient.get_vessel_for_voyage()` -- tries `das:` prefix fallback for vessel index lookup
+
+**Quality:**
+- 1040+ tests across 14 test modules, 96%+ branch coverage
+
+---
+
+## Planned
 
 ### v1.0.0 -- Stability & API Freeze
 
@@ -494,7 +511,7 @@ This server is the data layer in a composable stack of MCP servers:
 
 | Server | Tools | Tests | Role |
 |--------|-------|-------|------|
-| chuk-mcp-maritime-archives | 37 | 968+ | Voyage, wreck, vessel, crew, cargo, musters, analytics |
+| chuk-mcp-maritime-archives | 40 | 1040+ | Voyage, wreck, vessel, crew, cargo, musters, demographics, analytics |
 | chuk-mcp-ocean-drift | 10 | 235 | Forward/backtrack/Monte Carlo drift |
 | chuk-mcp-dem | 4 | 711 | Bathymetry and elevation data |
 | chuk-mcp-stac | 5 | 382 | Satellite imagery via STAC catalogues |
@@ -502,7 +519,7 @@ This server is the data layer in a composable stack of MCP servers:
 | chuk-mcp-tides | 8 | 717 | Tidal current data |
 | chuk-mcp-physics | 66 | 240 | Fluid dynamics computations |
 | chuk-mcp-open-meteo | 6 | 22 | Weather and wind data |
-| **Total** | **142** | **3,405+** | |
+| **Total** | **145** | **3,477+** | |
 
 All servers follow the same patterns: Pydantic v2 models, dual output mode, chuk-artifacts storage.
 

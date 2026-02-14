@@ -136,7 +136,7 @@ All data files in `data/` are produced by scripts in `scripts/`:
 
 ### 11. Test Coverage -- 96%+
 
-All modules maintain 96%+ branch coverage (968+ tests across 14 test modules). Tests use
+All modules maintain 96%+ branch coverage (1040+ tests across 14 test modules). Tests use
 `pytest-asyncio` and mock at the client data boundary (`_load_json`), not at the manager
 level, to exercise the full data flow from tool to client.
 
@@ -230,6 +230,9 @@ server.py                           # CLI entry point (sync)
   |     +-- tools/analytics/api.py       # maritime_compute_track_speeds,
   |     |                                #   maritime_aggregate_track_speeds,
   |     |                                #   maritime_compare_speed_groups
+  |     +-- tools/demographics/api.py    # maritime_crew_demographics,
+  |     |                                #   maritime_crew_career,
+  |     |                                #   maritime_crew_survival_analysis
   |     +-- tools/discovery/api.py        # maritime_capabilities
   |     +-- core/archive_manager.py       # Central orchestrator, multi-archive dispatch
   |           +-- core/clients/das_client.py       # DAS voyages + vessels (local JSON)
@@ -345,7 +348,7 @@ Falls back silently if the store is unavailable or any download fails.
 ### `async_server.py`
 
 Creates the `ChukMCPServer` MCP instance, instantiates `ArchiveManager`, and registers
-all tool groups (19 categories, 37 tools). Each tool module receives the MCP instance
+all tool groups (20 categories, 40 tools). Each tool module receives the MCP instance
 and the shared `ArchiveManager`.
 
 ### `core/archive_manager.py`

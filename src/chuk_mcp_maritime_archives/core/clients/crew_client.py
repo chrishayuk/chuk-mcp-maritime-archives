@@ -99,6 +99,13 @@ class CrewClient(BaseArchiveClient):
 
         return records[:max_results]
 
+    def all_records(self) -> list[dict]:
+        """Return all crew records for bulk analytics (demographics, survival)."""
+        records = self._load_json(self.CREW_FILE)
+        if records:
+            self._ensure_indexes(records)
+        return records or []
+
     async def get_by_id(self, record_id: str) -> dict | None:
         """Retrieve a single crew record by ID using the index."""
         records = self._load_json(self.CREW_FILE)

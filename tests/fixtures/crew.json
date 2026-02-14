@@ -17,6 +17,106 @@
     "voyage_id": "das:5678",
     "origin": "Rotterdam",
     "embarkation_date": "1694-01-03",
-    "service_end_reason": "died"
+    "service_end_reason": "died_voyage"
+  },
+  {
+    "crew_id": "voc_crew:445894",
+    "name": "Pieter de Groot",
+    "rank": "stuurman",
+    "ship_name": "Ridderschap van Holland",
+    "voyage_id": "das:5678",
+    "origin": "Amsterdam",
+    "embarkation_date": "1694-01-03",
+    "service_end_reason": "returned"
+  },
+  {
+    "crew_id": "voc_crew:445895",
+    "name": "Willem van Dijk",
+    "rank": "soldaat",
+    "ship_name": "Ridderschap van Holland",
+    "voyage_id": "das:5678",
+    "origin": "Middelburg",
+    "embarkation_date": "1694-01-03",
+    "service_end_reason": "deserted"
+  },
+  {
+    "crew_id": "voc_crew:445896",
+    "name": "Jan Pietersz van der Horst",
+    "rank": "stuurman",
+    "ship_name": "Huis te Manpad",
+    "voyage_id": "das:7890",
+    "origin": "Amsterdam",
+    "embarkation_date": "1699-03-15",
+    "service_end_reason": "returned"
+  },
+  {
+    "crew_id": "voc_crew:445897",
+    "name": "Karel Frederiks",
+    "rank": "bootsman",
+    "ship_name": "Huis te Manpad",
+    "voyage_id": "das:7890",
+    "origin": "Hamburg",
+    "embarkation_date": "1699-03-15",
+    "service_end_reason": "died_asia"
+  },
+  {
+    "crew_id": "voc_crew:445898",
+    "name": "Hans Müller",
+    "rank": "matroos",
+    "ship_name": "Huis te Manpad",
+    "voyage_id": "das:7890",
+    "origin": "Hamburg",
+    "embarkation_date": "1699-03-15",
+    "service_end_reason": "discharged"
+  },
+  {
+    "crew_id": "voc_crew:500001",
+    "name": "Cornelis van Rijn",
+    "rank": "schipper",
+    "ship_name": "Zeelandia",
+    "voyage_id": "das:1234",
+    "origin": "Rotterdam",
+    "embarkation_date": "1705-06-10",
+    "service_end_reason": "returned"
+  },
+  {
+    "crew_id": "voc_crew:500002",
+    "name": "Jan Pietersz van der Horst",
+    "rank": "schipper",
+    "ship_name": "Zeelandia",
+    "voyage_id": "das:1234",
+    "origin": "Amsterdam",
+    "embarkation_date": "1705-06-10",
+    "service_end_reason": "died_asia"
+  },
+  {
+    "crew_id": "voc_crew:600001",
+    "name": "Adriaan Visser",
+    "rank": "matroos",
+    "ship_name": "Delftland",
+    "voyage_id": "das:9012",
+    "origin": "Middelburg",
+    "embarkation_date": "1742-09-01",
+    "service_end_reason": "died_voyage"
+  },
+  {
+    "crew_id": "voc_crew:600002",
+    "name": "Thomas Bakker",
+    "rank": "soldaat",
+    "ship_name": "Delftland",
+    "voyage_id": "das:9012",
+    "origin": "Amsterdam",
+    "embarkation_date": "1742-09-01",
+    "service_end_reason": "returned"
+  },
+  {
+    "crew_id": "voc_crew:600003",
+    "name": "Dirk Vermeer",
+    "rank": "stuurman",
+    "ship_name": "Delftland",
+    "voyage_id": "das:9012",
+    "origin": "Rotterdam",
+    "embarkation_date": "1742-09-01",
+    "service_end_reason": "deserted"
   }
 ]
