@@ -1,6 +1,6 @@
 [project]
 name = "chuk-mcp-maritime-archives"
-version = "0.2.0"
+version = "0.2.1"
 description = "Historical Maritime Archives MCP Server"
 authors = []
 license = { text = "Apache-2.0" }
@@ -32,6 +32,20 @@ dev = [
 
 [project.scripts]
 chuk-mcp-maritime-archives = "chuk_mcp_maritime_archives.server:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-mock>=3.10.0",
+    "pytest-cov>=4.0.0",
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "mypy>=1.0.0",
+    "ruff>=0.1.0",
+    "bandit>=1.7.0",
+    "pre-commit>=3.0.0",
+]
 
 [build-system]
 requires = ["hatchling"]

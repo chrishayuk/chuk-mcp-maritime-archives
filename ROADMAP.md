@@ -470,6 +470,17 @@ Seasonal month filtering for track analytics tools, driven by GPT-5.2 Laki volca
 
 ## Planned
 
+### v0.20.0 -- Difference-in-Differences & Raw Samples
+
+Formal DiD statistical testing for climate proxy analysis, driven by GPT-5.2 Laki investigation.
+
+**Context:** The GPT-5.2 session correctly identified that `maritime_compare_speed_groups` returns only summary statistics (mean, std, n) and a Mann-Whitney U result per group. To compute a formal Difference-in-Differences p-value — testing whether the *difference* between eastbound and westbound speeds changed significantly between pre-Laki and post-Laki periods — requires either the raw speed samples or a purpose-built 2×2 interaction test. The model had to approximate DiD through effect-size differencing, which is methodologically weaker.
+
+**Planned:**
+- `maritime_did_speed_test` — new tool performing a formal 2×2 Difference-in-Differences test (factor1 × factor2, e.g., direction × period). Returns the interaction effect, its standard error, and a p-value for the interaction term. Pure Python implementation (permutation-based or rank-based, no scipy)
+- Alternative: `include_samples=True` parameter on `maritime_compare_speed_groups` to return raw speed arrays alongside summary statistics, enabling client-side DiD computation
+- Investigate NL data gap in the 1780s CLIWOC records — is it genuinely absent from CLIWOC, or is direction inference filtering it out? The Fourth Anglo-Dutch War (1780–1784) likely reduced Dutch shipping, which is itself historically interesting context
+
 ### v1.0.0 -- Stability & API Freeze
 
 Stable release with frozen tool signatures and response models.
