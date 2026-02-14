@@ -852,7 +852,7 @@ Built on top of chuk-mcp-server, this server uses:
 - **Dual Output**: All 40 tools support `output_mode="text"` for human-readable responses
 - **Domain Reference Data**: ~170 place gazetteer, 18 routes (5 nations), 6 hull profiles, 215 speed profiles, ~261K ship positions, 22 regions, 7 navigation eras
 - **Cursor-Based Pagination**: All 8 search tools support `cursor` / `next_cursor` / `has_more` for paging through large result sets
-- **1040+ Tests**: Across 14 test modules with 96%+ branch coverage
+- **1042+ Tests**: Across 15 test modules with 96%+ branch coverage
 
 ### Supported Archives
 
@@ -998,7 +998,8 @@ See [ROADMAP.md](ROADMAP.md) for the development roadmap and planned features.
 - **Career reconstruction**: `maritime_crew_career` reconstructs individual careers across multiple voyages with rank progression
 - **Survival analysis**: `maritime_crew_survival_analysis` for mortality and desertion rates by dimension
 - **Voyage ID prefix normalisation fix**: cross-archive wreck and vessel lookups now handle unprefixed IDs (e.g. `"0372.1"` matching `"das:0372.1"`)
-- 1040+ tests, 96%+ branch coverage
+- **Date-line crossing fix**: position estimation now correctly interpolates longitude across the ±180° date line (Manila Galleon Pacific routes)
+- 1042+ tests, 96%+ branch coverage
 
 ### Planned
 

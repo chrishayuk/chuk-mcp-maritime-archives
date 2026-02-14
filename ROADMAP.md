@@ -431,19 +431,22 @@ Analytical tools built on the 774K crew records cross-referenced with voyage dat
 **Quality:**
 - 1033+ tests across 14 test modules, 96%+ branch coverage
 
-### v0.18.1 -- Voyage ID Prefix Normalisation Fix
+### v0.18.1 -- Bugfixes (Prefix Normalisation & Date-Line Crossing)
 
-Bugfix: cross-archive lookups silently failed when LLMs passed unprefixed voyage IDs (e.g. `"0372.1"` instead of `"das:0372.1"`).
+Two bugfixes discovered during GPT-5.2 testing and architecture review.
 
-**Bug**: `_find_wreck_for_voyage("0372.1")` would default prefix to `"das"` correctly, but then pass the raw `"0372.1"` to `wreck_client.get_by_voyage_id()`, which did an exact match against stored `"das:0372.1"` — returning `None`. Same issue affected `get_vessel_for_voyage()`. Discovered during GPT-5.2 testing of the Batavia voyage timeline.
+**Bug 1: Voyage ID prefix normalisation**
+- `_find_wreck_for_voyage("0372.1")` would default prefix to `"das"` correctly, but then pass the raw `"0372.1"` to `wreck_client.get_by_voyage_id()`, which did an exact match against stored `"das:0372.1"` — returning `None`. Same issue affected `get_vessel_for_voyage()`.
+- **Fixes**: `ArchiveManager._find_wreck_for_voyage()` normalises to prefixed form; `WreckClient.get_by_voyage_id()` and `DASClient.get_vessel_for_voyage()` try `das:` prefix fallback.
 
-**Fixes (defense in depth):**
-- `ArchiveManager._find_wreck_for_voyage()` -- normalises voyage_id to prefixed form before calling wreck clients
-- `WreckClient.get_by_voyage_id()` -- tries `das:` prefix fallback (matching existing `get_by_id()` pattern)
-- `DASClient.get_vessel_for_voyage()` -- tries `das:` prefix fallback for vessel index lookup
+**Bug 2: Date-line crossing in position estimation**
+- `estimate_position()` used naive linear interpolation for longitude. On the Manila Galleon westbound route, interpolating between Mid-Pacific (lon=-170) and Guam (lon=+144.79) produced lon=31.47 (Africa) instead of lon=161.07 (western Pacific).
+- **Fix**: detect >180° longitude difference and wrap the shorter way around ±180°, then normalise result to [-180, 180].
+
+**ARCHITECTURE.md audit**: fixed 8 discrepancies — removed stale LRU cache documentation (never implemented), corrected archive count (10→11), category count (20→19), test module count (14→15), added missing tool directories (demographics/, musters/) to architecture diagram, added demographics/career/survival to ArchiveManager component description, added missing scripts to pipeline list.
 
 **Quality:**
-- 1040+ tests across 14 test modules, 96%+ branch coverage
+- 1042+ tests across 15 test modules, 96%+ branch coverage
 
 ---
 
@@ -511,7 +514,7 @@ This server is the data layer in a composable stack of MCP servers:
 
 | Server | Tools | Tests | Role |
 |--------|-------|-------|------|
-| chuk-mcp-maritime-archives | 40 | 1040+ | Voyage, wreck, vessel, crew, cargo, musters, demographics, analytics |
+| chuk-mcp-maritime-archives | 40 | 1042+ | Voyage, wreck, vessel, crew, cargo, musters, demographics, analytics |
 | chuk-mcp-ocean-drift | 10 | 235 | Forward/backtrack/Monte Carlo drift |
 | chuk-mcp-dem | 4 | 711 | Bathymetry and elevation data |
 | chuk-mcp-stac | 5 | 382 | Satellite imagery via STAC catalogues |
@@ -519,7 +522,7 @@ This server is the data layer in a composable stack of MCP servers:
 | chuk-mcp-tides | 8 | 717 | Tidal current data |
 | chuk-mcp-physics | 66 | 240 | Fluid dynamics computations |
 | chuk-mcp-open-meteo | 6 | 22 | Weather and wind data |
-| **Total** | **145** | **3,477+** | |
+| **Total** | **145** | **3,479+** | |
 
 All servers follow the same patterns: Pydantic v2 models, dual output mode, chuk-artifacts storage.
 

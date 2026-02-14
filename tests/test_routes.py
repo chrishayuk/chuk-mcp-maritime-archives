@@ -244,6 +244,22 @@ class TestEstimatePosition:
         assert "caveats" in result
         assert len(result["caveats"]) >= 1
 
+    def test_dateline_crossing_galleon_westbound(self):
+        """Manila Galleon westbound crosses the date line (-170 to +144.79)."""
+        result = estimate_position("galleon_westbound", "1600-03-01", "1600-04-26")
+        assert result is not None
+        lon = result["estimated_position"]["lon"]
+        # Should be in the western Pacific (~161E), not naively interpolated (~31E)
+        assert 140 < lon < 180, f"Expected lon in western Pacific, got {lon}"
+
+    def test_dateline_crossing_galleon_eastbound(self):
+        """Manila Galleon eastbound also crosses the date line."""
+        result = estimate_position("galleon_eastbound", "1600-07-01", "1600-08-15")
+        assert result is not None
+        lon = result["estimated_position"]["lon"]
+        # Should be in the central/eastern Pacific
+        assert 140 < lon < 180 or -180 < lon < -120, f"Unexpected lon {lon}"
+
 
 # ---------------------------------------------------------------------------
 # estimate_position with speed profiles

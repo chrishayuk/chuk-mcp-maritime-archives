@@ -230,7 +230,20 @@ def estimate_position(
                 progress = (elapsed_days - effective_day_a) / segment_duration
 
             lat = wp_a["lat"] + progress * (wp_b["lat"] - wp_a["lat"])
-            lon = wp_a["lon"] + progress * (wp_b["lon"] - wp_a["lon"])
+            # Handle date-line crossing: if lon difference > 180°,
+            # wrap the shorter way around ±180°
+            lon_a, lon_b = wp_a["lon"], wp_b["lon"]
+            lon_diff = lon_b - lon_a
+            if lon_diff > 180:
+                lon_diff -= 360
+            elif lon_diff < -180:
+                lon_diff += 360
+            lon = lon_a + progress * lon_diff
+            # Normalise to [-180, 180]
+            if lon > 180:
+                lon -= 360
+            elif lon < -180:
+                lon += 360
 
             # Determine region (use source region in first half, dest in second)
             region = wp_a["region"] if progress < 0.5 else wp_b["region"]

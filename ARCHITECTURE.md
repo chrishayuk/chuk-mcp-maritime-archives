@@ -62,7 +62,7 @@ Each multi-nation client handles both voyages and wrecks in a single class, with
 `search_crews()`, and `get_crew_by_id()` methods. The abstract `search()` and `get_by_id()` delegate to crew methods.
 
 Reference data modules load from JSON files in `data/`:
-- `voc_gazetteer` -- ~160 historical place names from `data/gazetteer.json`
+- `voc_gazetteer` -- ~157 historical place names from `data/gazetteer.json`
 - `voc_routes` -- 18 historical sailing routes from `data/routes.json`
 - `hull_profiles` -- 6 ship type profiles from `data/hull_profiles.json`
 - `speed_profiles` -- 215 speed profiles across 6 routes from `data/speed_profiles.json`
@@ -70,13 +70,13 @@ Reference data modules load from JSON files in `data/`:
 `ArchiveManager` instantiates all 11 clients at startup and uses `_voyage_clients`,
 `_wreck_clients`, and `_crew_clients` dispatch dicts to route queries by archive ID.
 
-### 6. LRU Caching
+### 6. In-Memory Data Caching
 
-`ArchiveManager` maintains `OrderedDict`-based LRU caches for voyages (500 entries),
-wrecks (500 entries), and vessels. On access, entries are moved to the end via
-`move_to_end()`. When the cache exceeds its limit, the oldest (first) entry is evicted
-via `popitem(last=False)`. Search results automatically populate caches so that
-follow-up detail requests are instant.
+Archive clients cache loaded JSON data in memory after first access via `_load_json()`.
+Once a data file is loaded, subsequent calls return the cached list without re-reading
+from disk. Multi-nation clients (EIC, Carreira, Galleon, SOIC) also build lazy
+ID indexes on first access for O(1) detail lookups. `CrewClient` builds `_voyage_index`
+and `_id_index` across 774K records on first query.
 
 ### 7. Pluggable Storage via chuk-artifacts
 
@@ -126,17 +126,19 @@ galleon→ES, soic→SE).
 
 All data files in `data/` are produced by scripts in `scripts/`:
 - Download scripts (`download_das.py`, `download_cliwoc.py`, `download_crew.py`,
-  `download_cargo.py`, `download_eic.py`, `download_ukho.py`) fetch data from external sources
+  `download_cargo.py`, `download_eic.py`, `download_ukho.py`, `download_noaa.py`,
+  `download_dss.py`) fetch data from external sources
 - Generate scripts (`generate_eic.py`, `generate_carreira.py`, `generate_galleon.py`,
-  `generate_soic.py`, `generate_ukho.py`, `generate_cargo.py`, `generate_reference.py`,
-  `generate_speed_profiles.py`) produce curated or computed datasets
+  `generate_soic.py`, `generate_ukho.py`, `generate_noaa.py`, `generate_cargo.py`,
+  `generate_dss.py`, `generate_reference.py`, `generate_speed_profiles.py`) produce
+  curated or computed datasets
 - All scripts support `--force` to regenerate and use a cache-check-download pattern
   via shared utilities in `scripts/download_utils.py`
 - `scripts/download_all.py` orchestrates all scripts with `--force` passthrough
 
 ### 11. Test Coverage -- 96%+
 
-All modules maintain 96%+ branch coverage (1040+ tests across 14 test modules). Tests use
+All modules maintain 96%+ branch coverage (1042+ tests across 15 test modules). Tests use
 `pytest-asyncio` and mock at the client data boundary (`_load_json`), not at the manager
 level, to exercise the full data flow from tool to client.
 
@@ -158,8 +160,10 @@ level, to exercise the full data flow from tool to client.
                         |  tracks/ linking/   |
                         |  speed/ timeline/   |
                         |  position/ export/  |
+                        |  musters/           |
                         |  narratives/        |
                         |  analytics/         |
+                        |  demographics/      |
                         |  discovery/         |
                         +---------------------+
                                     |
@@ -348,16 +352,15 @@ Falls back silently if the store is unavailable or any download fails.
 ### `async_server.py`
 
 Creates the `ChukMCPServer` MCP instance, instantiates `ArchiveManager`, and registers
-all tool groups (20 categories, 40 tools). Each tool module receives the MCP instance
+all tool groups (19 categories, 40 tools). Each tool module receives the MCP instance
 and the shared `ArchiveManager`.
 
 ### `core/archive_manager.py`
 
 The central orchestrator. Manages:
-- **Archive registry**: static metadata for all 10 archives
-- **Data source clients**: 10 clients (DAS, Crew, Cargo, Wreck, EIC, Carreira, Galleon, SOIC, UKHO, NOAA)
-- **Multi-archive dispatch**: `_voyage_clients` and `_wreck_clients` dicts route by archive ID
-- **LRU caches**: OrderedDict caches for voyages, wrecks, and vessels
+- **Archive registry**: static metadata for all 11 archives
+- **Data source clients**: 11 clients (DAS, Crew, Cargo, Wreck, EIC, Carreira, Galleon, SOIC, UKHO, NOAA, DSS)
+- **Multi-archive dispatch**: `_voyage_clients`, `_wreck_clients`, and `_crew_clients` dicts route by archive ID
 - **Hull profile lookups**: static reference data for 6 VOC ship types
 - **Cross-archive linking**: unified voyage view with wreck, vessel, hull profile, CLIWOC track, crew records, and confidence scores
 - **Entity resolution**: fuzzy ship name matching via `ShipNameIndex` (Levenshtein + Soundex + date proximity)
@@ -367,6 +370,9 @@ The central orchestrator. Manages:
 - **GeoJSON export**: wreck position FeatureCollection generation
 - **Aggregate statistics**: loss statistics computed from wreck data
 - **Narrative search**: full-text search across all free-text fields with snippet extraction
+- **Crew demographics**: aggregate statistics by rank, origin, fate, decade, or ship
+- **Career reconstruction**: individual career tracing across multiple voyages
+- **Survival analysis**: mortality and desertion rates by dimension
 
 ### `core/clients/base.py`
 
@@ -448,7 +454,7 @@ and LLM guidance notes.
 
 ### `core/voc_gazetteer.py`
 
-Historical place-name gazetteer loaded from `data/gazetteer.json`. Contains ~170 VOC-era
+Historical place-name gazetteer loaded from `data/gazetteer.json`. Contains ~157 VOC-era
 place names with modern coordinates, region classification, location type, aliases
 (historical spellings and modern equivalents), and historical notes. Provides exact match,
 alias match, and substring match lookups plus filtered search.
@@ -531,7 +537,7 @@ All magic strings, identifiers, and configuration values. Includes:
 
 ## Data Flows
 
-### Search -> Cache -> Detail
+### Search -> Detail
 
 ```
 1. maritime_search_voyages(ship_name="Batavia", ...)
@@ -543,7 +549,6 @@ All magic strings, identifiers, and configuration values. Includes:
        |   +-- filter: ship_name substring match
        |   +-- filter: date_range, fate, etc.
        |   +-- truncate to max_results
-       +-- cache results: _cache_put(voyage_cache, id, data, 500)
    +-- tool formats VoyageSearchResponse
 
 2. maritime_search_voyages(ship_name="Trade", archive="eic")
@@ -558,10 +563,10 @@ All magic strings, identifiers, and configuration values. Includes:
 4. maritime_get_voyage(voyage_id="das:3456")
    +-- tool validates params
    +-- manager.get_voyage("das:3456")
-       +-- _cache_get(voyage_cache, "das:3456")    <-- cache hit
-       +-- if cache miss: parse prefix "das" -> _voyage_clients["das"]
+       +-- parse prefix "das" -> _voyage_clients["das"]
        +-- das_client.get_by_id("das:3456")
-       +-- _cache_put(voyage_cache, ..., 500)
+       |   +-- _load_json("voyages.json")   <-- already cached from search
+       |   +-- index lookup by ID
    +-- tool formats VoyageDetailResponse
 ```
 
@@ -595,13 +600,6 @@ maritime_export_geojson(region="cape", include_uncertainty=True)
 ---
 
 ## Key Patterns
-
-### LRU Cache with OrderedDict
-
-`ArchiveManager` uses `collections.OrderedDict` for LRU caching. The `_cache_put()`
-method calls `move_to_end(key)` for existing entries and `popitem(last=False)` to
-evict the oldest entry when the cache exceeds its limit. `_cache_get()` moves accessed
-entries to the end to maintain LRU order.
 
 ### Local JSON Client Pattern
 
@@ -647,6 +645,6 @@ of truth in version-controlled JSON files that can be regenerated or edited dire
 
 Position assessment uses `NAVIGATION_ERAS` from constants to determine the navigation
 technology available in a given year. Six eras span 1595-1880, covering the full range
-of all 10 archives. The era determines the baseline position uncertainty (30km for
+of all 11 archives. The era determines the baseline position uncertainty (30km for
 1595-1650 down to 2km for 1840-1880), which is then adjusted based on the source
 description keywords.
