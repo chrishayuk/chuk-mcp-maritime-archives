@@ -63,7 +63,7 @@ Each multi-nation client handles both voyages and wrecks in a single class, with
 
 Reference data modules load from JSON files in `data/`:
 - `voc_gazetteer` -- ~160 historical place names from `data/gazetteer.json`
-- `voc_routes` -- 8 standard sailing routes from `data/routes.json`
+- `voc_routes` -- 18 historical sailing routes from `data/routes.json`
 - `hull_profiles` -- 6 ship type profiles from `data/hull_profiles.json`
 - `speed_profiles` -- 215 speed profiles across 6 routes from `data/speed_profiles.json`
 
@@ -136,7 +136,7 @@ All data files in `data/` are produced by scripts in `scripts/`:
 
 ### 11. Test Coverage -- 96%+
 
-All modules maintain 96%+ branch coverage (923 tests across 14 test modules). Tests use
+All modules maintain 96%+ branch coverage (968+ tests across 14 test modules). Tests use
 `pytest-asyncio` and mock at the client data boundary (`_load_json`), not at the manager
 level, to exercise the full data flow from tool to client.
 
@@ -445,17 +445,18 @@ and LLM guidance notes.
 
 ### `core/voc_gazetteer.py`
 
-Historical place-name gazetteer loaded from `data/gazetteer.json`. Contains ~160 VOC-era
+Historical place-name gazetteer loaded from `data/gazetteer.json`. Contains ~170 VOC-era
 place names with modern coordinates, region classification, location type, aliases
 (historical spellings and modern equivalents), and historical notes. Provides exact match,
 alias match, and substring match lookups plus filtered search.
 
 ### `core/voc_routes.py`
 
-Standard VOC sailing routes loaded from `data/routes.json`. Defines 8 routes (outward
-outer/inner, return, Japan, Spice Islands, Ceylon, Coromandel, Malabar) as sequences
-of waypoints with cumulative sailing days, stop durations, hazards, and season notes.
-Key feature: `estimate_position()` interpolates a ship's position on any date via linear
+Historical sailing routes loaded from `data/routes.json`. Defines 18 routes across 5
+nations: 8 VOC (Dutch), 4 EIC (British), 2 Carreira da India (Portuguese), 2 Manila
+Galleon (Spanish), and 2 SOIC (Swedish). Each route is a sequence of waypoints with
+cumulative sailing days, stop durations, hazards, and season notes. Key feature:
+`estimate_position()` interpolates a ship's position on any date via linear
 interpolation between waypoints, optionally enriched with CLIWOC-derived speed profiles.
 
 ### `core/speed_profiles.py`

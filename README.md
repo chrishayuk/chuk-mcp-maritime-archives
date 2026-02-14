@@ -78,14 +78,14 @@ Evaluate historical position quality:
 
 ### 9. Location Gazetteer (`maritime_lookup_location`, `maritime_list_locations`)
 Historical place-name resolution:
-- ~160 VOC-era place names with modern coordinates
+- ~170 VOC-era place names with modern coordinates
 - Alias resolution (e.g., "Batavia" -> Jakarta, "Formosa" -> Taiwan)
 - Region classification matching wreck and route data
 - Filter by region, location type, or text search
 
 ### 10. Sailing Routes (`maritime_list_routes`, `maritime_get_route`, `maritime_estimate_position`)
-Standard VOC sailing routes with position estimation:
-- 8 routes: outward (outer/inner), return, Japan, Spice Islands, Ceylon, Coromandel, Malabar
+Historical sailing routes with position estimation across 5 nations:
+- 18 routes: VOC (8), EIC (4), Carreira da India (2), Manila Galleon (2), SOIC (2)
 - Waypoints with coordinates, typical sailing days, stop durations
 - Hazards and seasonal navigation notes
 - **Position estimation**: interpolate a ship's likely position on any date
@@ -360,7 +360,7 @@ All tools accept an optional `output_mode` parameter (`"json"` default, or `"tex
 | `maritime_get_cargo_manifest` | Cargo | Full cargo manifest for a voyage |
 | `maritime_lookup_location` | Location | Look up historical place name in VOC gazetteer |
 | `maritime_list_locations` | Location | Search/browse gazetteer by region, type, or text |
-| `maritime_list_routes` | Routes | List standard VOC sailing routes |
+| `maritime_list_routes` | Routes | List historical sailing routes (18 routes, 5 nations) |
 | `maritime_get_route` | Routes | Full route with waypoints, hazards, season notes |
 | `maritime_estimate_position` | Routes | Estimate ship position on a date from route |
 | `maritime_search_tracks` | Tracks | Search CLIWOC ship tracks by nationality and date |
@@ -519,7 +519,7 @@ All tools accept an optional `output_mode` parameter (`"json"` default, or `"tex
 
 ```python
 {
-  "direction": "outward",                        # optional: outward, return, intra_asian
+  "direction": "outward",                        # optional: outward, return, intra_asian, pacific_westbound, pacific_eastbound
   "departure_port": "Texel",                     # optional, substring match
   "destination_port": "Batavia"                  # optional, substring match
 }
@@ -847,9 +847,9 @@ Built on top of chuk-mcp-server, this server uses:
 - **Cross-Archive Linking**: Unified voyage view with wreck, vessel, hull profile, and CLIWOC track linking
 - **Multi-Archive Dispatch**: 11 archives across 6 nations (Dutch, English, Portuguese, Spanish, Swedish, American) with unified query interface
 - **Dual Output**: All 37 tools support `output_mode="text"` for human-readable responses
-- **Domain Reference Data**: ~160 place gazetteer, 8 routes, 6 hull profiles, 215 speed profiles, ~261K ship positions, 22 regions, 7 navigation eras
+- **Domain Reference Data**: ~170 place gazetteer, 18 routes (5 nations), 6 hull profiles, 215 speed profiles, ~261K ship positions, 22 regions, 7 navigation eras
 - **Cursor-Based Pagination**: All 8 search tools support `cursor` / `next_cursor` / `has_more` for paging through large result sets
-- **923 Tests**: Across 14 test modules with 96%+ branch coverage
+- **968+ Tests**: Across 14 test modules with 96%+ branch coverage
 
 ### Supported Archives
 
@@ -870,8 +870,8 @@ Built on top of chuk-mcp-server, this server uses:
 
 | Dataset | Records | Source |
 |---------|---------|--------|
-| VOC Gazetteer | ~160 place names | Curated from historical sources |
-| VOC Routes | 8 sailing routes | Bruijn, Gaastra & Schoffer (1987) |
+| VOC Gazetteer | ~170 place names | Curated from historical sources |
+| Historical Routes | 18 sailing routes | Bruijn, Gaastra & Schoffer (1987) + multi-nation sources |
 | Speed Profiles | 215 profiles, 6 routes | Generated from CLIWOC 2.1 daily positions |
 | Hull Profiles | 6 ship types | Archaeological measurements |
 | EIC Archives | ~150 voyages, ~35 wrecks | Hardy's Register of Ships (1835), Farrington (1999) |
@@ -975,6 +975,18 @@ See [ROADMAP.md](ROADMAP.md) for the development roadmap and planned features.
 - **New tools**: `maritime_search_musters`, `maritime_get_muster`, `maritime_compare_wages`
 - **Multi-archive crew dispatch**: `maritime_search_crew` now supports `archive="dss"` for MDB records
 - 810 tests, 97%+ branch coverage
+
+### Completed (v0.16.0 - v0.17.0)
+
+- **37 MCP tools** across 19 categories (added entity resolution + link audit)
+- **Entity resolution**: pure-Python fuzzy matching for ship names (Levenshtein, Soundex, composite scoring)
+- **Link confidence**: 0.0-1.0 confidence scores on all cross-archive links in `maritime_get_voyage_full`
+- **Link audit**: `maritime_audit_links` for precision/recall metrics
+- **18 sailing routes across 5 nations**: VOC (8), EIC (4), Carreira (2), Manila Galleon (2), SOIC (2)
+- **New route directions**: `pacific_westbound`, `pacific_eastbound` for Manila Galleon Pacific crossings
+- **Gazetteer expansion**: ~170 places including London, Lisbon, Gothenburg, Acapulco, Guam, Azores
+- **Position estimation**: works with all 18 routes across all archive nations
+- 968+ tests, 96%+ branch coverage
 
 ### Planned
 

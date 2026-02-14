@@ -150,7 +150,7 @@ def register_discovery_tools(mcp: object, manager: object) -> None:
                 ToolInfo(
                     name="maritime_list_routes",
                     category="routes",
-                    description="List standard VOC sailing routes",
+                    description="List historical sailing routes (18 routes, 5 nations)",
                 ),
                 ToolInfo(
                     name="maritime_get_route",

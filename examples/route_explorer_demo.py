@@ -2,10 +2,13 @@
 """
 Route Explorer Demo -- chuk-mcp-maritime-archives
 
-Explore the 8 standard VOC sailing routes with waypoints, durations,
-hazards, and seasonal notes. Demonstrates position estimation --
+Explore 18 historical sailing routes across 5 nations with waypoints,
+durations, hazards, and seasonal notes. Demonstrates position estimation --
 given a departure date and route, estimate where a ship was on any
 given date using linear interpolation between waypoints.
+
+Routes cover VOC (Dutch), EIC (British), Carreira da India (Portuguese),
+Manila Galleon (Spanish), and SOIC (Swedish) sailing routes.
 
 Demonstrates:
     maritime_list_routes (list and filter routes)
@@ -34,7 +37,7 @@ async def main() -> None:
     # ---------------------------------------------------------------
     # 1. List all routes
     # ---------------------------------------------------------------
-    print("\n--- All VOC sailing routes ---")
+    print("\n--- All historical sailing routes ---")
     result = await runner.run("maritime_list_routes")
     print(f"  {result['route_count']} routes available:\n")
     for route in result["routes"]:
@@ -48,7 +51,7 @@ async def main() -> None:
     # ---------------------------------------------------------------
     # 2. Filter by direction
     # ---------------------------------------------------------------
-    print("\n--- Outward routes only ---")
+    print("\n--- Outward routes (Europe to Asia, all nations) ---")
     result = await runner.run("maritime_list_routes", direction="outward")
     for route in result["routes"]:
         print(f"  {route['route_id']:20s}  {route['name']}")
@@ -58,10 +61,31 @@ async def main() -> None:
     for route in result["routes"]:
         print(f"  {route['route_id']:20s}  {route['name']}")
 
+    print("\n--- Pacific routes (Manila Galleon) ---")
+    result = await runner.run("maritime_list_routes", direction="pacific_westbound")
+    for route in result["routes"]:
+        print(f"  {route['route_id']:20s}  {route['name']}")
+    result = await runner.run("maritime_list_routes", direction="pacific_eastbound")
+    for route in result["routes"]:
+        print(f"  {route['route_id']:20s}  {route['name']}")
+
     # ---------------------------------------------------------------
-    # 3. Full route detail
+    # 3. Filter by port
     # ---------------------------------------------------------------
-    print("\n--- Outer route detail ---")
+    print("\n--- Routes departing from Lisbon ---")
+    result = await runner.run("maritime_list_routes", departure_port="Lisbon")
+    for route in result["routes"]:
+        print(f"  {route['route_id']:20s}  {route['name']}")
+
+    print("\n--- Routes to Canton ---")
+    result = await runner.run("maritime_list_routes", destination_port="Canton")
+    for route in result["routes"]:
+        print(f"  {route['route_id']:20s}  {route['name']}")
+
+    # ---------------------------------------------------------------
+    # 4. Full route detail -- VOC outer route
+    # ---------------------------------------------------------------
+    print("\n--- VOC Outer route detail ---")
     result = await runner.run("maritime_get_route", route_id="outward_outer")
     route = result["route"]
 
@@ -81,7 +105,7 @@ async def main() -> None:
         )
 
     # ---------------------------------------------------------------
-    # 4. Position estimation -- Batavia voyage example
+    # 5. Position estimation -- VOC Batavia voyage
     # ---------------------------------------------------------------
     print("\n" + "-" * 60)
     print("Position Estimation -- Track a ship across the ocean")
@@ -117,40 +141,116 @@ async def main() -> None:
         )
 
     # ---------------------------------------------------------------
-    # 5. Text mode -- route detail
+    # 6. Carreira da India route detail
+    # ---------------------------------------------------------------
+    print("\n" + "-" * 60)
+    print("Carreira da India -- Lisbon to Goa")
+    print("-" * 60)
+    result = await runner.run("maritime_get_route", route_id="carreira_outward")
+    route = result["route"]
+    print(f"\n  {route['name']}")
+    print(f"  Duration: ~{route['typical_duration_days']} days")
+    print(f"  Waypoints ({len(route['waypoints'])}):")
+    for wp in route["waypoints"]:
+        stop = f" (stop: {wp['stop_days']}d)" if wp.get("stop_days", 0) > 0 else ""
+        print(
+            f"    Day {wp['cumulative_days']:3d}: {wp['name']:25s}  "
+            f"({wp['lat']:7.2f}, {wp['lon']:7.2f}){stop}"
+        )
+
+    # ---------------------------------------------------------------
+    # 7. Manila Galleon Pacific crossing estimation
+    # ---------------------------------------------------------------
+    print("\n" + "-" * 60)
+    print("Manila Galleon -- Acapulco to Manila (westbound)")
+    print("-" * 60)
+    print("\n  Scenario: A galleon departs Acapulco on 1600-03-15")
+    print("  westbound via the trade winds. Track across the Pacific.\n")
+
+    departure = "1600-03-15"
+    check_dates = [
+        ("1600-03-15", "Departure from Acapulco"),
+        ("1600-04-01", "Open Pacific"),
+        ("1600-04-20", "Mid-Pacific (~day 36)"),
+        ("1600-05-10", "Approaching Guam (~day 56)"),
+        ("1600-06-01", "Western Pacific"),
+        ("1600-06-13", "Arriving Manila (~day 90)"),
+    ]
+
+    for target, note in check_dates:
+        result = await runner.run(
+            "maritime_estimate_position",
+            route_id="galleon_westbound",
+            departure_date=departure,
+            target_date=target,
+        )
+        est = result.get("estimate", result)
+        pos = est.get("estimated_position", {})
+        print(
+            f"  {target}  ({note:30s})  "
+            f"lat={pos.get('lat', '?'):7}  lon={pos.get('lon', '?'):7}  "
+            f"conf={est.get('confidence', '?')}  "
+            f"day {est.get('elapsed_days', '?')}/{est.get('total_route_days', '?')}"
+        )
+
+    # ---------------------------------------------------------------
+    # 8. Cross-nation comparison: outward routes
+    # ---------------------------------------------------------------
+    print("\n" + "-" * 60)
+    print("Cross-Nation Comparison -- Outward Routes")
+    print("-" * 60)
+
+    outward_routes = [
+        ("outward_outer", "VOC (Dutch)"),
+        ("eic_outward", "EIC (British)"),
+        ("carreira_outward", "Carreira (Portuguese)"),
+        ("soic_outward", "SOIC (Swedish)"),
+    ]
+    print(f"\n  {'Route':<22s}  {'Nation':<20s}  Duration  Waypoints")
+    for route_id, nation in outward_routes:
+        result = await runner.run("maritime_get_route", route_id=route_id)
+        route = result["route"]
+        print(
+            f"  {route_id:<22s}  {nation:<20s}  "
+            f"~{route['typical_duration_days']:3d} days  "
+            f"{len(route['waypoints']):2d} waypoints"
+        )
+
+    # ---------------------------------------------------------------
+    # 9. Text mode -- Japan route
     # ---------------------------------------------------------------
     print("\n--- Text mode: Japan route ---")
     text = await runner.run_text("maritime_get_route", route_id="japan")
     print(text)
 
     # ---------------------------------------------------------------
-    # 6. Text mode -- position estimate
+    # 10. Text mode -- position estimate
     # ---------------------------------------------------------------
-    print("\n--- Text mode: position estimate ---")
+    print("\n--- Text mode: EIC return position estimate ---")
     text = await runner.run_text(
         "maritime_estimate_position",
-        route_id="return",
-        departure_date="1740-11-01",
-        target_date="1741-01-15",
+        route_id="eic_return",
+        departure_date="1750-01-15",
+        target_date="1750-04-01",
     )
     print(text)
 
     # ---------------------------------------------------------------
-    # 7. Full JSON for a position estimate
+    # 11. Full JSON for a position estimate
     # ---------------------------------------------------------------
-    print("\n--- Full JSON: position estimate ---")
+    print("\n--- Full JSON: SOIC outward position estimate ---")
     result = await runner.run(
         "maritime_estimate_position",
-        route_id="ceylon",
-        departure_date="1700-01-15",
-        target_date="1700-02-01",
+        route_id="soic_outward",
+        departure_date="1745-02-01",
+        target_date="1745-06-15",
     )
     print(json.dumps(result, indent=2))
 
     print("\n" + "=" * 60)
-    print("Demo complete! Route tools enable LLMs to estimate")
-    print("where a ship was on any date -- useful for investigating")
-    print("wrecks and reconstructing lost voyages.")
+    print("Demo complete! 18 routes across 5 nations enable LLMs to")
+    print("estimate where a ship was on any date -- useful for")
+    print("investigating wrecks and reconstructing lost voyages.")
     print("=" * 60)
 
 

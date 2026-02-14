@@ -24,8 +24,8 @@ Expanded to 23 tools across 12 categories. Reproducible data pipeline.
 
 **New tools:**
 - `maritime_lookup_location` -- resolve historical place names to coordinates
-- `maritime_list_locations` -- search/browse ~160 VOC-era locations by region or type
-- `maritime_list_routes` -- list 8 standard VOC sailing routes
+- `maritime_list_locations` -- search/browse ~170 VOC-era locations by region or type
+- `maritime_list_routes` -- list historical sailing routes (18 routes, 5 nations)
 - `maritime_get_route` -- full route with waypoints, hazards, season notes
 - `maritime_estimate_position` -- interpolate ship position on any date from route
 
@@ -37,8 +37,8 @@ Expanded to 23 tools across 12 categories. Reproducible data pipeline.
 - All reference data (gazetteer, routes, hull profiles) stored as JSON in `data/`, loaded at runtime
 
 **Reference data:**
-- VOC Gazetteer: ~160 historical place names with coordinates, aliases, region classification
-- VOC Routes: 8 sailing routes with waypoints, cumulative days, stop durations, hazards, season notes
+- VOC Gazetteer: ~170 historical place names with coordinates, aliases, region classification
+- Historical Routes: 18 sailing routes (5 nations) with waypoints, cumulative days, stop durations, hazards, season notes
 - Hull Profiles: 6 ship type profiles with dimensions, hydrodynamics, sinking characteristics
 
 **Quality:**
@@ -393,22 +393,33 @@ Expanded to 37 tools across 19 categories. Added pure-Python fuzzy entity resolu
 **Quality:**
 - 923 tests across 14 test modules, 96%+ branch coverage
 
+### v0.17.0 -- Additional Sailing Routes
+
+Extended the route library from 8 VOC routes to 18 routes across all 5 archive nations. Expanded gazetteer with 10 new ports. Position estimation now works for all nations.
+
+**New routes (10):**
+- **EIC (British)**: `eic_outward` (Downs->Madras, 180d), `eic_china` (Downs->Canton, 210d), `eic_return` (Madras->Downs, 180d), `eic_country` (Madras->Calcutta, 30d intra-Asian)
+- **Carreira da India (Portuguese)**: `carreira_outward` (Lisbon->Goa, 180d), `carreira_return` (Goa->Lisbon, 180d)
+- **Manila Galleon (Spanish)**: `galleon_westbound` (Acapulco->Manila, 90d), `galleon_eastbound` (Manila->Acapulco, 130d)
+- **SOIC (Swedish)**: `soic_outward` (Gothenburg->Canton, 240d), `soic_return` (Canton->Gothenburg, 210d)
+
+**New direction values:**
+- `pacific_westbound` and `pacific_eastbound` for Manila Galleon Pacific crossings
+
+**Gazetteer expansion (10 new entries):**
+- London, The Downs, Lisbon, Gothenburg, Acapulco, Guam, Cape Mendocino, Azores, San Bernardino Strait, Masulipatnam
+- Mozambique entry updated with aliases (Ilha de Mocambique, Mozambique Island)
+
+**Speed profile classification:**
+- `generate_speed_profiles.py` updated with port sets and classification rules for EIC, Carreira, Galleon, and SOIC routes
+- UK track catch-all split into specific EIC routes (eic_outward, eic_china) with narrowed VOC fallback
+
+**Quality:**
+- 968+ tests across 14 test modules, 96%+ branch coverage
+
 ---
 
 ## Planned
-
-### v0.17.0 -- Additional Sailing Routes
-
-Extend the route library beyond the 8 existing VOC routes to cover all archive nations.
-
-- **EIC routes**: London -> Cape -> India (Surat, Madras, Calcutta, Bombay) -> China (Canton)
-- **Carreira da India routes**: Lisbon -> Cape -> Goa, with Mozambique Island stopover
-- **Manila Galleon routes**: Acapulco -> Manila (westbound via trade winds) and Manila -> Acapulco (eastbound via North Pacific)
-- **SOIC routes**: Gothenburg -> Cape -> Canton
-- Waypoints, typical sailing days, hazards, and season notes for each route
-- Speed profiles generated from CLIWOC data where nationality-filtered observations exist
-- `maritime_estimate_position` works with all new route IDs
-- Enables position estimation for EIC, Carreira, Galleon, and SOIC voyages (currently only VOC routes supported)
 
 ### v0.18.0 -- Crew Demographics & Network Analysis
 
@@ -483,7 +494,7 @@ This server is the data layer in a composable stack of MCP servers:
 
 | Server | Tools | Tests | Role |
 |--------|-------|-------|------|
-| chuk-mcp-maritime-archives | 37 | 923 | Voyage, wreck, vessel, crew, cargo, musters, analytics |
+| chuk-mcp-maritime-archives | 37 | 968+ | Voyage, wreck, vessel, crew, cargo, musters, analytics |
 | chuk-mcp-ocean-drift | 10 | 235 | Forward/backtrack/Monte Carlo drift |
 | chuk-mcp-dem | 4 | 711 | Bathymetry and elevation data |
 | chuk-mcp-stac | 5 | 382 | Satellite imagery via STAC catalogues |
@@ -491,7 +502,7 @@ This server is the data layer in a composable stack of MCP servers:
 | chuk-mcp-tides | 8 | 717 | Tidal current data |
 | chuk-mcp-physics | 66 | 240 | Fluid dynamics computations |
 | chuk-mcp-open-meteo | 6 | 22 | Weather and wind data |
-| **Total** | **142** | **3,360** | |
+| **Total** | **142** | **3,405+** | |
 
 All servers follow the same patterns: Pydantic v2 models, dual output mode, chuk-artifacts storage.
 
@@ -518,8 +529,8 @@ Current and potential data sources for the project.
 | [CLIWOC 2.1 Full](https://historicalclimatology.com/cliwoc.html) | 282K records, 182 columns | `download_cliwoc.py` | Working |
 | [VOC Opvarenden](https://www.nationaalarchief.nl/) | 774,200 crew records | `download_crew.py` | Working (bulk CSV download) |
 | [BGB Cargo](https://bgb.huygens.knaw.nl/) | 200 curated + expandable | `download_cargo.py` / `generate_cargo.py` | Working (Zenodo RDF + curated fallback) |
-| VOC Gazetteer | ~160 places | `data/gazetteer.json` | Curated |
-| VOC Routes | 8 routes | `data/routes.json` | Curated |
+| VOC Gazetteer | ~170 places | `data/gazetteer.json` | Curated |
+| Historical Routes | 18 routes (5 nations) | `data/routes.json` | Curated |
 | Hull Profiles | 6 types | `data/hull_profiles.json` | Curated |
 | Speed Profiles | 215 profiles, 6 routes | `data/speed_profiles.json` | Generated from CLIWOC |
 | EIC Archives | ~150 voyages, ~35 wrecks | `generate_eic.py` / `download_eic.py` | Curated from Hardy/Farrington + ThreeDecks download |
@@ -550,7 +561,7 @@ See [README.md](README.md#contributing) for contribution guidelines. Key areas w
 - **EIC expansion** -- expanding the 150-voyage EIC dataset using Hardy's Register and ThreeDecks data
 - **Gazetteer expansion** -- adding more historical place names with coordinates (especially for non-Dutch ports)
 - **Route accuracy** -- improving waypoint positions and sailing time estimates
-- **Additional sailing routes** -- EIC, Carreira, Galleon, and SOIC standard routes
+- **Route accuracy** -- improving waypoint positions and sailing time estimates for all 18 routes
 - **Test coverage** -- edge cases in position estimation, date handling, and multi-archive dispatch
 - **Cargo enrichment** -- expanding the 200-record curated cargo dataset using Glamann's "Dutch-Asiatic Trade" tables
 - **Entity resolution** -- improving fuzzy matching between CLIWOC ship names and DAS voyage records

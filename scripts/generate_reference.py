@@ -12,8 +12,8 @@ Run after editing any reference JSON file to verify and reformat:
     python scripts/generate_reference.py
 
 Validates:
-    data/gazetteer.json     -- ~160 VOC-era place names with coordinates
-    data/routes.json        -- 8 standard VOC sailing routes with waypoints
+    data/gazetteer.json     -- ~170 VOC-era place names with coordinates
+    data/routes.json        -- 18 historical sailing routes with waypoints (5 nations)
     data/hull_profiles.json -- 6 ship type hydrodynamic profiles
 """
 

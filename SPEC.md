@@ -1,6 +1,6 @@
 # chuk-mcp-maritime-archives Specification
 
-Version 0.16.0
+Version 0.17.0
 
 ## Overview
 
@@ -546,13 +546,13 @@ Search or browse the VOC historical gazetteer with optional filters.
 
 #### `maritime_list_routes`
 
-List available VOC standard sailing routes. Optionally filter by direction or ports.
+List available historical sailing routes (18 routes across VOC, EIC, Carreira, Galleon, SOIC). Optionally filter by direction or ports.
 
 **Parameters:**
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `direction` | `str?` | `None` | Route direction: `outward`, `return`, `intra_asian` |
+| `direction` | `str?` | `None` | Route direction: `outward`, `return`, `intra_asian`, `pacific_westbound`, `pacific_eastbound` |
 | `departure_port` | `str?` | `None` | Filter routes containing this departure port (substring match) |
 | `destination_port` | `str?` | `None` | Filter routes containing this destination (substring match) |
 
@@ -568,13 +568,13 @@ List available VOC standard sailing routes. Optionally filter by direction or po
 
 #### `maritime_get_route`
 
-Get full details of a standard VOC sailing route including all waypoints.
+Get full details of a historical sailing route including all waypoints.
 
 **Parameters:**
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `route_id` | `str` | *required* | Route identifier: `outward_outer`, `outward_inner`, `return`, `japan`, `spice_islands`, `ceylon`, `coromandel`, `malabar` |
+| `route_id` | `str` | *required* | Route identifier. VOC: `outward_outer`, `outward_inner`, `return`, `japan`, `spice_islands`, `ceylon`, `coromandel`, `malabar`. EIC: `eic_outward`, `eic_china`, `eic_return`, `eic_country`. Carreira: `carreira_outward`, `carreira_return`. Galleon: `galleon_westbound`, `galleon_eastbound`. SOIC: `soic_outward`, `soic_return` |
 
 **Response:** `RouteDetailResponse`
 
@@ -600,7 +600,8 @@ Get full details of a standard VOC sailing route including all waypoints.
 #### `maritime_estimate_position`
 
 Estimate a ship's position on a specific date based on its route. Uses linear
-interpolation between standard waypoints assuming typical sailing times.
+interpolation between historical route waypoints assuming typical sailing times.
+Works with all 18 routes across VOC, EIC, Carreira, Galleon, and SOIC.
 
 **Parameters:**
 

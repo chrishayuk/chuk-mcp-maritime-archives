@@ -1,4 +1,4 @@
-"""MCP tools for querying standard VOC sailing routes."""
+"""MCP tools for querying historical sailing routes."""
 
 import logging
 
@@ -33,27 +33,29 @@ def register_route_tools(mcp: object, manager: object) -> None:
         output_mode: str = "json",
     ) -> str:
         """
-        List available VOC standard sailing routes.
+        List available historical sailing routes.
 
-        Returns summaries of all known VOC routes with typical durations.
-        Optionally filter by direction or by departure/destination port.
+        Returns summaries of all known routes with typical durations.
+        Covers VOC (Dutch), EIC (British), Carreira da India (Portuguese),
+        Manila Galleon (Spanish), and SOIC (Swedish) routes.
 
         Args:
-            direction: Filter by route direction — "outward" (Netherlands
-                to Asia), "return" (Asia to Netherlands), or "intra_asian"
-                (between Asian ports)
+            direction: Filter by route direction — "outward" (Europe
+                to Asia), "return" (Asia to Europe), "intra_asian"
+                (between Asian ports), "pacific_westbound" (Acapulco
+                to Manila), or "pacific_eastbound" (Manila to Acapulco)
             departure_port: Filter routes containing this departure port
-                (substring match, e.g., "Texel", "Batavia")
+                (substring match, e.g., "Texel", "Downs", "Lisbon")
             destination_port: Filter routes containing this destination
-                (substring match, e.g., "Batavia", "Deshima")
+                (substring match, e.g., "Batavia", "Canton", "Manila")
             output_mode: Response format — "json" (default) or "text"
 
         Returns:
             JSON or text with list of available routes
 
         Tips for LLMs:
-            - Use direction="outward" to see the main Netherlands-to-Asia
-              routes (outer and inner variants)
+            - Use direction="outward" to see Europe-to-Asia routes for
+              all nations (VOC, EIC, Carreira, SOIC)
             - Use departure_port and destination_port to find routes
               matching a specific voyage
             - Follow up with maritime_get_route for full waypoint details
@@ -111,21 +113,21 @@ def register_route_tools(mcp: object, manager: object) -> None:
         output_mode: str = "json",
     ) -> str:
         """
-        Get full details of a standard VOC sailing route.
+        Get full details of a historical sailing route.
 
         Returns all waypoints with coordinates, typical sailing times,
         stop durations, hazards, and seasonal notes for a specific route.
 
         Args:
             route_id: Route identifier. Options:
-                - outward_outer: Netherlands to Batavia (south of Madagascar)
-                - outward_inner: Netherlands to Batavia (Mozambique Channel)
-                - return: Batavia to Netherlands
-                - japan: Batavia to Deshima (Nagasaki)
-                - spice_islands: Batavia to Ambon and Banda
-                - ceylon: Batavia to Galle and Colombo
-                - coromandel: Batavia to Indian east coast
-                - malabar: Batavia to Indian west coast (Cochin)
+                VOC (Dutch): outward_outer, outward_inner, return,
+                    japan, spice_islands, ceylon, coromandel, malabar
+                EIC (British): eic_outward, eic_china, eic_return,
+                    eic_country
+                Carreira (Portuguese): carreira_outward, carreira_return
+                Manila Galleon (Spanish): galleon_westbound,
+                    galleon_eastbound
+                SOIC (Swedish): soic_outward, soic_return
             output_mode: Response format — "json" (default) or "text"
 
         Returns:
@@ -178,14 +180,15 @@ def register_route_tools(mcp: object, manager: object) -> None:
         """
         Estimate a ship's position on a specific date based on its route.
 
-        Uses linear interpolation between standard VOC route waypoints
+        Uses linear interpolation between historical route waypoints
         to estimate where a ship would have been on a given date,
-        assuming typical sailing times. Essential for investigating
-        wreck locations and lost voyages.
+        assuming typical sailing times. Works with all 18 routes
+        across VOC, EIC, Carreira, Galleon, and SOIC. Essential for
+        investigating wreck locations and lost voyages.
 
         Args:
             route_id: Route identifier (from maritime_list_routes or
-                maritime_get_route)
+                maritime_get_route). See maritime_get_route for full list.
             departure_date: Ship's departure date as YYYY-MM-DD
             target_date: Date to estimate position for as YYYY-MM-DD
                 (e.g., last known date, or estimated loss date)

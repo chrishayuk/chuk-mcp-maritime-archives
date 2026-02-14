@@ -478,9 +478,11 @@
     "region": "mozambique_channel",
     "type": "port",
     "aliases": [
-      "Mosambique"
+      "Mosambique",
+      "Ilha de Mocambique",
+      "Mozambique Island"
     ],
-    "notes": "Portuguese port, sometimes visited by VOC ships."
+    "notes": "Portuguese fortress and hospital on island off East African coast. Major refreshment port on the Carreira da India."
   },
   {
     "name": "Mozambique Channel",
@@ -1541,5 +1543,114 @@
     "type": "port",
     "aliases": [],
     "notes": "VOC factory on the Coromandel coast."
+  },
+  {
+    "name": "London",
+    "lat": 51.51,
+    "lon": -0.08,
+    "region": "english_channel",
+    "type": "port",
+    "aliases": [
+      "Deptford",
+      "Blackwall",
+      "Gravesend"
+    ],
+    "notes": "EIC headquarters. Ships fitted at Deptford and Blackwall yards on the Thames."
+  },
+  {
+    "name": "The Downs",
+    "lat": 51.21,
+    "lon": 1.41,
+    "region": "english_channel",
+    "type": "anchorage",
+    "aliases": [
+      "Downs"
+    ],
+    "notes": "Sheltered anchorage off Deal, Kent. Assembly point for EIC convoys awaiting fair wind."
+  },
+  {
+    "name": "Lisbon",
+    "lat": 38.72,
+    "lon": -9.14,
+    "region": "atlantic_europe",
+    "type": "port",
+    "aliases": [
+      "Lisboa"
+    ],
+    "notes": "Portuguese capital. Departure point for the Carreira da India. Belem Tower."
+  },
+  {
+    "name": "Gothenburg",
+    "lat": 57.71,
+    "lon": 11.97,
+    "region": "baltic",
+    "type": "port",
+    "aliases": [
+      "Goteborg",
+      "Gothenborg"
+    ],
+    "notes": "SOIC (Swedish East India Company) headquarters on the Swedish west coast."
+  },
+  {
+    "name": "Acapulco",
+    "lat": 16.86,
+    "lon": -99.88,
+    "region": "pacific",
+    "type": "port",
+    "aliases": [],
+    "notes": "Pacific port of New Spain. Western terminus of the Manila Galleon trade."
+  },
+  {
+    "name": "Guam",
+    "lat": 13.44,
+    "lon": 144.79,
+    "region": "pacific",
+    "type": "island",
+    "aliases": [
+      "Guahan"
+    ],
+    "notes": "Spanish Marianas. Critical provisioning stop on the Manila Galleon westbound route."
+  },
+  {
+    "name": "Cape Mendocino",
+    "lat": 40.44,
+    "lon": -124.41,
+    "region": "pacific",
+    "type": "cape",
+    "aliases": [],
+    "notes": "California landfall for eastbound Manila Galleon. First sight of land after months at sea."
+  },
+  {
+    "name": "Azores",
+    "lat": 38.72,
+    "lon": -27.22,
+    "region": "north_atlantic",
+    "type": "island",
+    "aliases": [
+      "Acores",
+      "Terceira"
+    ],
+    "notes": "Portuguese islands in the mid-Atlantic. Watering stop on Carreira da India return voyage."
+  },
+  {
+    "name": "San Bernardino Strait",
+    "lat": 12.55,
+    "lon": 124.1,
+    "region": "philippine_sea",
+    "type": "waterway",
+    "aliases": [],
+    "notes": "Strait between Luzon and Samar. Entry/exit point for Manila Galleon to Philippine waters."
+  },
+  {
+    "name": "Masulipatnam",
+    "lat": 16.17,
+    "lon": 81.15,
+    "region": "coromandel",
+    "type": "port",
+    "aliases": [
+      "Machilipatnam",
+      "Masulipatam"
+    ],
+    "notes": "Major textile trading port on the Coromandel coast. Both EIC and VOC maintained factories here."
   }
 ]

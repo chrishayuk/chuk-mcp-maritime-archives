@@ -611,5 +611,927 @@
         "notes": "VOC factory north of Cochin."
       }
     ]
+  },
+  {
+    "route_id": "eic_outward",
+    "name": "EIC Outward Voyage — London to India",
+    "description": "Standard English East India Company route from London/Downs to India (Madras, Bombay, or Calcutta) via the Cape of Good Hope. Ships departed from the Thames, assembled at the Downs off Deal, then sailed via the Channel, Bay of Biscay, and Cape Verde. After rounding the Cape they sailed northeast across the Indian Ocean to the Malabar or Coromandel coast.",
+    "direction": "outward",
+    "typical_duration_days": 180,
+    "season_notes": "EIC ships typically departed January-April, catching fair winds down the Atlantic. Late departures risked arriving at the Cape during winter storms (May-August) and missing the SW monsoon for the Indian Ocean crossing.",
+    "hazards": [
+      "English Channel fog and traffic (year-round)",
+      "Bay of Biscay storms (Oct-Mar)",
+      "Doldrums near equator (becalming 1-3 weeks)",
+      "Cape of Good Hope winter storms (May-Aug)",
+      "Monsoon timing critical for Indian Ocean crossing",
+      "French privateers in wartime (Channel and Indian Ocean)"
+    ],
+    "waypoints": [
+      {
+        "name": "The Downs",
+        "lat": 51.21,
+        "lon": 1.41,
+        "region": "english_channel",
+        "cumulative_days": 0,
+        "stop_days": 0,
+        "notes": "Assembly anchorage off Deal, Kent. Ships waited here for convoy or fair wind."
+      },
+      {
+        "name": "Ushant",
+        "lat": 48.46,
+        "lon": -5.09,
+        "region": "atlantic_europe",
+        "cumulative_days": 5,
+        "stop_days": 0,
+        "notes": "Navigation waypoint off Brittany. Enter the Atlantic."
+      },
+      {
+        "name": "Madeira",
+        "lat": 32.75,
+        "lon": -17.0,
+        "region": "atlantic_europe",
+        "cumulative_days": 15,
+        "stop_days": 0,
+        "notes": "Waypoint. Some ships watered here."
+      },
+      {
+        "name": "Cape Verde",
+        "lat": 15.06,
+        "lon": -23.63,
+        "region": "atlantic_europe",
+        "cumulative_days": 28,
+        "stop_days": 3,
+        "notes": "Watering stop. Not all ships called here."
+      },
+      {
+        "name": "Equator crossing",
+        "lat": 0.0,
+        "lon": -20.0,
+        "region": "atlantic_crossing",
+        "cumulative_days": 45,
+        "stop_days": 0,
+        "notes": "Crossing the doldrums."
+      },
+      {
+        "name": "St Helena latitude",
+        "lat": -15.97,
+        "lon": -10.0,
+        "region": "atlantic_crossing",
+        "cumulative_days": 60,
+        "stop_days": 0,
+        "notes": "Passing south through the Atlantic."
+      },
+      {
+        "name": "Cape of Good Hope",
+        "lat": -33.93,
+        "lon": 18.42,
+        "region": "cape",
+        "cumulative_days": 100,
+        "stop_days": 14,
+        "notes": "Refreshment stop at Table Bay or Simon's Bay. Typical stay 1-3 weeks."
+      },
+      {
+        "name": "Mozambique Channel",
+        "lat": -15.0,
+        "lon": 41.0,
+        "region": "mozambique_channel",
+        "cumulative_days": 130,
+        "stop_days": 0,
+        "notes": "Some ships took the inner route via the Channel."
+      },
+      {
+        "name": "Bombay",
+        "lat": 19.08,
+        "lon": 72.88,
+        "region": "malabar",
+        "cumulative_days": 160,
+        "stop_days": 0,
+        "notes": "EIC western headquarters from 1687. Major destination for west coast voyages."
+      },
+      {
+        "name": "Madras",
+        "lat": 13.08,
+        "lon": 80.27,
+        "region": "coromandel",
+        "cumulative_days": 175,
+        "stop_days": 0,
+        "notes": "Fort St George. Major EIC settlement on the Coromandel coast."
+      }
+    ]
+  },
+  {
+    "route_id": "eic_china",
+    "name": "EIC China Voyage — London to Canton",
+    "description": "English East India Company route from London/Downs to Canton (Guangzhou) for the tea and silk trade. Followed the same route as the India voyage as far as the Cape, then sailed northeast past the Malabar coast and through the Sunda Strait to the South China Sea. The Canton tea trade dominated EIC finances from the 1720s onward.",
+    "direction": "outward",
+    "typical_duration_days": 210,
+    "season_notes": "Departed January-March. Ships needed to arrive at Canton before the NE monsoon ended (March-April) or wait for the SW monsoon (June) to enter the South China Sea. Late arrivals could miss the trading season entirely.",
+    "hazards": [
+      "English Channel fog and traffic",
+      "Bay of Biscay storms",
+      "Doldrums near equator",
+      "Cape of Good Hope winter storms",
+      "Typhoons in the South China Sea (Jul-Nov)",
+      "Pirates in the Straits of Malacca and South China Sea",
+      "Restrictive Qing dynasty port regulations at Canton"
+    ],
+    "waypoints": [
+      {
+        "name": "The Downs",
+        "lat": 51.21,
+        "lon": 1.41,
+        "region": "english_channel",
+        "cumulative_days": 0,
+        "stop_days": 0,
+        "notes": "Assembly anchorage off Deal."
+      },
+      {
+        "name": "Ushant",
+        "lat": 48.46,
+        "lon": -5.09,
+        "region": "atlantic_europe",
+        "cumulative_days": 5,
+        "stop_days": 0,
+        "notes": "Navigation waypoint."
+      },
+      {
+        "name": "Cape Verde",
+        "lat": 15.06,
+        "lon": -23.63,
+        "region": "atlantic_europe",
+        "cumulative_days": 28,
+        "stop_days": 3,
+        "notes": "Watering stop."
+      },
+      {
+        "name": "Equator crossing",
+        "lat": 0.0,
+        "lon": -20.0,
+        "region": "atlantic_crossing",
+        "cumulative_days": 45,
+        "stop_days": 0,
+        "notes": "Crossing the doldrums."
+      },
+      {
+        "name": "Cape of Good Hope",
+        "lat": -33.93,
+        "lon": 18.42,
+        "region": "cape",
+        "cumulative_days": 100,
+        "stop_days": 14,
+        "notes": "Refreshment stop at Table Bay."
+      },
+      {
+        "name": "Sunda Strait",
+        "lat": -6.1,
+        "lon": 105.75,
+        "region": "indonesia",
+        "cumulative_days": 165,
+        "stop_days": 0,
+        "notes": "Strait between Java and Sumatra. EIC China ships often passed through here rather than the Straits of Malacca."
+      },
+      {
+        "name": "South China Sea",
+        "lat": 7.0,
+        "lon": 110.0,
+        "region": "south_china_sea",
+        "cumulative_days": 180,
+        "stop_days": 0,
+        "notes": "Northward through the South China Sea."
+      },
+      {
+        "name": "Canton",
+        "lat": 23.13,
+        "lon": 113.26,
+        "region": "south_china_coast",
+        "cumulative_days": 200,
+        "stop_days": 0,
+        "notes": "Pearl River Delta. EIC factory at Canton (Guangzhou). Whampoa anchorage."
+      }
+    ]
+  },
+  {
+    "route_id": "eic_return",
+    "name": "EIC Return Voyage — India/Canton to London",
+    "description": "Standard English East India Company return voyage carrying tea, textiles, porcelain, and spices back to London. Ships from Canton departed with the NE monsoon (December-January), collected at the Cape, and stopped at St Helena (British-controlled) for water. Homeward-bound convoys often assembled at St Helena.",
+    "direction": "return",
+    "typical_duration_days": 180,
+    "season_notes": "Return fleets departed Canton December-January or India January-March. Ships aimed to round the Cape before winter storms (May-August). Convoys assembled at St Helena before the final Atlantic crossing.",
+    "hazards": [
+      "Typhoons in the South China Sea if departing late",
+      "Storms in the Roaring Forties south of Madagascar",
+      "Cape of Good Hope winter storms if delayed",
+      "Bay of Biscay storms on approach to Channel",
+      "French and Dutch privateers in wartime"
+    ],
+    "waypoints": [
+      {
+        "name": "Madras",
+        "lat": 13.08,
+        "lon": 80.27,
+        "region": "coromandel",
+        "cumulative_days": 0,
+        "stop_days": 0,
+        "notes": "Departure from India (or Canton, with 30 extra days)."
+      },
+      {
+        "name": "South Indian Ocean",
+        "lat": -35.0,
+        "lon": 65.0,
+        "region": "indian_ocean",
+        "cumulative_days": 40,
+        "stop_days": 0,
+        "notes": "Sailing the Roaring Forties westward."
+      },
+      {
+        "name": "Cape of Good Hope",
+        "lat": -33.93,
+        "lon": 18.42,
+        "region": "cape",
+        "cumulative_days": 70,
+        "stop_days": 14,
+        "notes": "Refreshment stop. EIC ships reprovisioned here."
+      },
+      {
+        "name": "St Helena",
+        "lat": -15.97,
+        "lon": -5.71,
+        "region": "atlantic_crossing",
+        "cumulative_days": 105,
+        "stop_days": 5,
+        "notes": "British-controlled island. EIC ships regularly watered here. Convoy assembly point."
+      },
+      {
+        "name": "Equator crossing",
+        "lat": 0.0,
+        "lon": -20.0,
+        "region": "atlantic_crossing",
+        "cumulative_days": 125,
+        "stop_days": 0,
+        "notes": "Northward crossing of the doldrums."
+      },
+      {
+        "name": "English Channel",
+        "lat": 50.5,
+        "lon": -1.0,
+        "region": "english_channel",
+        "cumulative_days": 165,
+        "stop_days": 0,
+        "notes": "Final approach."
+      },
+      {
+        "name": "The Downs",
+        "lat": 51.21,
+        "lon": 1.41,
+        "region": "english_channel",
+        "cumulative_days": 170,
+        "stop_days": 0,
+        "notes": "Arrival anchorage. Ships proceeded upriver to Deptford/Blackwall."
+      }
+    ]
+  },
+  {
+    "route_id": "carreira_outward",
+    "name": "Carreira da India — Lisbon to Goa",
+    "description": "Portuguese India Run from Lisbon to Goa via the Cape of Good Hope. The longest-running European maritime trade route (1497-1835). Ships departed Lisbon with the spring fleet (March-April), crossed the Atlantic to catch the SE trade winds, rounded the Cape, sailed up the Mozambique Channel, and crossed to Goa with the SW monsoon. Timing was critical: ships had to round the Cape before June to catch the monsoon.",
+    "direction": "outward",
+    "typical_duration_days": 180,
+    "season_notes": "Departure from Lisbon in March-April was critical. Ships needed to round the Cape by June to catch the SW monsoon across the Indian Ocean. Late departures meant wintering at Mozambique Island, adding months and massive crew mortality from malaria and scurvy.",
+    "hazards": [
+      "Cape Bojador and Saharan coast sandstorms",
+      "Doldrums near equator (1-3 weeks becalming)",
+      "Cape of Good Hope winter storms (May-Aug)",
+      "Shoals and reefs in Mozambique Channel",
+      "Malaria at Mozambique Island (devastating mortality)",
+      "Scurvy on the long open-ocean passages",
+      "Hostile local powers along the East African coast"
+    ],
+    "waypoints": [
+      {
+        "name": "Lisbon",
+        "lat": 38.72,
+        "lon": -9.14,
+        "region": "atlantic_europe",
+        "cumulative_days": 0,
+        "stop_days": 0,
+        "notes": "Departure from the Tagus estuary. Belem Tower departure point."
+      },
+      {
+        "name": "Canary Islands",
+        "lat": 28.1,
+        "lon": -15.4,
+        "region": "atlantic_europe",
+        "cumulative_days": 8,
+        "stop_days": 0,
+        "notes": "Waypoint. Ships sometimes watered at Tenerife."
+      },
+      {
+        "name": "Cape Verde",
+        "lat": 15.06,
+        "lon": -23.63,
+        "region": "atlantic_europe",
+        "cumulative_days": 18,
+        "stop_days": 2,
+        "notes": "Portuguese islands. Provisioning stop at Santiago."
+      },
+      {
+        "name": "Equator crossing",
+        "lat": 0.0,
+        "lon": -25.0,
+        "region": "atlantic_crossing",
+        "cumulative_days": 35,
+        "stop_days": 0,
+        "notes": "Crossing near the Brazilian coast to catch SE trades (volta do mar)."
+      },
+      {
+        "name": "South Atlantic",
+        "lat": -28.0,
+        "lon": -15.0,
+        "region": "south_atlantic",
+        "cumulative_days": 65,
+        "stop_days": 0,
+        "notes": "Swing east toward the Cape, following the volta do mar pattern."
+      },
+      {
+        "name": "Cape of Good Hope",
+        "lat": -33.93,
+        "lon": 18.42,
+        "region": "cape",
+        "cumulative_days": 90,
+        "stop_days": 7,
+        "notes": "Rounding the Cape. Portuguese ships did not routinely stop here, continuing to Mozambique Island."
+      },
+      {
+        "name": "Mozambique Island",
+        "lat": -15.03,
+        "lon": 40.73,
+        "region": "mozambique_channel",
+        "cumulative_days": 120,
+        "stop_days": 14,
+        "notes": "Major Portuguese refreshment port. Hospital, fortress, provisioning. Ships wintering here faced devastating malaria mortality."
+      },
+      {
+        "name": "Arabian Sea crossing",
+        "lat": 5.0,
+        "lon": 60.0,
+        "region": "arabian_sea",
+        "cumulative_days": 150,
+        "stop_days": 0,
+        "notes": "Open ocean crossing with the SW monsoon (Jun-Sep)."
+      },
+      {
+        "name": "Goa",
+        "lat": 15.5,
+        "lon": 73.83,
+        "region": "malabar",
+        "cumulative_days": 170,
+        "stop_days": 0,
+        "notes": "Portuguese Estado da India capital. Arrival at the Mandovi River estuary."
+      }
+    ]
+  },
+  {
+    "route_id": "carreira_return",
+    "name": "Carreira da India — Goa to Lisbon",
+    "description": "Return voyage from Goa to Lisbon. Ships departed with the NE monsoon (December-January), crossed the Arabian Sea to the East African coast, sailed south through the Mozambique Channel, rounded the Cape, and crossed the Atlantic northward. The return route used the Azores High to curve northeast toward Portugal. Many wrecks occurred on the return voyage due to overloaded ships, worm-eaten hulls, and storms.",
+    "direction": "return",
+    "typical_duration_days": 180,
+    "season_notes": "Departure from Goa in December-January to catch the NE monsoon. Ships needed to round the Cape before May. Return ships often called at the Azores for water and news before the final leg to Lisbon.",
+    "hazards": [
+      "Overloaded ships (private trade added to official cargo)",
+      "Worm-eaten hulls (teredo navalis in tropical waters)",
+      "Mozambique Channel shoals and currents",
+      "Cape of Good Hope winter storms",
+      "Scurvy on the Atlantic crossing",
+      "Pirates off the Azores and Portuguese coast",
+      "Bay of Biscay storms if blown north"
+    ],
+    "waypoints": [
+      {
+        "name": "Goa",
+        "lat": 15.5,
+        "lon": 73.83,
+        "region": "malabar",
+        "cumulative_days": 0,
+        "stop_days": 0,
+        "notes": "Departure from Goa with the NE monsoon."
+      },
+      {
+        "name": "Mozambique Channel",
+        "lat": -18.0,
+        "lon": 42.0,
+        "region": "mozambique_channel",
+        "cumulative_days": 40,
+        "stop_days": 0,
+        "notes": "Sailing south through the Channel."
+      },
+      {
+        "name": "Mozambique Island",
+        "lat": -15.03,
+        "lon": 40.73,
+        "region": "mozambique_channel",
+        "cumulative_days": 45,
+        "stop_days": 5,
+        "notes": "Provisioning stop. Pick up dispatches."
+      },
+      {
+        "name": "Cape of Good Hope",
+        "lat": -33.93,
+        "lon": 18.42,
+        "region": "cape",
+        "cumulative_days": 80,
+        "stop_days": 7,
+        "notes": "Rounding the Cape westward."
+      },
+      {
+        "name": "St Helena latitude",
+        "lat": -15.97,
+        "lon": -10.0,
+        "region": "atlantic_crossing",
+        "cumulative_days": 105,
+        "stop_days": 0,
+        "notes": "North through the Atlantic."
+      },
+      {
+        "name": "Equator crossing",
+        "lat": 0.0,
+        "lon": -25.0,
+        "region": "atlantic_crossing",
+        "cumulative_days": 120,
+        "stop_days": 0,
+        "notes": "Crossing the doldrums northward."
+      },
+      {
+        "name": "Azores",
+        "lat": 38.72,
+        "lon": -27.22,
+        "region": "north_atlantic",
+        "cumulative_days": 155,
+        "stop_days": 3,
+        "notes": "Portuguese islands. Watering stop, news exchange, convoy assembly. Terceira or Sao Miguel."
+      },
+      {
+        "name": "Lisbon",
+        "lat": 38.72,
+        "lon": -9.14,
+        "region": "atlantic_europe",
+        "cumulative_days": 170,
+        "stop_days": 0,
+        "notes": "Arrival at the Tagus. Ships anchored at Belem."
+      }
+    ]
+  },
+  {
+    "route_id": "galleon_westbound",
+    "name": "Manila Galleon — Acapulco to Manila",
+    "description": "Westbound Pacific crossing from Acapulco to Manila. Ships sailed south from Acapulco to catch the NE trade winds at approximately 13 degrees N latitude, then crossed the Pacific in a near-straight line to Guam, and continued to Manila. The westbound crossing was relatively fast and predictable, taking 2-3 months. Ships carried Mexican silver, which financed Spanish operations in the Philippines and purchased Chinese silk and porcelain.",
+    "direction": "pacific_westbound",
+    "typical_duration_days": 90,
+    "season_notes": "Departure from Acapulco in March-April after the silver fleet arrived from Mexico City. Ships caught the reliable NE trade winds for the Pacific crossing. Arrival at Manila typically June-July, before the worst of typhoon season.",
+    "hazards": [
+      "Doldrums in the eastern Pacific near departure",
+      "Scurvy on the 2-3 month open ocean crossing",
+      "Coral reefs around Guam and the Marianas",
+      "Typhoons in the Philippine Sea (Jul-Nov)",
+      "Pirates and Moro raiders in Philippine waters",
+      "Dutch and English privateers (wartime)"
+    ],
+    "waypoints": [
+      {
+        "name": "Acapulco",
+        "lat": 16.86,
+        "lon": -99.88,
+        "region": "pacific",
+        "cumulative_days": 0,
+        "stop_days": 0,
+        "notes": "Departure from the Pacific port of New Spain."
+      },
+      {
+        "name": "Trade wind belt",
+        "lat": 13.0,
+        "lon": -115.0,
+        "region": "pacific",
+        "cumulative_days": 10,
+        "stop_days": 0,
+        "notes": "Sailed south to catch the NE trade winds at ~13N latitude."
+      },
+      {
+        "name": "Mid-Pacific",
+        "lat": 13.0,
+        "lon": -170.0,
+        "region": "pacific",
+        "cumulative_days": 40,
+        "stop_days": 0,
+        "notes": "Deep Pacific crossing. No land for thousands of miles."
+      },
+      {
+        "name": "Guam",
+        "lat": 13.44,
+        "lon": 144.79,
+        "region": "pacific",
+        "cumulative_days": 65,
+        "stop_days": 3,
+        "notes": "Spanish Marianas. Critical provisioning stop for water and fresh food."
+      },
+      {
+        "name": "San Bernardino Strait",
+        "lat": 12.55,
+        "lon": 124.1,
+        "region": "philippine_sea",
+        "cumulative_days": 78,
+        "stop_days": 0,
+        "notes": "Strait between Luzon and Samar. Entry to Philippine waters."
+      },
+      {
+        "name": "Manila",
+        "lat": 14.6,
+        "lon": 120.98,
+        "region": "south_china_sea",
+        "cumulative_days": 85,
+        "stop_days": 0,
+        "notes": "Capital of the Spanish Philippines. Cavite anchorage."
+      }
+    ]
+  },
+  {
+    "route_id": "galleon_eastbound",
+    "name": "Manila Galleon — Manila to Acapulco",
+    "description": "Eastbound Pacific crossing from Manila to Acapulco. The tornaviaje (return voyage) was far longer and more dangerous than the westbound crossing. Ships sailed north from the Philippines past Japan to approximately 40 degrees N latitude to catch the westerly winds and the Kuroshio Current, then crossed the North Pacific along the great-circle route. They made landfall on the California coast near Cape Mendocino, then sailed south along the coast to Acapulco. Discovered by Andres de Urdaneta in 1565.",
+    "direction": "pacific_eastbound",
+    "typical_duration_days": 130,
+    "season_notes": "Departure from Manila in June-July with the SW monsoon. Ships needed to reach the westerlies before autumn storms. The long crossing meant arrival at Acapulco typically December-January. Scurvy and starvation were constant threats.",
+    "hazards": [
+      "Typhoons in the Philippine Sea (Jul-Nov)",
+      "Storms in the North Pacific at 40N",
+      "Scurvy and starvation (4-6 months at sea)",
+      "Navigation difficulties (no reliable longitude until late 18th c.)",
+      "Fog and storms off the California coast",
+      "Hostile currents near Cape Mendocino",
+      "Ship condition deterioration (teredo, leaks)"
+    ],
+    "waypoints": [
+      {
+        "name": "Manila",
+        "lat": 14.6,
+        "lon": 120.98,
+        "region": "south_china_sea",
+        "cumulative_days": 0,
+        "stop_days": 0,
+        "notes": "Departure from Cavite with the SW monsoon."
+      },
+      {
+        "name": "San Bernardino Strait",
+        "lat": 12.55,
+        "lon": 124.1,
+        "region": "philippine_sea",
+        "cumulative_days": 5,
+        "stop_days": 0,
+        "notes": "Exit through the strait into the Pacific."
+      },
+      {
+        "name": "East of Japan",
+        "lat": 35.0,
+        "lon": 145.0,
+        "region": "north_pacific",
+        "cumulative_days": 25,
+        "stop_days": 0,
+        "notes": "Sailing NE past Japan, catching the Kuroshio Current."
+      },
+      {
+        "name": "North Pacific crossing",
+        "lat": 40.0,
+        "lon": 180.0,
+        "region": "north_pacific",
+        "cumulative_days": 50,
+        "stop_days": 0,
+        "notes": "Riding the westerlies at ~40N across the North Pacific."
+      },
+      {
+        "name": "Mid-North Pacific",
+        "lat": 40.0,
+        "lon": -150.0,
+        "region": "north_pacific",
+        "cumulative_days": 80,
+        "stop_days": 0,
+        "notes": "Deep ocean crossing. No land for months."
+      },
+      {
+        "name": "Cape Mendocino",
+        "lat": 40.44,
+        "lon": -124.41,
+        "region": "pacific",
+        "cumulative_days": 100,
+        "stop_days": 0,
+        "notes": "California landfall. First sight of land after months at sea."
+      },
+      {
+        "name": "California coast",
+        "lat": 33.0,
+        "lon": -117.5,
+        "region": "pacific",
+        "cumulative_days": 115,
+        "stop_days": 0,
+        "notes": "Coasting south along California. Sometimes stopped for water."
+      },
+      {
+        "name": "Acapulco",
+        "lat": 16.86,
+        "lon": -99.88,
+        "region": "pacific",
+        "cumulative_days": 125,
+        "stop_days": 0,
+        "notes": "Arrival at the Pacific port of New Spain."
+      }
+    ]
+  },
+  {
+    "route_id": "soic_outward",
+    "name": "SOIC Outward Voyage — Gothenburg to Canton",
+    "description": "Swedish East India Company route from Gothenburg to Canton (Guangzhou). The SOIC followed essentially the same Cape route as the VOC and EIC but departed from Gothenburg, entering the North Sea via the Skagerrak. Ships sailed down the English Channel, across the Atlantic via Cape Verde, round the Cape of Good Hope, through the Indian Ocean, and up the South China Sea to Canton. The SOIC traded primarily in tea, porcelain, and silk.",
+    "direction": "outward",
+    "typical_duration_days": 240,
+    "season_notes": "Departures from Gothenburg typically December-February for the first charter (1731-1766). Ships needed to reach Canton before the NE monsoon ended. The longer route from Sweden added 30-40 days compared to Dutch or English voyages.",
+    "hazards": [
+      "Skagerrak and Kattegat winter storms (Nov-Mar)",
+      "North Sea storms",
+      "English Channel fog and traffic",
+      "Bay of Biscay storms",
+      "Doldrums near equator",
+      "Cape of Good Hope winter storms",
+      "Typhoons in the South China Sea (Jul-Nov)",
+      "Qing dynasty port regulations at Canton"
+    ],
+    "waypoints": [
+      {
+        "name": "Gothenburg",
+        "lat": 57.71,
+        "lon": 11.97,
+        "region": "baltic",
+        "cumulative_days": 0,
+        "stop_days": 0,
+        "notes": "SOIC headquarters. Departure from the harbour."
+      },
+      {
+        "name": "Skagerrak",
+        "lat": 57.75,
+        "lon": 9.0,
+        "region": "north_sea",
+        "cumulative_days": 3,
+        "stop_days": 0,
+        "notes": "Transit through the Skagerrak into the North Sea."
+      },
+      {
+        "name": "English Channel",
+        "lat": 50.5,
+        "lon": -1.0,
+        "region": "english_channel",
+        "cumulative_days": 12,
+        "stop_days": 0,
+        "notes": "Transit through the Channel."
+      },
+      {
+        "name": "Ushant",
+        "lat": 48.46,
+        "lon": -5.09,
+        "region": "atlantic_europe",
+        "cumulative_days": 15,
+        "stop_days": 0,
+        "notes": "Navigation waypoint off Brittany."
+      },
+      {
+        "name": "Cadiz",
+        "lat": 36.53,
+        "lon": -6.29,
+        "region": "atlantic_europe",
+        "cumulative_days": 25,
+        "stop_days": 2,
+        "notes": "Some SOIC ships provisioned at Cadiz."
+      },
+      {
+        "name": "Cape Verde",
+        "lat": 15.06,
+        "lon": -23.63,
+        "region": "atlantic_europe",
+        "cumulative_days": 40,
+        "stop_days": 3,
+        "notes": "Watering stop."
+      },
+      {
+        "name": "Equator crossing",
+        "lat": 0.0,
+        "lon": -20.0,
+        "region": "atlantic_crossing",
+        "cumulative_days": 55,
+        "stop_days": 0,
+        "notes": "Crossing the doldrums."
+      },
+      {
+        "name": "Cape of Good Hope",
+        "lat": -33.93,
+        "lon": 18.42,
+        "region": "cape",
+        "cumulative_days": 115,
+        "stop_days": 14,
+        "notes": "Refreshment stop at Table Bay. SOIC ships used the Dutch facilities."
+      },
+      {
+        "name": "Sunda Strait",
+        "lat": -6.1,
+        "lon": 105.75,
+        "region": "indonesia",
+        "cumulative_days": 190,
+        "stop_days": 0,
+        "notes": "Strait between Java and Sumatra."
+      },
+      {
+        "name": "South China Sea",
+        "lat": 7.0,
+        "lon": 110.0,
+        "region": "south_china_sea",
+        "cumulative_days": 210,
+        "stop_days": 0,
+        "notes": "Northward through the South China Sea."
+      },
+      {
+        "name": "Canton",
+        "lat": 23.13,
+        "lon": 113.26,
+        "region": "south_china_coast",
+        "cumulative_days": 230,
+        "stop_days": 0,
+        "notes": "Whampoa anchorage. SOIC factory at Canton."
+      }
+    ]
+  },
+  {
+    "route_id": "soic_return",
+    "name": "SOIC Return Voyage — Canton to Gothenburg",
+    "description": "Swedish East India Company return voyage from Canton to Gothenburg. Ships departed Canton with the NE monsoon (December-January), sailed south through the South China Sea, through the Sunda Strait, across the Indian Ocean, around the Cape, and back up the Atlantic to Sweden. Return cargoes were primarily tea (70-80% of value), porcelain, silk, and spices.",
+    "direction": "return",
+    "typical_duration_days": 210,
+    "season_notes": "Departure from Canton in December-January. Ships aimed to reach Gothenburg by July-August. The final leg through the North Sea and Skagerrak could be hazardous in autumn.",
+    "hazards": [
+      "Typhoons in the South China Sea if delayed",
+      "Pirates in the South China Sea",
+      "Storms in the Roaring Forties",
+      "Cape of Good Hope storms",
+      "Bay of Biscay storms",
+      "North Sea and Skagerrak autumn storms",
+      "English and Danish privateers in wartime"
+    ],
+    "waypoints": [
+      {
+        "name": "Canton",
+        "lat": 23.13,
+        "lon": 113.26,
+        "region": "south_china_coast",
+        "cumulative_days": 0,
+        "stop_days": 0,
+        "notes": "Departure from Whampoa anchorage."
+      },
+      {
+        "name": "South China Sea",
+        "lat": 7.0,
+        "lon": 110.0,
+        "region": "south_china_sea",
+        "cumulative_days": 15,
+        "stop_days": 0,
+        "notes": "Southward through the South China Sea."
+      },
+      {
+        "name": "Sunda Strait",
+        "lat": -6.1,
+        "lon": 105.75,
+        "region": "indonesia",
+        "cumulative_days": 25,
+        "stop_days": 0,
+        "notes": "Strait between Java and Sumatra."
+      },
+      {
+        "name": "South Indian Ocean",
+        "lat": -35.0,
+        "lon": 65.0,
+        "region": "indian_ocean",
+        "cumulative_days": 60,
+        "stop_days": 0,
+        "notes": "Riding the Roaring Forties westward."
+      },
+      {
+        "name": "Cape of Good Hope",
+        "lat": -33.93,
+        "lon": 18.42,
+        "region": "cape",
+        "cumulative_days": 85,
+        "stop_days": 14,
+        "notes": "Refreshment stop."
+      },
+      {
+        "name": "St Helena",
+        "lat": -15.97,
+        "lon": -5.71,
+        "region": "atlantic_crossing",
+        "cumulative_days": 115,
+        "stop_days": 3,
+        "notes": "Watering stop."
+      },
+      {
+        "name": "Equator crossing",
+        "lat": 0.0,
+        "lon": -20.0,
+        "region": "atlantic_crossing",
+        "cumulative_days": 135,
+        "stop_days": 0,
+        "notes": "Northward crossing."
+      },
+      {
+        "name": "English Channel",
+        "lat": 50.5,
+        "lon": -1.0,
+        "region": "english_channel",
+        "cumulative_days": 185,
+        "stop_days": 0,
+        "notes": "Transit through the Channel."
+      },
+      {
+        "name": "Skagerrak",
+        "lat": 57.75,
+        "lon": 9.0,
+        "region": "north_sea",
+        "cumulative_days": 198,
+        "stop_days": 0,
+        "notes": "Transit through the Skagerrak."
+      },
+      {
+        "name": "Gothenburg",
+        "lat": 57.71,
+        "lon": 11.97,
+        "region": "baltic",
+        "cumulative_days": 200,
+        "stop_days": 0,
+        "notes": "Arrival at SOIC headquarters."
+      }
+    ]
+  },
+  {
+    "route_id": "eic_country",
+    "name": "EIC Country Trade — Madras to Calcutta",
+    "description": "English East India Company coastal route between the Coromandel and Bengal settlements. The 'country trade' connected EIC factories along the Indian coast. Ships sailed from Madras northward along the coast to Calcutta via Masulipatnam and the Bay of Bengal.",
+    "direction": "intra_asian",
+    "typical_duration_days": 30,
+    "season_notes": "Sailed with the SW monsoon (Jun-Sep) for northward passage. Return with NE monsoon (Oct-Mar). Cyclone season (Oct-Dec) on the Coromandel coast was extremely dangerous.",
+    "hazards": [
+      "Bay of Bengal cyclones (Oct-Dec)",
+      "Surf landings at Coromandel ports (no natural harbours)",
+      "Sandbanks in the Hooghly River approaches",
+      "Pirates along the coast"
+    ],
+    "waypoints": [
+      {
+        "name": "Madras",
+        "lat": 13.08,
+        "lon": 80.27,
+        "region": "coromandel",
+        "cumulative_days": 0,
+        "stop_days": 0,
+        "notes": "Fort St George. EIC base."
+      },
+      {
+        "name": "Masulipatnam",
+        "lat": 16.17,
+        "lon": 81.15,
+        "region": "coromandel",
+        "cumulative_days": 8,
+        "stop_days": 2,
+        "notes": "EIC and VOC factory. Major textile port."
+      },
+      {
+        "name": "Bay of Bengal",
+        "lat": 18.0,
+        "lon": 85.0,
+        "region": "bengal",
+        "cumulative_days": 15,
+        "stop_days": 0,
+        "notes": "Open water crossing of the Bay."
+      },
+      {
+        "name": "Hooghly River mouth",
+        "lat": 21.67,
+        "lon": 88.08,
+        "region": "bengal",
+        "cumulative_days": 22,
+        "stop_days": 0,
+        "notes": "Entry to the Hooghly River. Dangerous sandbanks."
+      },
+      {
+        "name": "Calcutta",
+        "lat": 22.57,
+        "lon": 88.36,
+        "region": "bengal",
+        "cumulative_days": 25,
+        "stop_days": 0,
+        "notes": "Fort William. EIC Bengal headquarters."
+      }
+    ]
   }
 ]

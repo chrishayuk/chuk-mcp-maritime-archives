@@ -130,6 +130,14 @@ _UK_HOME = {
     "GRAVESEND",
 }
 
+# Portuguese ports
+_PT_PORTS = {"LISBON", "LISBOA", "BELEM", "PORTO"}
+_PT_DEST = {"LISBON", "LISBOA", "PORTUGAL"}
+
+# Swedish ports
+_SE_PORTS = {"GOTHENBURG", "GOTEBORG", "GOTHENBORG"}
+_SE_DEST = {"GOTHENBURG", "GOTEBORG", "GOTHENBORG", "SWEDEN"}
+
 
 def _contains_any(text: str, tokens: set) -> bool:
     """Return True if *text* (already upper-cased) contains any token."""
@@ -148,23 +156,19 @@ def classify_track(voyage_from: str, voyage_to: str) -> str | None:
     if _contains_any(vf, _NL_PORTS) and "BATAVIA" in vt:
         return "outward_outer"  # default to outer (most common post-1660)
 
-    # --- Outward: UK East India ports → India/Batavia/China ---
+    # --- EIC Outward: UK → India ---
     if _contains_any(vf, _UK_EAST_PORTS) and any(
-        x in vt
-        for x in [
-            "MADRAS",
-            "BOMBAY",
-            "BENGAL",
-            "CEYLON",
-            "CALCUTTA",
-            "BATAVIA",
-            "JAVA",
-            "CHINA",
-            "CANTON",
-            "ST HELENA",
-        ]
+        x in vt for x in ["MADRAS", "BOMBAY", "BENGAL", "CEYLON", "CALCUTTA", "SURAT"]
     ):
-        return "outward_outer"  # UK EIC ships follow similar Atlantic route
+        return "eic_outward"
+
+    # --- EIC China: UK → Canton/China ---
+    if _contains_any(vf, _UK_EAST_PORTS) and any(x in vt for x in ["CHINA", "CANTON", "WHAMPOA"]):
+        return "eic_china"
+
+    # --- Outward: UK → Batavia/Java (UK ships on VOC-associated routes) ---
+    if _contains_any(vf, _UK_EAST_PORTS) and any(x in vt for x in ["BATAVIA", "JAVA", "ST HELENA"]):
+        return "outward_outer"
 
     # --- Outward: Cape → Batavia (partial, use Indian Ocean segments) ---
     if any(x in vf for x in ["TABLE BAY", "KAAP", "CAPE OF GOOD HOPE", "SIMONSBAAI", "KAAPSTAD"]):
@@ -209,8 +213,13 @@ def classify_track(voyage_from: str, voyage_to: str) -> str | None:
     if "BATAVIA" in vf and any(x in vt for x in ["AMBON", "BANDA", "TERNATE", "MOLUC"]):
         return "spice_islands"
 
-    # --- Madras → UK/NL (can match return route Cape–Channel segments) ---
-    if "MADRAS" in vf and (_contains_any(vt, _NL_DEST) or _contains_any(vt, _UK_HOME)):
+    # --- EIC Return: India/Canton → UK ---
+    if any(x in vf for x in ["MADRAS", "BOMBAY", "CALCUTTA", "CANTON", "BENGAL"]):
+        if _contains_any(vt, _UK_HOME):
+            return "eic_return"
+
+    # --- Madras → NL (can match VOC return route) ---
+    if "MADRAS" in vf and _contains_any(vt, _NL_DEST):
         return "return"
 
     # --- Cape → NL/UK (partial return, Channel segments) ---
@@ -221,6 +230,32 @@ def classify_track(voyage_from: str, voyage_to: str) -> str | None:
     # --- Anjengo/Cochin → Cape (malabar partial) ---
     if any(x in vf for x in ["ANJENGO", "COCHIN"]) and any(x in vt for x in ["CAPE", "KAAP"]):
         return "malabar"
+
+    # --- Carreira outward: Lisbon → Goa/India ---
+    if _contains_any(vf, _PT_PORTS) and any(x in vt for x in ["GOA", "COCHIN", "INDIA"]):
+        return "carreira_outward"
+
+    # --- Carreira return: Goa/India → Lisbon ---
+    if any(x in vf for x in ["GOA", "COCHIN", "INDIA"]):
+        if _contains_any(vt, _PT_DEST):
+            return "carreira_return"
+
+    # --- SOIC outward: Gothenburg → Canton/China ---
+    if _contains_any(vf, _SE_PORTS) and any(x in vt for x in ["CANTON", "CHINA"]):
+        return "soic_outward"
+
+    # --- SOIC return: Canton → Gothenburg ---
+    if any(x in vf for x in ["CANTON", "CHINA"]):
+        if _contains_any(vt, _SE_DEST):
+            return "soic_return"
+
+    # --- Galleon westbound: Acapulco → Manila ---
+    if "ACAPULCO" in vf and "MANILA" in vt:
+        return "galleon_westbound"
+
+    # --- Galleon eastbound: Manila → Acapulco ---
+    if "MANILA" in vf and "ACAPULCO" in vt:
+        return "galleon_eastbound"
 
     return None
 

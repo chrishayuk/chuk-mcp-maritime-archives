@@ -24,7 +24,7 @@ from .conftest import MockMCPServer
 
 class TestRouteData:
     def test_has_minimum_routes(self):
-        assert len(VOC_ROUTES) >= 5
+        assert len(VOC_ROUTES) >= 15
 
     def test_all_routes_have_required_fields(self):
         for route_id, route in VOC_ROUTES.items():
@@ -35,7 +35,7 @@ class TestRouteData:
             assert len(route["waypoints"]) >= 3, f"{route_id} has too few waypoints"
 
     def test_all_directions_are_valid(self):
-        valid = {"outward", "return", "intra_asian"}
+        valid = {"outward", "return", "intra_asian", "pacific_westbound", "pacific_eastbound"}
         for route_id, route in VOC_ROUTES.items():
             assert route["direction"] in valid, (
                 f"{route_id} invalid direction: {route['direction']}"
@@ -77,6 +77,16 @@ class TestRouteData:
         assert "return" in VOC_ROUTES
         assert "japan" in VOC_ROUTES
         assert "spice_islands" in VOC_ROUTES
+        assert "eic_outward" in VOC_ROUTES
+        assert "eic_china" in VOC_ROUTES
+        assert "eic_return" in VOC_ROUTES
+        assert "carreira_outward" in VOC_ROUTES
+        assert "carreira_return" in VOC_ROUTES
+        assert "galleon_westbound" in VOC_ROUTES
+        assert "galleon_eastbound" in VOC_ROUTES
+        assert "soic_outward" in VOC_ROUTES
+        assert "soic_return" in VOC_ROUTES
+        assert "eic_country" in VOC_ROUTES
 
 
 # ---------------------------------------------------------------------------
@@ -543,3 +553,263 @@ class TestRouteResponseModels:
         assert "-33.93" in text
         assert "cape" in text
         assert "58%" in text
+
+
+# ---------------------------------------------------------------------------
+# EIC route data
+# ---------------------------------------------------------------------------
+
+
+class TestEICRouteData:
+    def test_eic_outward_starts_at_downs(self):
+        route = get_route("eic_outward")
+        assert route["waypoints"][0]["name"] == "The Downs"
+
+    def test_eic_outward_ends_at_madras(self):
+        route = get_route("eic_outward")
+        assert route["waypoints"][-1]["name"] == "Madras"
+
+    def test_eic_outward_passes_cape(self):
+        route = get_route("eic_outward")
+        wp_names = [wp["name"] for wp in route["waypoints"]]
+        assert "Cape of Good Hope" in wp_names
+
+    def test_eic_china_ends_at_canton(self):
+        route = get_route("eic_china")
+        assert route["waypoints"][-1]["name"] == "Canton"
+
+    def test_eic_return_starts_at_madras(self):
+        route = get_route("eic_return")
+        assert route["waypoints"][0]["name"] == "Madras"
+
+    def test_eic_return_ends_at_downs(self):
+        route = get_route("eic_return")
+        assert route["waypoints"][-1]["name"] == "The Downs"
+
+    def test_eic_country_is_intra_asian(self):
+        route = get_route("eic_country")
+        assert route["direction"] == "intra_asian"
+
+    def test_eic_routes_have_valid_durations(self):
+        for rid in ("eic_outward", "eic_china", "eic_return", "eic_country"):
+            route = get_route(rid)
+            assert 25 <= route["typical_duration_days"] <= 250
+
+
+# ---------------------------------------------------------------------------
+# Carreira da India route data
+# ---------------------------------------------------------------------------
+
+
+class TestCarreiraRouteData:
+    def test_carreira_outward_starts_at_lisbon(self):
+        route = get_route("carreira_outward")
+        assert route["waypoints"][0]["name"] == "Lisbon"
+
+    def test_carreira_outward_ends_at_goa(self):
+        route = get_route("carreira_outward")
+        assert route["waypoints"][-1]["name"] == "Goa"
+
+    def test_carreira_outward_passes_mozambique(self):
+        route = get_route("carreira_outward")
+        wp_names = [wp["name"] for wp in route["waypoints"]]
+        assert "Mozambique Island" in wp_names
+
+    def test_carreira_return_starts_at_goa(self):
+        route = get_route("carreira_return")
+        assert route["waypoints"][0]["name"] == "Goa"
+
+    def test_carreira_return_ends_at_lisbon(self):
+        route = get_route("carreira_return")
+        assert route["waypoints"][-1]["name"] == "Lisbon"
+
+    def test_carreira_return_passes_azores(self):
+        route = get_route("carreira_return")
+        wp_names = [wp["name"] for wp in route["waypoints"]]
+        assert "Azores" in wp_names
+
+
+# ---------------------------------------------------------------------------
+# Manila Galleon route data
+# ---------------------------------------------------------------------------
+
+
+class TestGalleonRouteData:
+    def test_galleon_westbound_starts_at_acapulco(self):
+        route = get_route("galleon_westbound")
+        assert route["waypoints"][0]["name"] == "Acapulco"
+
+    def test_galleon_westbound_ends_at_manila(self):
+        route = get_route("galleon_westbound")
+        assert route["waypoints"][-1]["name"] == "Manila"
+
+    def test_galleon_westbound_passes_guam(self):
+        route = get_route("galleon_westbound")
+        wp_names = [wp["name"] for wp in route["waypoints"]]
+        assert "Guam" in wp_names
+
+    def test_galleon_eastbound_starts_at_manila(self):
+        route = get_route("galleon_eastbound")
+        assert route["waypoints"][0]["name"] == "Manila"
+
+    def test_galleon_eastbound_ends_at_acapulco(self):
+        route = get_route("galleon_eastbound")
+        assert route["waypoints"][-1]["name"] == "Acapulco"
+
+    def test_galleon_directions_are_pacific(self):
+        wb = get_route("galleon_westbound")
+        eb = get_route("galleon_eastbound")
+        assert wb["direction"] == "pacific_westbound"
+        assert eb["direction"] == "pacific_eastbound"
+
+
+# ---------------------------------------------------------------------------
+# SOIC route data
+# ---------------------------------------------------------------------------
+
+
+class TestSOICRouteData:
+    def test_soic_outward_starts_at_gothenburg(self):
+        route = get_route("soic_outward")
+        assert route["waypoints"][0]["name"] == "Gothenburg"
+
+    def test_soic_outward_ends_at_canton(self):
+        route = get_route("soic_outward")
+        assert route["waypoints"][-1]["name"] == "Canton"
+
+    def test_soic_outward_passes_cape(self):
+        route = get_route("soic_outward")
+        wp_names = [wp["name"] for wp in route["waypoints"]]
+        assert "Cape of Good Hope" in wp_names
+
+    def test_soic_return_starts_at_canton(self):
+        route = get_route("soic_return")
+        assert route["waypoints"][0]["name"] == "Canton"
+
+    def test_soic_return_ends_at_gothenburg(self):
+        route = get_route("soic_return")
+        assert route["waypoints"][-1]["name"] == "Gothenburg"
+
+
+# ---------------------------------------------------------------------------
+# Multi-nation position estimation
+# ---------------------------------------------------------------------------
+
+
+class TestMultiNationPositionEstimation:
+    def test_eic_outward_at_departure(self):
+        result = estimate_position("eic_outward", "1750-01-15", "1750-01-15")
+        assert result is not None
+        assert result["elapsed_days"] == 0
+        assert abs(result["estimated_position"]["lat"] - 51.21) < 0.1
+
+    def test_eic_outward_midway(self):
+        result = estimate_position("eic_outward", "1750-01-15", "1750-03-16")
+        assert result is not None
+        assert result["elapsed_days"] == 60
+
+    def test_eic_outward_at_cape(self):
+        result = estimate_position("eic_outward", "1750-01-15", "1750-04-25")
+        assert result is not None
+        assert result["estimated_position"]["region"] == "cape"
+
+    def test_eic_china_at_canton(self):
+        result = estimate_position("eic_china", "1750-01-15", "1750-09-01")
+        assert result is not None
+        assert abs(result["estimated_position"]["lat"] - 23.13) < 0.1
+
+    def test_carreira_outward_at_mozambique(self):
+        result = estimate_position("carreira_outward", "1550-03-15", "1550-07-13")
+        assert result is not None
+        assert result["estimated_position"]["region"] == "mozambique_channel"
+
+    def test_galleon_westbound_at_guam(self):
+        result = estimate_position("galleon_westbound", "1600-03-01", "1600-05-05")
+        assert result is not None
+        assert result["estimated_position"]["region"] == "pacific"
+
+    def test_galleon_eastbound_at_mendocino(self):
+        result = estimate_position("galleon_eastbound", "1600-07-01", "1600-10-09")
+        assert result is not None
+        assert result["estimated_position"]["lat"] > 30.0  # Northern Pacific/California
+
+    def test_soic_outward_at_cape(self):
+        result = estimate_position("soic_outward", "1740-01-01", "1740-04-26")
+        assert result is not None
+        assert result["estimated_position"]["region"] == "cape"
+
+    def test_soic_return_at_st_helena(self):
+        result = estimate_position("soic_return", "1741-01-01", "1741-04-26")
+        assert result is not None
+        assert result["estimated_position"]["region"] == "atlantic_crossing"
+
+    def test_eic_country_at_masulipatnam(self):
+        result = estimate_position("eic_country", "1760-06-01", "1760-06-09")
+        assert result is not None
+        pos = result["estimated_position"]
+        assert pos["region"] == "coromandel"
+
+
+# ---------------------------------------------------------------------------
+# Multi-nation suggest_route
+# ---------------------------------------------------------------------------
+
+
+class TestMultiNationSuggestRoute:
+    def test_suggest_by_downs_departure(self):
+        results = suggest_route(departure_port="Downs")
+        route_ids = {r["route_id"] for r in results}
+        assert "eic_outward" in route_ids
+        assert "eic_china" in route_ids
+
+    def test_suggest_by_lisbon_departure(self):
+        results = suggest_route(departure_port="Lisbon")
+        route_ids = {r["route_id"] for r in results}
+        assert "carreira_outward" in route_ids
+
+    def test_suggest_by_gothenburg_departure(self):
+        results = suggest_route(departure_port="Gothenburg")
+        route_ids = {r["route_id"] for r in results}
+        assert "soic_outward" in route_ids
+
+    def test_suggest_by_acapulco_departure(self):
+        results = suggest_route(departure_port="Acapulco")
+        route_ids = {r["route_id"] for r in results}
+        assert "galleon_westbound" in route_ids
+
+    def test_suggest_by_manila_destination(self):
+        results = suggest_route(destination_port="Manila")
+        route_ids = {r["route_id"] for r in results}
+        assert "galleon_westbound" in route_ids
+
+    def test_suggest_by_canton_destination(self):
+        results = suggest_route(destination_port="Canton")
+        route_ids = {r["route_id"] for r in results}
+        assert "eic_china" in route_ids
+        assert "soic_outward" in route_ids
+
+    def test_suggest_pacific_westbound_direction(self):
+        results = suggest_route(direction="pacific_westbound")
+        assert len(results) >= 1
+        assert all(r["direction"] == "pacific_westbound" for r in results)
+
+    def test_suggest_pacific_eastbound_direction(self):
+        results = suggest_route(direction="pacific_eastbound")
+        assert len(results) >= 1
+        assert all(r["direction"] == "pacific_eastbound" for r in results)
+
+    def test_suggest_outward_includes_multi_nation(self):
+        results = suggest_route(direction="outward")
+        route_ids = {r["route_id"] for r in results}
+        assert "outward_outer" in route_ids
+        assert "eic_outward" in route_ids
+        assert "carreira_outward" in route_ids
+        assert "soic_outward" in route_ids
+
+    def test_suggest_return_includes_multi_nation(self):
+        results = suggest_route(direction="return")
+        route_ids = {r["route_id"] for r in results}
+        assert "return" in route_ids
+        assert "eic_return" in route_ids
+        assert "carreira_return" in route_ids
+        assert "soic_return" in route_ids
