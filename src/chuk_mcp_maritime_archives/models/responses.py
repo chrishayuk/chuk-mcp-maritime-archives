@@ -1186,6 +1186,7 @@ class TrackSpeedAggregationResponse(BaseModel):
     total_observations: int
     total_voyages: int
     group_by: str
+    aggregate_by: str = "observation"
     groups: list[SpeedAggregationGroup]
     latitude_band: list[float] | None = None
     longitude_band: list[float] | None = None
@@ -1197,6 +1198,8 @@ class TrackSpeedAggregationResponse(BaseModel):
 
     def to_text(self) -> str:
         lines = [self.message, f"Grouped by: {self.group_by}"]
+        if self.aggregate_by != "observation":
+            lines.append(f"Aggregated by: {self.aggregate_by}")
         if self.month_start_filter is not None or self.month_end_filter is not None:
             lines.append(
                 f"Season filter: months {self.month_start_filter or 1}"
@@ -1208,9 +1211,8 @@ class TrackSpeedAggregationResponse(BaseModel):
                 f"  {g.group_key:>12s}: {g.mean_km_day:6.1f} km/day "
                 f"(median {g.median_km_day:.1f}, std {g.std_km_day:.1f}, n={g.n})"
             )
-        lines.append(
-            f"\nTotal: {self.total_observations} observations, {self.total_voyages} voyages"
-        )
+        unit = "voyage means" if self.aggregate_by == "voyage" else "observations"
+        lines.append(f"\nTotal: {self.total_observations} {unit}, {self.total_voyages} voyages")
         return "\n".join(lines)
 
 
@@ -1230,13 +1232,19 @@ class SpeedComparisonResponse(BaseModel):
     p_value: float
     significant: bool
     effect_size: float
+    aggregate_by: str = "observation"
+    group1_samples: list[float] | None = None
+    group2_samples: list[float] | None = None
     month_start_filter: int | None = None
     month_end_filter: int | None = None
     message: str = ""
 
     def to_text(self) -> str:
         sig = "SIGNIFICANT" if self.significant else "not significant"
+        unit = "voyage means" if self.aggregate_by == "voyage" else "observations"
         lines = [self.message]
+        if self.aggregate_by != "observation":
+            lines.append(f"Aggregated by: {self.aggregate_by}")
         if self.month_start_filter is not None or self.month_end_filter is not None:
             lines.append(
                 f"Season filter: months {self.month_start_filter or 1}"
@@ -1244,9 +1252,9 @@ class SpeedComparisonResponse(BaseModel):
             )
         lines.extend(
             [
-                f"Group 1 ({self.group1_label}): n={self.group1_n}, "
+                f"Group 1 ({self.group1_label}): n={self.group1_n} {unit}, "
                 f"mean={self.group1_mean:.1f} km/day, std={self.group1_std:.1f}",
-                f"Group 2 ({self.group2_label}): n={self.group2_n}, "
+                f"Group 2 ({self.group2_label}): n={self.group2_n} {unit}, "
                 f"mean={self.group2_mean:.1f} km/day, std={self.group2_std:.1f}",
                 "",
                 f"Mann-Whitney U = {self.mann_whitney_u:.1f}",
@@ -1255,6 +1263,70 @@ class SpeedComparisonResponse(BaseModel):
                 f"Cohen's d = {self.effect_size:.3f}",
             ]
         )
+        return "\n".join(lines)
+
+
+class DiDSpeedTestResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    period1_label: str
+    period2_label: str
+    aggregate_by: str
+    n_bootstrap: int
+    period1_eastbound_n: int
+    period1_eastbound_mean: float
+    period1_westbound_n: int
+    period1_westbound_mean: float
+    period2_eastbound_n: int
+    period2_eastbound_mean: float
+    period2_westbound_n: int
+    period2_westbound_mean: float
+    eastbound_diff: float
+    westbound_diff: float
+    did_estimate: float
+    did_ci_lower: float
+    did_ci_upper: float
+    did_p_value: float
+    significant: bool
+    latitude_band: list[float] | None = None
+    longitude_band: list[float] | None = None
+    nationality_filter: str | None = None
+    month_start_filter: int | None = None
+    month_end_filter: int | None = None
+    message: str = ""
+
+    def to_text(self) -> str:
+        sig = "SIGNIFICANT" if self.significant else "not significant"
+        unit = "voyage means" if self.aggregate_by == "voyage" else "observations"
+        lines = [
+            self.message,
+            f"Aggregated by: {self.aggregate_by}",
+            "",
+            "2x2 Cell Summary:",
+            f"  Period 1 ({self.period1_label}):",
+            f"    Eastbound: n={self.period1_eastbound_n} {unit}, "
+            f"mean={self.period1_eastbound_mean:.1f} km/day",
+            f"    Westbound: n={self.period1_westbound_n} {unit}, "
+            f"mean={self.period1_westbound_mean:.1f} km/day",
+            f"  Period 2 ({self.period2_label}):",
+            f"    Eastbound: n={self.period2_eastbound_n} {unit}, "
+            f"mean={self.period2_eastbound_mean:.1f} km/day",
+            f"    Westbound: n={self.period2_westbound_n} {unit}, "
+            f"mean={self.period2_westbound_mean:.1f} km/day",
+            "",
+            f"Eastbound diff: {self.eastbound_diff:+.1f} km/day",
+            f"Westbound diff: {self.westbound_diff:+.1f} km/day",
+            "",
+            f"DiD estimate: {self.did_estimate:+.1f} km/day",
+            f"95% CI: [{self.did_ci_lower:.1f}, {self.did_ci_upper:.1f}]",
+            f"p = {self.did_p_value:.6f} ({sig} at p<0.05)",
+            f"Bootstrap iterations: {self.n_bootstrap}",
+        ]
+        if self.month_start_filter is not None or self.month_end_filter is not None:
+            lines.append(
+                f"Season filter: months {self.month_start_filter or 1}"
+                f"-{self.month_end_filter or 12}"
+            )
         return "\n".join(lines)
 
 

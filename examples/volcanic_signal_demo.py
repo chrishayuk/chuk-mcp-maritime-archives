@@ -2,7 +2,7 @@
 """
 Volcanic Signal Demo -- chuk-mcp-maritime-archives
 
-Five novel research analyses using CLIWOC ship speed data:
+Six novel research analyses using CLIWOC ship speed data:
 
 1. LAKI ERUPTION 1783 — Did the largest volcanic event of the millennium
    show up in ship speeds through the Roaring Forties?
@@ -19,8 +19,11 @@ Five novel research analyses using CLIWOC ship speed data:
 5. SEASONAL LAKI SIGNAL — Austral winter vs summer decomposition of the
    Laki signal using month_start/month_end filtering.
 
-All analysis uses live MCP tool calls via maritime_aggregate_track_speeds
-and maritime_compare_speed_groups with seasonal month filtering.
+6. FORMAL DiD TEST — Difference-in-Differences (direction x period)
+   with voyage-level aggregation and bootstrap confidence intervals.
+
+All analysis uses live MCP tool calls via maritime_aggregate_track_speeds,
+maritime_compare_speed_groups, and maritime_did_speed_test.
 
 No network access required -- all data is local.
 
@@ -497,6 +500,68 @@ async def section_laki_seasonal(runner: ToolRunner) -> None:
     print("  Equal signals would suggest a more uniform atmospheric effect.")
 
 
+async def section_did_test(runner: ToolRunner) -> None:
+    """Section 6: Formal Difference-in-Differences test."""
+    print("\n" + "=" * 72)
+    print("6. FORMAL DiD TEST: Direction x Period Interaction")
+    print("=" * 72)
+    print()
+    print("  Difference-in-Differences isolates wind changes from technology:")
+    print("  DiD = (post_east - pre_east) - (post_west - pre_west)")
+    print()
+    print("  A significant positive DiD means eastbound gained more than")
+    print("  westbound — proof of strengthened westerlies, not just better ships.")
+    print()
+    print("  Using voyage-level aggregation for statistically independent")
+    print("  samples (daily observations within a voyage are autocorrelated).")
+
+    result = await runner.run(
+        "maritime_did_speed_test",
+        period1_years="1750/1783",
+        period2_years="1784/1810",
+        lat_min=RF_LAT_MIN,
+        lat_max=RF_LAT_MAX,
+        lon_min=RF_LON_MIN,
+        lon_max=RF_LON_MAX,
+        aggregate_by="voyage",
+    )
+
+    print()
+    print("  2x2 Cell Summary (voyage-level means):")
+    print(
+        f"    Pre-Laki  eastbound: n={result['period1_eastbound_n']:>4}, "
+        f"mean={result['period1_eastbound_mean']:.1f} km/day"
+    )
+    print(
+        f"    Pre-Laki  westbound: n={result['period1_westbound_n']:>4}, "
+        f"mean={result['period1_westbound_mean']:.1f} km/day"
+    )
+    print(
+        f"    Post-Laki eastbound: n={result['period2_eastbound_n']:>4}, "
+        f"mean={result['period2_eastbound_mean']:.1f} km/day"
+    )
+    print(
+        f"    Post-Laki westbound: n={result['period2_westbound_n']:>4}, "
+        f"mean={result['period2_westbound_mean']:.1f} km/day"
+    )
+    print()
+    print(f"  Eastbound diff:  {result['eastbound_diff']:+.1f} km/day")
+    print(f"  Westbound diff:  {result['westbound_diff']:+.1f} km/day")
+    print()
+    sig = "SIGNIFICANT" if result["significant"] else "not significant"
+    p_str = f"{result['did_p_value']:.6f}" if result["did_p_value"] > 0.0001 else "< 0.0001"
+    print(f"  DiD estimate: {result['did_estimate']:+.1f} km/day")
+    print(f"  95% CI: [{result['did_ci_lower']:.1f}, {result['did_ci_upper']:.1f}]")
+    print(f"  p = {p_str} ({sig} at p<0.05)")
+    print(f"  Bootstrap iterations: {result['n_bootstrap']}")
+
+    print()
+    print("  Interpretation: If the DiD is significantly positive, then")
+    print("  eastbound speeds (running before the westerlies) gained more")
+    print("  than westbound speeds — conclusive evidence that the wind")
+    print("  itself strengthened, not just shipbuilding technology.")
+
+
 async def main() -> None:
     runner = ToolRunner()
 
@@ -505,7 +570,7 @@ async def main() -> None:
     print("Novel Research Analyses from CLIWOC Ship Speed Data (1662-1855)")
     print("=" * 72)
     print()
-    print("  Four independent analyses probing the Roaring Forties")
+    print("  Six independent analyses probing the Roaring Forties")
     print("  ship speed record for climate signals invisible in any")
     print("  other historical archive.")
     print()
@@ -517,6 +582,7 @@ async def main() -> None:
     await section_seasonal_amplitude(runner)
     await section_spatial(runner)
     await section_laki_seasonal(runner)
+    await section_did_test(runner)
 
     # Summary
     print("\n" + "=" * 72)
@@ -549,6 +615,11 @@ async def main() -> None:
     print("     decomposition tests whether the Laki signal acts through")
     print("     the expected jet-stream pathway — stronger in winter when")
     print("     the meridional temperature gradient matters most.")
+    print()
+    print("  6. FORMAL DiD: The Difference-in-Differences test with voyage-")
+    print("     level aggregation provides the methodologically correct")
+    print("     interaction test — are eastbound gains significantly larger")
+    print("     than westbound gains? With bootstrap CI and proper p-values.")
     print()
     print("  Each of these analyses could be a standalone research paper.")
     print("  Together they demonstrate that maritime logbook data — ")

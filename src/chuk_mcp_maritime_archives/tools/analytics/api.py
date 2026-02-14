@@ -7,9 +7,11 @@ from ...core.cliwoc_tracks import (
     aggregate_track_speeds,
     compare_speed_groups,
     compute_track_speeds,
+    did_speed_test,
 )
 from ...models import (
     DailySpeed,
+    DiDSpeedTestResponse,
     ErrorResponse,
     SpeedAggregationGroup,
     SpeedComparisonResponse,
@@ -129,6 +131,7 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
         direction: str | None = None,
         month_start: int | None = None,
         month_end: int | None = None,
+        aggregate_by: str = "observation",
         min_speed_km_day: float = 5.0,
         max_speed_km_day: float = 400.0,
         output_mode: str = "json",
@@ -158,6 +161,9 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
             month_start: Filter by start month (1-12). Supports wrap-around
                 with month_end (e.g., month_start=11, month_end=2 = Nov-Feb)
             month_end: Filter by end month (1-12). Used with month_start
+            aggregate_by: Unit of analysis — "observation" (default, each
+                daily speed is a data point) or "voyage" (one mean speed
+                per voyage, statistically independent samples)
             min_speed_km_day: Minimum speed filter (default: 5.0)
             max_speed_km_day: Maximum speed filter (default: 400.0)
             output_mode: Response format - "json" (default) or "text"
@@ -169,18 +175,13 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
         Tips for LLMs:
             - Use lat_min=-50, lat_max=-30 for the Roaring Forties wind belt
             - group_by="decade" shows speed trends over time
-            - group_by="month" reveals seasonal wind patterns
             - group_by="direction" shows eastbound vs westbound asymmetry
-              (confirms wind direction)
-            - group_by="nationality" controls for shipbuilding differences
-            - Combine direction="eastbound" with group_by="decade" for the
-              clearest wind signal (ships running before the wind)
+            - Use aggregate_by="voyage" for statistically independent samples
+              (daily observations within a voyage are autocorrelated)
             - Use month_start=6, month_end=8 for austral winter (Jun-Aug)
             - Use month_start=12, month_end=2 for austral summer (Dec-Feb)
-            - Seasonal filtering isolates volcanic aerosol signals in wind
-              data (e.g., Laki 1783 eruption effect on Southern Ocean winds)
-            - Use maritime_compare_speed_groups for statistical significance
-              testing between time periods
+            - Use maritime_compare_speed_groups for significance testing
+            - Use maritime_did_speed_test for direction × period interaction
         """
         try:
             result = aggregate_track_speeds(
@@ -195,6 +196,7 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
                 direction=direction,
                 month_start=month_start,
                 month_end=month_end,
+                aggregate_by=aggregate_by,
                 min_speed=min_speed_km_day,
                 max_speed=max_speed_km_day,
             )
@@ -219,6 +221,7 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
                     total_observations=result["total_observations"],
                     total_voyages=result["total_voyages"],
                     group_by=result["group_by"],
+                    aggregate_by=result.get("aggregate_by", "observation"),
                     groups=groups,
                     latitude_band=result.get("latitude_band"),
                     longitude_band=result.get("longitude_band"),
@@ -253,6 +256,8 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
         direction: str | None = None,
         month_start: int | None = None,
         month_end: int | None = None,
+        aggregate_by: str = "observation",
+        include_samples: bool = False,
         min_speed_km_day: float = 5.0,
         max_speed_km_day: float = 400.0,
         output_mode: str = "json",
@@ -276,6 +281,9 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
             month_start: Filter by start month (1-12). Supports wrap-around
                 with month_end (e.g., month_start=6, month_end=8 = Jun-Aug)
             month_end: Filter by end month (1-12). Used with month_start
+            aggregate_by: Unit of analysis — "observation" (default) or
+                "voyage" (one mean per voyage, statistically independent)
+            include_samples: If True, include raw speed arrays in response
             min_speed_km_day: Minimum speed filter (default: 5.0)
             max_speed_km_day: Maximum speed filter (default: 400.0)
             output_mode: Response format - "json" (default) or "text"
@@ -285,17 +293,13 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
             p-value, and Cohen's d effect size
 
         Tips for LLMs:
-            - Compare "cold" vs "warm" periods to detect climate-driven
-              wind changes (e.g., "1750/1789" vs "1820/1859")
+            - Use aggregate_by="voyage" for statistically independent samples
+            - Use include_samples=True to get raw speed arrays for custom analysis
+            - Use maritime_did_speed_test for formal direction × period interaction
             - p < 0.05 indicates statistically significant difference
             - Cohen's d > 0.8 indicates a large effect size
             - Use with direction="eastbound" for clearest wind signal
-            - Use month_start=6, month_end=8 for austral winter only
-            - Use month_start=12, month_end=2 for austral summer only
-            - Seasonal filtering is the most diagnostic test for volcanic
-              aerosol forcing (e.g., Laki 1783 effect on westerlies)
-            - Combine with maritime_aggregate_track_speeds to understand
-              the trend before testing significance
+            - Seasonal filtering isolates volcanic aerosol signals
         """
         try:
             result = compare_speed_groups(
@@ -309,6 +313,8 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
                 direction=direction,
                 month_start=month_start,
                 month_end=month_end,
+                aggregate_by=aggregate_by,
+                include_samples=include_samples,
                 min_speed=min_speed_km_day,
                 max_speed=max_speed_km_day,
             )
@@ -328,6 +334,9 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
                     p_value=result["p_value"],
                     significant=result["significant"],
                     effect_size=result["effect_size"],
+                    aggregate_by=result.get("aggregate_by", "observation"),
+                    group1_samples=result.get("group1_samples"),
+                    group2_samples=result.get("group2_samples"),
                     month_start_filter=result.get("month_start_filter"),
                     month_end_filter=result.get("month_end_filter"),
                     message=SuccessMessages.SPEED_GROUPS_COMPARED.format(
@@ -343,5 +352,125 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
             logger.error("Speed group comparison failed: %s", e)
             return format_response(
                 ErrorResponse(error=str(e), message="Speed group comparison failed"),
+                output_mode,
+            )
+
+    @mcp.tool  # type: ignore[union-attr]
+    async def maritime_did_speed_test(
+        period1_years: str,
+        period2_years: str,
+        lat_min: float | None = None,
+        lat_max: float | None = None,
+        lon_min: float | None = None,
+        lon_max: float | None = None,
+        nationality: str | None = None,
+        month_start: int | None = None,
+        month_end: int | None = None,
+        aggregate_by: str = "voyage",
+        n_bootstrap: int = 10000,
+        min_speed_km_day: float = 5.0,
+        max_speed_km_day: float = 400.0,
+        output_mode: str = "json",
+    ) -> str:
+        """
+        Formal 2x2 Difference-in-Differences test: direction x period.
+
+        Tests whether the difference between eastbound and westbound speeds
+        changed significantly between two time periods. A significant DiD
+        means one direction gained more than the other — isolating wind
+        changes from symmetric technology improvements.
+
+        DiD = (period2_east - period1_east) - (period2_west - period1_west)
+
+        Uses bootstrap resampling for confidence intervals and p-values.
+        Defaults to voyage-level aggregation for statistically independent
+        samples (daily observations within a voyage are autocorrelated).
+
+        Args:
+            period1_years: First period as "YYYY/YYYY" (e.g., "1750/1783")
+            period2_years: Second period as "YYYY/YYYY" (e.g., "1784/1810")
+            lat_min: Minimum latitude for position bounding box
+            lat_max: Maximum latitude for position bounding box
+            lon_min: Minimum longitude for position bounding box
+            lon_max: Maximum longitude for position bounding box
+            nationality: Filter tracks by nationality code
+            month_start: Filter by start month (1-12). Supports wrap-around
+            month_end: Filter by end month (1-12). Used with month_start
+            aggregate_by: "voyage" (default, independent samples) or
+                "observation" (more data but autocorrelated)
+            n_bootstrap: Bootstrap iterations (default: 10000)
+            min_speed_km_day: Minimum speed filter (default: 5.0)
+            max_speed_km_day: Maximum speed filter (default: 400.0)
+            output_mode: Response format - "json" (default) or "text"
+
+        Returns:
+            JSON or text with 4-cell summary, marginal diffs, DiD estimate,
+            bootstrap 95% CI, and p-value
+
+        Tips for LLMs:
+            - Always splits by direction (eastbound vs westbound)
+            - Use lat_min=-50, lat_max=-30 for the Roaring Forties
+            - Positive DiD = eastbound gained more = wind strengthened
+            - Default aggregate_by="voyage" gives correct p-values
+            - Add month_start=6, month_end=8 for austral winter only
+            - Combine with maritime_compare_speed_groups for per-direction
+              Mann-Whitney U tests
+        """
+        try:
+            result = did_speed_test(
+                period1_years=period1_years,
+                period2_years=period2_years,
+                lat_min=lat_min,
+                lat_max=lat_max,
+                lon_min=lon_min,
+                lon_max=lon_max,
+                nationality=nationality,
+                month_start=month_start,
+                month_end=month_end,
+                aggregate_by=aggregate_by,
+                n_bootstrap=n_bootstrap,
+                min_speed=min_speed_km_day,
+                max_speed=max_speed_km_day,
+            )
+
+            return format_response(
+                DiDSpeedTestResponse(
+                    period1_label=result["period1_label"],
+                    period2_label=result["period2_label"],
+                    aggregate_by=result["aggregate_by"],
+                    n_bootstrap=result["n_bootstrap"],
+                    period1_eastbound_n=result["period1_eastbound_n"],
+                    period1_eastbound_mean=result["period1_eastbound_mean"],
+                    period1_westbound_n=result["period1_westbound_n"],
+                    period1_westbound_mean=result["period1_westbound_mean"],
+                    period2_eastbound_n=result["period2_eastbound_n"],
+                    period2_eastbound_mean=result["period2_eastbound_mean"],
+                    period2_westbound_n=result["period2_westbound_n"],
+                    period2_westbound_mean=result["period2_westbound_mean"],
+                    eastbound_diff=result["eastbound_diff"],
+                    westbound_diff=result["westbound_diff"],
+                    did_estimate=result["did_estimate"],
+                    did_ci_lower=result["did_ci_lower"],
+                    did_ci_upper=result["did_ci_upper"],
+                    did_p_value=result["did_p_value"],
+                    significant=result["significant"],
+                    latitude_band=result.get("latitude_band"),
+                    longitude_band=result.get("longitude_band"),
+                    nationality_filter=result.get("nationality_filter"),
+                    month_start_filter=result.get("month_start_filter"),
+                    month_end_filter=result.get("month_end_filter"),
+                    message=SuccessMessages.DID_TEST_COMPLETE.format(
+                        result["did_estimate"],
+                        result["period1_eastbound_n"] + result["period1_westbound_n"],
+                        result["period2_eastbound_n"] + result["period2_westbound_n"],
+                        result["n_bootstrap"],
+                    ),
+                ),
+                output_mode,
+            )
+        except Exception as e:
+            logger.error("DiD speed test failed: %s", e)
+            return format_response(
+                ErrorResponse(error=str(e), message="DiD speed test failed"),
                 output_mode,
             )

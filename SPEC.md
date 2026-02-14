@@ -1,6 +1,6 @@
 # chuk-mcp-maritime-archives Specification
 
-Version 0.19.0
+Version 0.20.0
 
 ## Overview
 
@@ -11,7 +11,7 @@ through the colonial era and beyond, 1497-2024. Covers Dutch (VOC), English (EIC
 (Carreira da India), Spanish (Manila Galleon), Swedish (SOIC), UK Hydrographic Office (UKHO), and NOAA maritime archives.
 
 - **Public server**: `https://maritime-archives.chukai.io/mcp`
-- **40 tools** for searching, retrieving, analysing, and exporting maritime archival data
+- **41 tools** for searching, retrieving, analysing, and exporting maritime archival data
 - **Cursor-based pagination** -- all 8 search tools support `cursor` / `next_cursor` / `has_more` for paging through large result sets
 - **Dual output mode** -- all tools return JSON (default) or human-readable text via `output_mode` parameter
 - **Async-first** -- tool entry points are async; sync HTTP I/O runs in thread pools
@@ -979,6 +979,7 @@ by the requested dimension.
 | `direction` | `str?` | `None` | Filter by `"eastbound"` or `"westbound"` |
 | `month_start` | `int?` | `None` | Start month (1-12) for seasonal filtering. Supports wrap-around with month_end (e.g., 11-2 = Nov-Feb) |
 | `month_end` | `int?` | `None` | End month (1-12) for seasonal filtering |
+| `aggregate_by` | `str` | `"observation"` | Unit of analysis: `"observation"` (each daily speed) or `"voyage"` (one mean per voyage, statistically independent) |
 | `min_speed_km_day` | `float` | `5.0` | Minimum speed filter |
 | `max_speed_km_day` | `float` | `400.0` | Maximum speed filter |
 
@@ -989,6 +990,7 @@ by the requested dimension.
 | `total_observations` | `int` | Total speed observations across all groups |
 | `total_voyages` | `int` | Total voyages contributing data |
 | `group_by` | `str` | Grouping dimension used |
+| `aggregate_by` | `str` | Unit of analysis: `"observation"` or `"voyage"` |
 | `groups` | `SpeedAggregationGroup[]` | Per-group statistics |
 | `latitude_band` | `str?` | Latitude filter applied |
 | `longitude_band` | `str?` | Longitude filter applied |
@@ -1034,6 +1036,8 @@ significant. Also returns Cohen's d effect size.
 | `direction` | `str?` | `None` | Filter by `"eastbound"` or `"westbound"` |
 | `month_start` | `int?` | `None` | Start month (1-12) for seasonal filtering. Supports wrap-around with month_end (e.g., 11-2 = Nov-Feb) |
 | `month_end` | `int?` | `None` | End month (1-12) for seasonal filtering |
+| `aggregate_by` | `str` | `"observation"` | Unit of analysis: `"observation"` (each daily speed) or `"voyage"` (one mean per voyage, statistically independent) |
+| `include_samples` | `bool` | `false` | Include raw speed arrays in response |
 | `min_speed_km_day` | `float` | `5.0` | Minimum speed filter |
 | `max_speed_km_day` | `float` | `400.0` | Maximum speed filter |
 
@@ -1054,6 +1058,66 @@ significant. Also returns Cohen's d effect size.
 | `p_value` | `float` | Two-tailed p-value |
 | `significant` | `bool` | Whether p < 0.05 |
 | `effect_size` | `float` | Cohen's d effect size |
+| `aggregate_by` | `str` | Unit of analysis: `"observation"` or `"voyage"` |
+| `group1_samples` | `float[]?` | Raw speed array for first period (present when `include_samples=true`) |
+| `group2_samples` | `float[]?` | Raw speed array for second period (present when `include_samples=true`) |
+| `month_start_filter` | `int?` | Season start month filter applied (null if not filtered) |
+| `month_end_filter` | `int?` | Season end month filter applied (null if not filtered) |
+| `message` | `str` | Result message |
+
+---
+
+#### `maritime_did_speed_test`
+
+Difference-in-differences speed test. Compares the change in eastbound vs westbound
+sailing speeds between two time periods using bootstrap confidence intervals. Tests
+whether one direction experienced a differential speed change relative to the other.
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `period1_years` | `str` | *required* | First period as `"YYYY/YYYY"` (e.g., `"1750/1789"`) |
+| `period2_years` | `str` | *required* | Second period as `"YYYY/YYYY"` (e.g., `"1790/1830"`) |
+| `lat_min` | `float?` | `None` | Minimum latitude for position bounding box |
+| `lat_max` | `float?` | `None` | Maximum latitude for position bounding box |
+| `lon_min` | `float?` | `None` | Minimum longitude for position bounding box |
+| `lon_max` | `float?` | `None` | Maximum longitude for position bounding box |
+| `nationality` | `str?` | `None` | Filter tracks by nationality code |
+| `month_start` | `int?` | `None` | Start month (1-12) for seasonal filtering. Supports wrap-around with month_end (e.g., 11-2 = Nov-Feb) |
+| `month_end` | `int?` | `None` | End month (1-12) for seasonal filtering |
+| `aggregate_by` | `str` | `"voyage"` | Unit of analysis: `"voyage"` (one mean per voyage) or `"observation"` (each daily speed) |
+| `n_bootstrap` | `int` | `10000` | Number of bootstrap iterations for confidence intervals |
+| `min_speed_km_day` | `float?` | `None` | Minimum speed filter (km/day) |
+| `max_speed_km_day` | `float?` | `None` | Maximum speed filter (km/day) |
+| `output_mode` | `str` | `"json"` | `"json"` or `"text"` |
+
+**Response:** `DIDSpeedTestResponse`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `period1_label` | `str` | First period label (e.g., `"1750-1789"`) |
+| `period2_label` | `str` | Second period label (e.g., `"1790-1830"`) |
+| `aggregate_by` | `str` | Unit of analysis used |
+| `n_bootstrap` | `int` | Number of bootstrap iterations |
+| `period1_eastbound_n` | `int` | Observations/voyages eastbound in first period |
+| `period1_eastbound_mean` | `float` | Mean eastbound speed in first period (km/day) |
+| `period1_westbound_n` | `int` | Observations/voyages westbound in first period |
+| `period1_westbound_mean` | `float` | Mean westbound speed in first period (km/day) |
+| `period2_eastbound_n` | `int` | Observations/voyages eastbound in second period |
+| `period2_eastbound_mean` | `float` | Mean eastbound speed in second period (km/day) |
+| `period2_westbound_n` | `int` | Observations/voyages westbound in second period |
+| `period2_westbound_mean` | `float` | Mean westbound speed in second period (km/day) |
+| `eastbound_diff` | `float` | Change in eastbound mean speed between periods |
+| `westbound_diff` | `float` | Change in westbound mean speed between periods |
+| `did_estimate` | `float` | Difference-in-differences estimate |
+| `did_ci_lower` | `float` | Bootstrap 95% confidence interval lower bound |
+| `did_ci_upper` | `float` | Bootstrap 95% confidence interval upper bound |
+| `did_p_value` | `float` | Bootstrap p-value |
+| `significant` | `bool` | Whether p < 0.05 |
+| `latitude_band` | `str?` | Latitude filter applied |
+| `longitude_band` | `str?` | Longitude filter applied |
+| `nationality_filter` | `str?` | Nationality filter applied |
 | `month_start_filter` | `int?` | Season start month filter applied (null if not filtered) |
 | `month_end_filter` | `int?` | Season end month filter applied (null if not filtered) |
 | `message` | `str` | Result message |

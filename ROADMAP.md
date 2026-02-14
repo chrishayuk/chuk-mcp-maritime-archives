@@ -466,20 +466,31 @@ Seasonal month filtering for track analytics tools, driven by GPT-5.2 Laki volca
 **Quality:**
 - 1055+ tests across 15 test modules, 96%+ branch coverage
 
+### v0.20.0 -- Difference-in-Differences & Voyage-Level Aggregation
+
+Voyage-level aggregation for statistically independent samples and formal 2×2 DiD testing, driven by GPT-5.2 Laki volcanic signal analysis.
+
+**New tool:**
+- `maritime_did_speed_test` -- formal Difference-in-Differences test (direction × period) with bootstrap CI and p-value. Always splits by eastbound/westbound. Default `aggregate_by="voyage"` for proper statistical independence.
+
+**Enhanced tools:**
+- `maritime_aggregate_track_speeds` -- added `aggregate_by` param ("observation" default or "voyage" for one mean per voyage)
+- `maritime_compare_speed_groups` -- added `aggregate_by` param and `include_samples` for raw speed arrays
+
+**Methodology:**
+- Voyage-level aggregation computes one mean speed per voyage before aggregating/comparing, giving statistically independent samples and correct p-values
+- Previous observation-level analysis (n=thousands of daily obs) overstated effective sample size due to within-voyage autocorrelation
+- Bootstrap DiD: 10,000 iterations, seeded for reproducibility, 95% CI via percentile method
+
+**Key result:**
+- Laki DiD with voyage-level aggregation: +18.9 km/day, 95% CI [-0.1, 38.2], p=0.052 — marginally significant, confirming that observation-level p≈0 was overconfident
+
+**Quality:**
+- 1075+ tests across 15 test modules, 96%+ branch coverage
+
 ---
 
 ## Planned
-
-### v0.20.0 -- Difference-in-Differences & Raw Samples
-
-Formal DiD statistical testing for climate proxy analysis, driven by GPT-5.2 Laki investigation.
-
-**Context:** The GPT-5.2 session correctly identified that `maritime_compare_speed_groups` returns only summary statistics (mean, std, n) and a Mann-Whitney U result per group. To compute a formal Difference-in-Differences p-value — testing whether the *difference* between eastbound and westbound speeds changed significantly between pre-Laki and post-Laki periods — requires either the raw speed samples or a purpose-built 2×2 interaction test. The model had to approximate DiD through effect-size differencing, which is methodologically weaker.
-
-**Planned:**
-- `maritime_did_speed_test` — new tool performing a formal 2×2 Difference-in-Differences test (factor1 × factor2, e.g., direction × period). Returns the interaction effect, its standard error, and a p-value for the interaction term. Pure Python implementation (permutation-based or rank-based, no scipy)
-- Alternative: `include_samples=True` parameter on `maritime_compare_speed_groups` to return raw speed arrays alongside summary statistics, enabling client-side DiD computation
-- Investigate NL data gap in the 1780s CLIWOC records — is it genuinely absent from CLIWOC, or is direction inference filtering it out? The Fourth Anglo-Dutch War (1780–1784) likely reduced Dutch shipping, which is itself historically interesting context
 
 ### v1.0.0 -- Stability & API Freeze
 
@@ -543,7 +554,7 @@ This server is the data layer in a composable stack of MCP servers:
 
 | Server | Tools | Tests | Role |
 |--------|-------|-------|------|
-| chuk-mcp-maritime-archives | 40 | 1042+ | Voyage, wreck, vessel, crew, cargo, musters, demographics, analytics |
+| chuk-mcp-maritime-archives | 41 | 1075+ | Voyage, wreck, vessel, crew, cargo, musters, demographics, analytics |
 | chuk-mcp-ocean-drift | 10 | 235 | Forward/backtrack/Monte Carlo drift |
 | chuk-mcp-dem | 4 | 711 | Bathymetry and elevation data |
 | chuk-mcp-stac | 5 | 382 | Satellite imagery via STAC catalogues |
@@ -551,7 +562,7 @@ This server is the data layer in a composable stack of MCP servers:
 | chuk-mcp-tides | 8 | 717 | Tidal current data |
 | chuk-mcp-physics | 66 | 240 | Fluid dynamics computations |
 | chuk-mcp-open-meteo | 6 | 22 | Weather and wind data |
-| **Total** | **145** | **3,479+** | |
+| **Total** | **146** | **3,512+** | |
 
 All servers follow the same patterns: Pydantic v2 models, dual output mode, chuk-artifacts storage.
 

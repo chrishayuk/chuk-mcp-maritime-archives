@@ -220,12 +220,17 @@ def register_discovery_tools(mcp: object, manager: object) -> None:
                 ToolInfo(
                     name="maritime_aggregate_track_speeds",
                     category="analytics",
-                    description="Aggregate track speeds by decade, month, direction, or nationality with seasonal month filtering",
+                    description="Aggregate track speeds with voyage-level aggregation and seasonal filtering",
                 ),
                 ToolInfo(
                     name="maritime_compare_speed_groups",
                     category="analytics",
-                    description="Compare speed distributions between two time periods with seasonal month filtering (Mann-Whitney U)",
+                    description="Compare speed distributions with voyage-level aggregation, raw samples, and seasonal filtering (Mann-Whitney U)",
+                ),
+                ToolInfo(
+                    name="maritime_did_speed_test",
+                    category="analytics",
+                    description="Formal 2x2 Difference-in-Differences test (direction x period) with bootstrap CI",
                 ),
                 ToolInfo(
                     name="maritime_crew_demographics",

@@ -6,12 +6,14 @@ import pytest
 
 from chuk_mcp_maritime_archives.core.cliwoc_tracks import (
     _TRACKS,
+    _bootstrap_did,
     _haversine_km,
     _mann_whitney_u,
     _month_in_range,
     aggregate_track_speeds,
     compare_speed_groups,
     compute_track_speeds,
+    did_speed_test,
     get_date_range,
     get_position_count,
     get_track,
@@ -729,6 +731,44 @@ class TestAggregateTrackSpeeds:
         assert result["month_start_filter"] == 1
         assert result["month_end_filter"] == 3
 
+    def test_aggregate_by_voyage(self):
+        """Voyage-level aggregation should give fewer data points."""
+        obs_result = aggregate_track_speeds(
+            group_by="decade",
+            lat_min=-50,
+            lat_max=-30,
+        )
+        voy_result = aggregate_track_speeds(
+            group_by="decade",
+            lat_min=-50,
+            lat_max=-30,
+            aggregate_by="voyage",
+        )
+        assert voy_result["aggregate_by"] == "voyage"
+        assert obs_result["aggregate_by"] == "observation"
+        # Voyage-level should have fewer data points
+        assert voy_result["total_observations"] < obs_result["total_observations"]
+        assert voy_result["total_observations"] > 0
+
+    def test_aggregate_by_voyage_response_field(self):
+        result = aggregate_track_speeds(
+            group_by="decade",
+            lat_min=-50,
+            lat_max=-30,
+            aggregate_by="voyage",
+        )
+        assert "aggregate_by" in result
+        assert result["aggregate_by"] == "voyage"
+
+    def test_aggregate_by_observation_default(self):
+        """Default behavior unchanged."""
+        result = aggregate_track_speeds(
+            group_by="decade",
+            lat_min=-50,
+            lat_max=-30,
+        )
+        assert result["aggregate_by"] == "observation"
+
 
 # ---------------------------------------------------------------------------
 # Compare speed groups
@@ -799,6 +839,167 @@ class TestCompareSpeedGroups:
         )
         assert result["month_start_filter"] == 11
         assert result["month_end_filter"] == 2
+
+    def test_compare_voyage_level(self):
+        """Voyage-level comparison should give fewer data points."""
+        obs_result = compare_speed_groups(
+            group1_years="1750/1789",
+            group2_years="1820/1859",
+            lat_min=-50,
+            lat_max=-30,
+        )
+        voy_result = compare_speed_groups(
+            group1_years="1750/1789",
+            group2_years="1820/1859",
+            lat_min=-50,
+            lat_max=-30,
+            aggregate_by="voyage",
+        )
+        assert voy_result["aggregate_by"] == "voyage"
+        assert voy_result["group1_n"] < obs_result["group1_n"]
+        assert voy_result["group1_n"] > 0
+
+    def test_compare_include_samples(self):
+        result = compare_speed_groups(
+            group1_years="1750/1789",
+            group2_years="1820/1859",
+            lat_min=-50,
+            lat_max=-30,
+            include_samples=True,
+        )
+        assert "group1_samples" in result
+        assert "group2_samples" in result
+        assert isinstance(result["group1_samples"], list)
+        assert len(result["group1_samples"]) == result["group1_n"]
+
+    def test_compare_include_samples_voyage(self):
+        result = compare_speed_groups(
+            group1_years="1750/1789",
+            group2_years="1820/1859",
+            lat_min=-50,
+            lat_max=-30,
+            aggregate_by="voyage",
+            include_samples=True,
+        )
+        assert len(result["group1_samples"]) == result["group1_n"]
+        assert result["aggregate_by"] == "voyage"
+
+    def test_compare_no_samples_by_default(self):
+        result = compare_speed_groups(
+            group1_years="1750/1789",
+            group2_years="1820/1859",
+            lat_min=-50,
+            lat_max=-30,
+        )
+        assert "group1_samples" not in result
+
+
+# ---------------------------------------------------------------------------
+# Bootstrap DiD
+# ---------------------------------------------------------------------------
+
+
+class TestBootstrapDiD:
+    def test_known_signal(self):
+        """Synthetic data with a known directional signal."""
+        pre_east = [100.0, 110.0, 105.0, 95.0, 108.0]
+        pre_west = [90.0, 85.0, 88.0, 92.0, 87.0]
+        post_east = [140.0, 135.0, 145.0, 138.0, 142.0]
+        post_west = [91.0, 89.0, 93.0, 88.0, 90.0]
+        did, ci_lo, ci_hi, p = _bootstrap_did(
+            pre_east, pre_west, post_east, post_west, n_bootstrap=5000, seed=42
+        )
+        # Eastbound gained ~36, westbound gained ~2 → DiD ≈ +34
+        assert did > 20
+        assert p < 0.05
+        assert ci_lo > 0  # CI should not contain 0
+
+    def test_no_signal(self):
+        """Equal groups → no significant DiD."""
+        vals = [100.0, 105.0, 98.0, 102.0, 101.0]
+        did, ci_lo, ci_hi, p = _bootstrap_did(vals, vals, vals, vals, n_bootstrap=5000, seed=42)
+        assert abs(did) < 1e-10
+        assert ci_lo <= 0 <= ci_hi
+        assert p > 0.05
+
+    def test_empty_cell(self):
+        """Empty cell returns p=1.0."""
+        did, ci_lo, ci_hi, p = _bootstrap_did([], [1.0], [1.0], [1.0])
+        assert did == 0.0
+        assert p == 1.0
+
+    def test_reproducibility(self):
+        """Same seed gives same result."""
+        args = ([100.0, 110.0], [90.0, 95.0], [120.0, 130.0], [92.0, 98.0])
+        r1 = _bootstrap_did(*args, n_bootstrap=1000, seed=123)
+        r2 = _bootstrap_did(*args, n_bootstrap=1000, seed=123)
+        assert r1 == r2
+
+
+# ---------------------------------------------------------------------------
+# DiD speed test
+# ---------------------------------------------------------------------------
+
+
+class TestDidSpeedTest:
+    def test_basic_did_test(self):
+        result = did_speed_test(
+            period1_years="1750/1783",
+            period2_years="1784/1810",
+            lat_min=-50,
+            lat_max=-30,
+        )
+        assert "did_estimate" in result
+        assert "did_ci_lower" in result
+        assert "did_ci_upper" in result
+        assert "did_p_value" in result
+        assert "significant" in result
+        assert "period1_eastbound_n" in result
+        assert "period2_westbound_n" in result
+        assert "eastbound_diff" in result
+        assert "westbound_diff" in result
+        assert result["aggregate_by"] == "voyage"
+
+    def test_did_voyage_vs_observation(self):
+        """Voyage-level should have fewer data points."""
+        voy = did_speed_test(
+            period1_years="1750/1789",
+            period2_years="1820/1859",
+            lat_min=-50,
+            lat_max=-30,
+            aggregate_by="voyage",
+        )
+        obs = did_speed_test(
+            period1_years="1750/1789",
+            period2_years="1820/1859",
+            lat_min=-50,
+            lat_max=-30,
+            aggregate_by="observation",
+        )
+        assert voy["period1_eastbound_n"] < obs["period1_eastbound_n"]
+
+    def test_did_empty_period(self):
+        result = did_speed_test(
+            period1_years="1500/1510",
+            period2_years="1520/1530",
+            lat_min=-50,
+            lat_max=-30,
+        )
+        assert result["did_p_value"] == 1.0
+        assert result["did_estimate"] == 0.0
+
+    def test_did_with_month_filter(self):
+        result = did_speed_test(
+            period1_years="1750/1783",
+            period2_years="1784/1810",
+            lat_min=-50,
+            lat_max=-30,
+            month_start=6,
+            month_end=8,
+        )
+        assert result["month_start_filter"] == 6
+        assert result["month_end_filter"] == 8
+        assert isinstance(result["did_p_value"], float)
 
 
 # ---------------------------------------------------------------------------
@@ -1040,3 +1241,74 @@ class TestAnalyticsTools:
         parsed = json.loads(result)
         assert parsed["month_start_filter"] == 6
         assert parsed["month_end_filter"] == 8
+
+    @pytest.mark.asyncio
+    async def test_aggregate_voyage_level_tool(self):
+        fn = self.mcp.get_tool("maritime_aggregate_track_speeds")
+        result = await fn(
+            group_by="decade",
+            lat_min=-50,
+            lat_max=-30,
+            aggregate_by="voyage",
+        )
+        parsed = json.loads(result)
+        assert parsed["aggregate_by"] == "voyage"
+        assert parsed["total_observations"] > 0
+
+    @pytest.mark.asyncio
+    async def test_compare_include_samples_tool(self):
+        fn = self.mcp.get_tool("maritime_compare_speed_groups")
+        result = await fn(
+            group1_years="1750/1789",
+            group2_years="1820/1859",
+            lat_min=-50,
+            lat_max=-30,
+            include_samples=True,
+        )
+        parsed = json.loads(result)
+        assert "group1_samples" in parsed
+        assert isinstance(parsed["group1_samples"], list)
+
+    @pytest.mark.asyncio
+    async def test_did_speed_test_tool(self):
+        fn = self.mcp.get_tool("maritime_did_speed_test")
+        result = await fn(
+            period1_years="1750/1783",
+            period2_years="1784/1810",
+            lat_min=-50,
+            lat_max=-30,
+        )
+        parsed = json.loads(result)
+        assert "did_estimate" in parsed
+        assert "did_p_value" in parsed
+        assert "significant" in parsed
+        assert parsed["aggregate_by"] == "voyage"
+
+    @pytest.mark.asyncio
+    async def test_did_speed_test_text_mode(self):
+        fn = self.mcp.get_tool("maritime_did_speed_test")
+        result = await fn(
+            period1_years="1750/1783",
+            period2_years="1784/1810",
+            lat_min=-50,
+            lat_max=-30,
+            output_mode="text",
+        )
+        assert "DiD estimate" in result
+        assert "km/day" in result
+
+    @pytest.mark.asyncio
+    async def test_did_speed_test_error(self):
+        from unittest.mock import patch
+
+        fn = self.mcp.get_tool("maritime_did_speed_test")
+        with patch(
+            "chuk_mcp_maritime_archives.tools.analytics.api.did_speed_test",
+            side_effect=RuntimeError("boom"),
+        ):
+            result = await fn(
+                period1_years="1750/1783",
+                period2_years="1784/1810",
+            )
+        parsed = json.loads(result)
+        assert "boom" in parsed["error"]

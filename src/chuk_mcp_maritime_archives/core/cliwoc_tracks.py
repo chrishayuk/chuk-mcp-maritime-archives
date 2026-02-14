@@ -17,6 +17,7 @@ from __future__ import annotations
 import json
 import logging
 import math
+import random
 import statistics
 from collections import defaultdict
 from datetime import date
@@ -590,6 +591,7 @@ def aggregate_track_speeds(
     direction: str | None = None,
     month_start: int | None = None,
     month_end: int | None = None,
+    aggregate_by: str = "observation",
     min_speed: float = 5.0,
     max_speed: float = 400.0,
 ) -> dict[str, Any]:
@@ -602,13 +604,18 @@ def aggregate_track_speeds(
         year_start/year_end: Filter tracks by year range
         direction: Filter observations by "eastbound" or "westbound"
         month_start/month_end: Filter by month (1-12), supports wrap-around (11-2 = Nov-Feb)
+        aggregate_by: Unit of analysis — "observation" (each daily speed) or
+            "voyage" (one mean speed per voyage, statistically independent)
         min_speed/max_speed: Speed bounds in km/day
 
     Returns:
         Dict with total_observations, total_voyages, groups list, methodology.
     """
     _load_tracks()
+    voyage_level = aggregate_by == "voyage"
     groups: dict[str, list[float]] = defaultdict(list)
+    # For voyage-level: collect per (voyage_id, group_key), then reduce
+    voyage_groups: dict[tuple[int, str], list[float]] = defaultdict(list)
     voyage_ids: set[int] = set()
     total_obs = 0
 
@@ -627,6 +634,7 @@ def aggregate_track_speeds(
         if not speeds:
             continue
 
+        vid = track["voyage_id"]
         for obs in speeds:
             # Apply direction filter
             if direction and obs.get("direction") != direction:
@@ -642,9 +650,18 @@ def aggregate_track_speeds(
             if key is None:
                 continue
 
-            groups[key].append(obs["km_day"])
-            voyage_ids.add(track["voyage_id"])
+            if voyage_level:
+                voyage_groups[(vid, key)].append(obs["km_day"])
+            else:
+                groups[key].append(obs["km_day"])
+            voyage_ids.add(vid)
             total_obs += 1
+
+    # Reduce voyage-level groups to one mean per voyage per group
+    if voyage_level:
+        for (vid, key), speeds_list in voyage_groups.items():
+            groups[key].append(statistics.mean(speeds_list))
+        total_obs = sum(len(v) for v in groups.values())
 
     # Compute stats per group
     group_results = []
@@ -657,6 +674,7 @@ def aggregate_track_speeds(
         "total_observations": total_obs,
         "total_voyages": len(voyage_ids),
         "group_by": group_by,
+        "aggregate_by": aggregate_by,
         "groups": group_results,
         "latitude_band": [lat_min, lat_max] if lat_min is not None or lat_max is not None else None,
         "longitude_band": [lon_min, lon_max]
@@ -680,6 +698,8 @@ def compare_speed_groups(
     direction: str | None = None,
     month_start: int | None = None,
     month_end: int | None = None,
+    aggregate_by: str = "observation",
+    include_samples: bool = False,
     min_speed: float = 5.0,
     max_speed: float = 400.0,
 ) -> dict[str, Any]:
@@ -689,12 +709,16 @@ def compare_speed_groups(
         group1_years: First period as "YYYY/YYYY" (e.g., "1750/1789")
         group2_years: Second period as "YYYY/YYYY" (e.g., "1820/1859")
         month_start/month_end: Filter by month (1-12), supports wrap-around
+        aggregate_by: "observation" (each daily speed) or "voyage" (one mean
+            per voyage, statistically independent samples)
+        include_samples: If True, include raw speed arrays in response
         Other args: same as aggregate_track_speeds
 
     Returns:
         Dict with group statistics, Mann-Whitney U, z-score, p-value, effect size.
     """
     _load_tracks()
+    voyage_level = aggregate_by == "voyage"
 
     def _parse_year_range(s: str) -> tuple[int, int]:
         parts = s.split("/")
@@ -705,6 +729,8 @@ def compare_speed_groups(
 
     def _collect_speeds(yr_start: int, yr_end: int) -> list[float]:
         values: list[float] = []
+        # For voyage-level: collect per-voyage, then reduce to means
+        per_voyage: dict[int, list[float]] = defaultdict(list)
         for track in _TRACKS:
             if nationality and track.get("nationality") != nationality.upper():
                 continue
@@ -724,7 +750,13 @@ def compare_speed_groups(
                     if month_start is not None or month_end is not None:
                         if not _month_in_range(d.month, month_start, month_end):
                             continue
-                    values.append(obs["km_day"])
+                    if voyage_level:
+                        per_voyage[track["voyage_id"]].append(obs["km_day"])
+                    else:
+                        values.append(obs["km_day"])
+        if voyage_level:
+            for voy_speeds in per_voyage.values():
+                values.append(statistics.mean(voy_speeds))
         return values
 
     g1 = _collect_speeds(y1_start, y1_end)
@@ -743,7 +775,7 @@ def compare_speed_groups(
     pooled_std = math.sqrt(((n1 - 1) * g1_std**2 + (n2 - 1) * g2_std**2) / max(n1 + n2 - 2, 1))
     cohens_d = (g2_mean - g1_mean) / pooled_std if pooled_std > 0 else 0.0
 
-    return {
+    result: dict[str, Any] = {
         "group1_label": group1_years,
         "group1_n": n1,
         "group1_mean": round(g1_mean, 1),
@@ -757,6 +789,202 @@ def compare_speed_groups(
         "p_value": round(p_value, 6),
         "significant": p_value < 0.05,
         "effect_size": round(cohens_d, 3),
+        "aggregate_by": aggregate_by,
+        "month_start_filter": month_start,
+        "month_end_filter": month_end,
+    }
+    if include_samples:
+        result["group1_samples"] = [round(v, 1) for v in g1]
+        result["group2_samples"] = [round(v, 1) for v in g2]
+    return result
+
+
+def _bootstrap_did(
+    pre_east: list[float],
+    pre_west: list[float],
+    post_east: list[float],
+    post_west: list[float],
+    n_bootstrap: int = 10000,
+    seed: int = 42,
+) -> tuple[float, float, float, float]:
+    """Bootstrap Difference-in-Differences with CI and p-value.
+
+    Returns (did_estimate, ci_lower, ci_upper, p_value).
+    """
+    if not pre_east or not pre_west or not post_east or not post_west:
+        return 0.0, 0.0, 0.0, 1.0
+
+    def _mean(xs: list[float]) -> float:
+        return sum(xs) / len(xs)
+
+    did = (_mean(post_east) - _mean(pre_east)) - (_mean(post_west) - _mean(pre_west))
+
+    rng = random.Random(seed)
+    boot_dids: list[float] = []
+    for _ in range(n_bootstrap):
+        pe = rng.choices(pre_east, k=len(pre_east))
+        pw = rng.choices(pre_west, k=len(pre_west))
+        oe = rng.choices(post_east, k=len(post_east))
+        ow = rng.choices(post_west, k=len(post_west))
+        boot_did = (_mean(oe) - _mean(pe)) - (_mean(ow) - _mean(pw))
+        boot_dids.append(boot_did)
+
+    boot_dids.sort()
+    ci_lower = boot_dids[max(0, int(0.025 * n_bootstrap) - 1)]
+    ci_upper = boot_dids[min(n_bootstrap - 1, int(0.975 * n_bootstrap))]
+
+    # Two-tailed p-value
+    n_le_zero = sum(1 for d in boot_dids if d <= 0)
+    n_ge_zero = sum(1 for d in boot_dids if d >= 0)
+    p_value = 2 * min(n_le_zero, n_ge_zero) / n_bootstrap
+    p_value = min(p_value, 1.0)
+    if p_value == 0.0:
+        p_value = 1.0 / n_bootstrap  # minimum reportable p
+
+    return did, ci_lower, ci_upper, p_value
+
+
+def did_speed_test(
+    period1_years: str,
+    period2_years: str,
+    lat_min: float | None = None,
+    lat_max: float | None = None,
+    lon_min: float | None = None,
+    lon_max: float | None = None,
+    nationality: str | None = None,
+    month_start: int | None = None,
+    month_end: int | None = None,
+    aggregate_by: str = "voyage",
+    n_bootstrap: int = 10000,
+    seed: int = 42,
+    min_speed: float = 5.0,
+    max_speed: float = 400.0,
+) -> dict[str, Any]:
+    """Formal 2×2 Difference-in-Differences test: direction × period.
+
+    Tests whether the difference between eastbound and westbound speeds changed
+    significantly between two time periods. This isolates directional wind
+    changes from symmetric technology improvements.
+
+    DiD = (period2_east - period1_east) - (period2_west - period1_west)
+
+    A significant positive DiD means eastbound speeds gained more than westbound,
+    indicating strengthened westerlies (not just better ships).
+
+    Args:
+        period1_years: First period as "YYYY/YYYY" (e.g., "1750/1783")
+        period2_years: Second period as "YYYY/YYYY" (e.g., "1784/1810")
+        lat_min/lat_max/lon_min/lon_max: Bounding box for position filtering
+        nationality: Filter tracks by nationality code
+        month_start/month_end: Filter by month (1-12), supports wrap-around
+        aggregate_by: "voyage" (default, statistically independent) or
+            "observation" (more data points but autocorrelated)
+        n_bootstrap: Number of bootstrap iterations (default: 10000)
+        seed: Random seed for reproducibility (default: 42)
+        min_speed/max_speed: Speed bounds in km/day
+
+    Returns:
+        Dict with 4-cell summary, marginal diffs, DiD estimate,
+        bootstrap CI, and p-value.
+    """
+    _load_tracks()
+    voyage_level = aggregate_by == "voyage"
+
+    def _parse_year_range(s: str) -> tuple[int, int]:
+        parts = s.split("/")
+        return int(parts[0]), int(parts[1])
+
+    y1_start, y1_end = _parse_year_range(period1_years)
+    y2_start, y2_end = _parse_year_range(period2_years)
+
+    def _collect_by_direction(yr_start: int, yr_end: int) -> tuple[list[float], list[float]]:
+        """Collect speeds split by direction for a time period."""
+        east_obs: list[float] = []
+        west_obs: list[float] = []
+        east_voy: dict[int, list[float]] = defaultdict(list)
+        west_voy: dict[int, list[float]] = defaultdict(list)
+
+        for track in _TRACKS:
+            if nationality and track.get("nationality") != nationality.upper():
+                continue
+            t_start = track.get("year_start") or 9999
+            t_end = track.get("year_end") or 0
+            if t_start > yr_end or t_end < yr_start:
+                continue
+
+            speeds = _compute_daily_speeds(
+                track, lat_min, lat_max, lon_min, lon_max, min_speed, max_speed
+            )
+            vid = track["voyage_id"]
+            for obs in speeds:
+                d = _parse_date(obs["date"])
+                if not d or not (yr_start <= d.year <= yr_end):
+                    continue
+                if month_start is not None or month_end is not None:
+                    if not _month_in_range(d.month, month_start, month_end):
+                        continue
+                direction = obs.get("direction", "")
+                if direction == "eastbound":
+                    if voyage_level:
+                        east_voy[vid].append(obs["km_day"])
+                    else:
+                        east_obs.append(obs["km_day"])
+                elif direction == "westbound":
+                    if voyage_level:
+                        west_voy[vid].append(obs["km_day"])
+                    else:
+                        west_obs.append(obs["km_day"])
+
+        if voyage_level:
+            for voy_speeds in east_voy.values():
+                east_obs.append(statistics.mean(voy_speeds))
+            for voy_speeds in west_voy.values():
+                west_obs.append(statistics.mean(voy_speeds))
+        return east_obs, west_obs
+
+    pre_east, pre_west = _collect_by_direction(y1_start, y1_end)
+    post_east, post_west = _collect_by_direction(y2_start, y2_end)
+
+    def _safe_mean(xs: list[float]) -> float:
+        return statistics.mean(xs) if xs else 0.0
+
+    pe_mean = _safe_mean(pre_east)
+    pw_mean = _safe_mean(pre_west)
+    oe_mean = _safe_mean(post_east)
+    ow_mean = _safe_mean(post_west)
+
+    east_diff = oe_mean - pe_mean
+    west_diff = ow_mean - pw_mean
+
+    did_est, ci_lower, ci_upper, p_value = _bootstrap_did(
+        pre_east, pre_west, post_east, post_west, n_bootstrap, seed
+    )
+
+    return {
+        "period1_label": period1_years,
+        "period2_label": period2_years,
+        "aggregate_by": aggregate_by,
+        "n_bootstrap": n_bootstrap,
+        "period1_eastbound_n": len(pre_east),
+        "period1_eastbound_mean": round(pe_mean, 1),
+        "period1_westbound_n": len(pre_west),
+        "period1_westbound_mean": round(pw_mean, 1),
+        "period2_eastbound_n": len(post_east),
+        "period2_eastbound_mean": round(oe_mean, 1),
+        "period2_westbound_n": len(post_west),
+        "period2_westbound_mean": round(ow_mean, 1),
+        "eastbound_diff": round(east_diff, 1),
+        "westbound_diff": round(west_diff, 1),
+        "did_estimate": round(did_est, 1),
+        "did_ci_lower": round(ci_lower, 1),
+        "did_ci_upper": round(ci_upper, 1),
+        "did_p_value": round(p_value, 6),
+        "significant": p_value < 0.05,
+        "latitude_band": [lat_min, lat_max] if lat_min is not None or lat_max is not None else None,
+        "longitude_band": [lon_min, lon_max]
+        if lon_min is not None or lon_max is not None
+        else None,
+        "nationality_filter": nationality,
         "month_start_filter": month_start,
         "month_end_filter": month_end,
     }
