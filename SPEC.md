@@ -1194,6 +1194,8 @@ requested dimension. Supports bootstrap comparison between two time periods.
 | `min_speed_km_day` | `float` | `5.0` | Minimum speed filter |
 | `max_speed_km_day` | `float` | `400.0` | Maximum speed filter |
 | `min_positions` | `int` | `5` | Minimum number of positions required per voyage |
+| `r_min` | `float?` | `None` | Minimum tortuosity R to include (e.g. `1.0` to exclude speed-filter artifacts) |
+| `r_max` | `float?` | `None` | Maximum tortuosity R to include (e.g. `5.0` to exclude loiterers/turnarounds) |
 | `period1_years` | `str?` | `None` | First comparison period as `"YYYY/YYYY"` |
 | `period2_years` | `str?` | `None` | Second comparison period as `"YYYY/YYYY"` |
 | `n_bootstrap` | `int` | `10000` | Number of bootstrap iterations for confidence intervals |
@@ -1213,6 +1215,8 @@ requested dimension. Supports bootstrap comparison between two time periods.
 | `nationality_filter` | `str?` | Nationality filter applied |
 | `month_start_filter` | `int?` | Season start month filter applied (null if not filtered) |
 | `month_end_filter` | `int?` | Season end month filter applied (null if not filtered) |
+| `r_min_filter` | `float?` | Minimum tortuosity R filter applied (null if not filtered) |
+| `r_max_filter` | `float?` | Maximum tortuosity R filter applied (null if not filtered) |
 | `message` | `str` | Result message |
 
 **TortuosityAggregationGroup fields:**

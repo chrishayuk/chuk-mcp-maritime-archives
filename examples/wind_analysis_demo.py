@@ -157,6 +157,46 @@ async def main() -> None:
         print("\n  Insufficient data for period comparison.")
 
     # =================================================================
+    # 3b. FILTERED CHRONOMETER TEST: Normal Transit Only
+    # =================================================================
+    print()
+    print("-" * 72)
+    print("3b. FILTERED: Normal Transit Voyages Only (1.0 <= R <= 5.0)")
+    print("-" * 72)
+    print()
+    print("  Excluding loiterers (R>5) and speed-filter artifacts (R<1)")
+
+    tort_filtered = await runner.run(
+        "maritime_aggregate_track_tortuosity",
+        group_by="decade",
+        lat_min=RF_LAT_MIN,
+        lat_max=RF_LAT_MAX,
+        lon_min=RF_LON_MIN,
+        lon_max=RF_LON_MAX,
+        period1_years="1750/1779",
+        period2_years="1800/1829",
+        r_min=1.0,
+        r_max=5.0,
+        n_bootstrap=10000,
+    )
+
+    print(f"  Voyages after R filter: {tort_filtered['total_voyages']}")
+    comp_f = tort_filtered.get("comparison")
+    if comp_f:
+        print(
+            f"  Pre-chronometer:  N={comp_f['period1_n']:<4}  Mean R={comp_f['period1_mean']:.4f}"
+        )
+        print(
+            f"  Post-chronometer: N={comp_f['period2_n']:<4}  Mean R={comp_f['period2_mean']:.4f}"
+        )
+        print(f"  Difference:       {comp_f['diff']:+.4f}")
+        print(f"  95% CI:           [{comp_f['ci_lower']:.4f}, {comp_f['ci_upper']:.4f}]")
+        print(f"  p-value:          {comp_f['p_value']:.4f}")
+        print(f"  Significant:      {comp_f['significant']}")
+    else:
+        print("  Insufficient data for filtered period comparison.")
+
+    # =================================================================
     # 4. WIND ROSE (if wind data available)
     # =================================================================
     print()

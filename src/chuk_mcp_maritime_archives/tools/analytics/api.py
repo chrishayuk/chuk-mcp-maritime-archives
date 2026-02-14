@@ -606,6 +606,8 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
         min_speed_km_day: float = 5.0,
         max_speed_km_day: float = 400.0,
         min_positions: int = 5,
+        r_min: float | None = None,
+        r_max: float | None = None,
         period1_years: str | None = None,
         period2_years: str | None = None,
         n_bootstrap: int = 10000,
@@ -629,6 +631,8 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
             min_speed_km_day: Minimum speed filter (default: 5.0)
             max_speed_km_day: Maximum speed filter (default: 400.0)
             min_positions: Minimum positions in bbox (default: 5)
+            r_min: Minimum tortuosity R to include (e.g. 1.0 excludes artifacts)
+            r_max: Maximum tortuosity R to include (e.g. 5.0 excludes loiterers)
             period1_years: First period as "YYYY/YYYY" for comparison
             period2_years: Second period as "YYYY/YYYY" for comparison
             n_bootstrap: Bootstrap iterations (default: 10000)
@@ -640,6 +644,7 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
         Tips for LLMs:
             - group_by="decade" to see tortuosity trends over time
             - Use direction="eastbound" vs "westbound" separately
+            - r_min=1.0, r_max=5.0 focuses on normal transit voyages
             - period1_years/period2_years for formal comparison with CI
             - Combine with maritime_did_speed_test for complete decomposition
             - min_positions=5 filters out short transits
@@ -660,6 +665,8 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
                 min_speed=min_speed_km_day,
                 max_speed=max_speed_km_day,
                 min_positions=min_positions,
+                r_min=r_min,
+                r_max=r_max,
                 period1_years=period1_years,
                 period2_years=period2_years,
                 n_bootstrap=n_bootstrap,
@@ -710,6 +717,8 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
                     nationality_filter=result.get("nationality_filter"),
                     month_start_filter=result.get("month_start_filter"),
                     month_end_filter=result.get("month_end_filter"),
+                    r_min_filter=result.get("r_min_filter"),
+                    r_max_filter=result.get("r_max_filter"),
                     message=SuccessMessages.TORTUOSITY_AGGREGATED.format(
                         result["total_voyages"], min_positions
                     ),

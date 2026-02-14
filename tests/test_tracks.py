@@ -1515,6 +1515,73 @@ class TestAggregateTrackTortuosity:
 
 
 # ---------------------------------------------------------------------------
+# Tortuosity R filtering
+# ---------------------------------------------------------------------------
+
+
+class TestTortuosityRFilter:
+    def test_r_max_reduces_voyages(self):
+        """r_max filter excludes high-tortuosity loiterers."""
+        from chuk_mcp_maritime_archives.core.cliwoc_tracks import aggregate_track_tortuosity
+
+        unfiltered = aggregate_track_tortuosity(
+            group_by="decade",
+            lat_min=-50,
+            lat_max=-30,
+        )
+        filtered = aggregate_track_tortuosity(
+            group_by="decade",
+            lat_min=-50,
+            lat_max=-30,
+            r_max=5.0,
+        )
+        assert filtered["total_voyages"] <= unfiltered["total_voyages"]
+        assert filtered["r_max_filter"] == 5.0
+        assert unfiltered["r_max_filter"] is None
+
+    def test_r_min_excludes_artifacts(self):
+        """r_min=1.0 excludes sub-1.0 speed-filtering artifacts."""
+        from chuk_mcp_maritime_archives.core.cliwoc_tracks import aggregate_track_tortuosity
+
+        filtered = aggregate_track_tortuosity(
+            group_by="decade",
+            lat_min=-50,
+            lat_max=-30,
+            r_min=1.0,
+        )
+        assert filtered["total_voyages"] > 0
+        assert filtered["r_min_filter"] == 1.0
+
+    def test_r_min_and_r_max_combined(self):
+        """Normal transit filter: 1.0 <= R <= 5.0."""
+        from chuk_mcp_maritime_archives.core.cliwoc_tracks import aggregate_track_tortuosity
+
+        result = aggregate_track_tortuosity(
+            group_by="decade",
+            lat_min=-50,
+            lat_max=-30,
+            r_min=1.0,
+            r_max=5.0,
+        )
+        assert result["total_voyages"] > 0
+        assert result["r_min_filter"] == 1.0
+        assert result["r_max_filter"] == 5.0
+
+    def test_tight_r_filter_returns_zero(self):
+        """Impossibly tight R filter -> zero voyages."""
+        from chuk_mcp_maritime_archives.core.cliwoc_tracks import aggregate_track_tortuosity
+
+        result = aggregate_track_tortuosity(
+            group_by="decade",
+            lat_min=-50,
+            lat_max=-30,
+            r_min=999,
+            r_max=1000,
+        )
+        assert result["total_voyages"] == 0
+
+
+# ---------------------------------------------------------------------------
 # Wind force filtering on existing tools
 # ---------------------------------------------------------------------------
 

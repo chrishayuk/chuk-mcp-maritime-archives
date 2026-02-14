@@ -1353,6 +1353,8 @@ def aggregate_track_tortuosity(
     min_speed: float = 5.0,
     max_speed: float = 400.0,
     min_positions: int = 5,
+    r_min: float | None = None,
+    r_max: float | None = None,
     period1_years: str | None = None,
     period2_years: str | None = None,
     n_bootstrap: int = 10000,
@@ -1373,6 +1375,8 @@ def aggregate_track_tortuosity(
         month_start/month_end: Month filter (supports wrap-around)
         min_speed/max_speed: Speed bounds for position pair validation
         min_positions: Minimum positions in bbox segment (default: 5)
+        r_min: Minimum tortuosity R to include (e.g. 1.0 to exclude artifacts)
+        r_max: Maximum tortuosity R to include (e.g. 5.0 to exclude loiterers)
         period1_years/period2_years: Two periods for bootstrap comparison
         n_bootstrap: Bootstrap iterations (default: 10000)
         seed: Random seed (default: 42)
@@ -1422,8 +1426,15 @@ def aggregate_track_tortuosity(
         if direction and info["inferred_direction"] != direction:
             continue
 
-        total_voyages += 1
         tort = info["tortuosity_r"]
+
+        # Apply tortuosity R bounds filter
+        if r_min is not None and tort < r_min:
+            continue
+        if r_max is not None and tort > r_max:
+            continue
+
+        total_voyages += 1
 
         # Group
         key = _tortuosity_group_key(info, group_by)
@@ -1458,6 +1469,8 @@ def aggregate_track_tortuosity(
         "nationality_filter": nationality,
         "month_start_filter": month_start,
         "month_end_filter": month_end,
+        "r_min_filter": r_min,
+        "r_max_filter": r_max,
     }
 
     # Period comparison

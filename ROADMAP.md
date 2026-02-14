@@ -510,7 +510,7 @@ Expanded to 44 tools across 19 categories. Route efficiency analysis via tortuos
 - Wind-conditioned Laki volcanic signal analysis: isolate speed changes at constant wind forcing
 
 **Quality:**
-- ~1105+ tests across 15 test modules, 96%+ branch coverage
+- ~1115+ tests across 15 test modules, 96%+ branch coverage
 
 ---
 
@@ -578,7 +578,7 @@ This server is the data layer in a composable stack of MCP servers:
 
 | Server | Tools | Tests | Role |
 |--------|-------|-------|------|
-| chuk-mcp-maritime-archives | 44 | ~1105+ | Voyage, wreck, vessel, crew, cargo, musters, demographics, analytics |
+| chuk-mcp-maritime-archives | 44 | ~1115+ | Voyage, wreck, vessel, crew, cargo, musters, demographics, analytics |
 | chuk-mcp-ocean-drift | 10 | 235 | Forward/backtrack/Monte Carlo drift |
 | chuk-mcp-dem | 4 | 711 | Bathymetry and elevation data |
 | chuk-mcp-stac | 5 | 382 | Satellite imagery via STAC catalogues |
@@ -586,7 +586,7 @@ This server is the data layer in a composable stack of MCP servers:
 | chuk-mcp-tides | 8 | 717 | Tidal current data |
 | chuk-mcp-physics | 66 | 240 | Fluid dynamics computations |
 | chuk-mcp-open-meteo | 6 | 22 | Weather and wind data |
-| **Total** | **149** | **3,542+** | |
+| **Total** | **149** | **3,552+** | |
 
 All servers follow the same patterns: Pydantic v2 models, dual output mode, chuk-artifacts storage.
 

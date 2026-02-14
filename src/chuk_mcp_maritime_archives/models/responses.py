@@ -1430,10 +1430,17 @@ class TortuosityAggregationResponse(BaseModel):
     nationality_filter: str | None = None
     month_start_filter: int | None = None
     month_end_filter: int | None = None
+    r_min_filter: float | None = None
+    r_max_filter: float | None = None
     message: str = ""
 
     def to_text(self) -> str:
-        lines = [self.message, f"Grouped by: {self.group_by}", ""]
+        lines = [self.message, f"Grouped by: {self.group_by}"]
+        if self.r_min_filter is not None or self.r_max_filter is not None:
+            r_lo = self.r_min_filter if self.r_min_filter is not None else "—"
+            r_hi = self.r_max_filter if self.r_max_filter is not None else "—"
+            lines.append(f"Tortuosity filter: R in [{r_lo}, {r_hi}]")
+        lines.append("")
         for g in self.groups:
             lines.append(
                 f"  {g.group_key:>12s}: {g.mean_tortuosity:.4f} "
