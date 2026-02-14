@@ -2,7 +2,7 @@
 """
 Volcanic Signal Demo -- chuk-mcp-maritime-archives
 
-Four novel research analyses using CLIWOC ship speed data:
+Five novel research analyses using CLIWOC ship speed data:
 
 1. LAKI ERUPTION 1783 — Did the largest volcanic event of the millennium
    show up in ship speeds through the Roaring Forties?
@@ -16,8 +16,11 @@ Four novel research analyses using CLIWOC ship speed data:
 4. SPATIAL VARIATION — Did westerly intensification affect the western
    and eastern Indian Ocean sectors equally?
 
+5. SEASONAL LAKI SIGNAL — Austral winter vs summer decomposition of the
+   Laki signal using month_start/month_end filtering.
+
 All analysis uses live MCP tool calls via maritime_aggregate_track_speeds
-with group_by="year", "decade", and "month" dimensions.
+and maritime_compare_speed_groups with seasonal month filtering.
 
 No network access required -- all data is local.
 
@@ -433,6 +436,67 @@ async def section_spatial(runner: ToolRunner) -> None:
         print("  in the wind field evolution.")
 
 
+async def section_laki_seasonal(runner: ToolRunner) -> None:
+    """Section 5: Seasonal decomposition of the Laki signal."""
+    print("\n" + "=" * 72)
+    print("5. SEASONAL LAKI SIGNAL: Austral Winter vs Summer")
+    print("=" * 72)
+    print()
+    print("  If the Laki eruption weakened Southern Hemisphere westerlies,")
+    print("  the effect should be stronger in austral winter (Jun-Aug) when")
+    print("  the jet stream is strongest and most sensitive to hemispheric")
+    print("  temperature gradients.")
+    print()
+    print("  Using month_start/month_end seasonal filters to isolate the")
+    print("  signal by season — the most diagnostic test for volcanic")
+    print("  aerosol forcing on the westerlies.")
+
+    seasons = [
+        ("Austral winter (Jun-Aug)", 6, 8),
+        ("Austral summer (Dec-Feb)", 12, 2),
+    ]
+
+    for label, m_start, m_end in seasons:
+        print()
+        print(f"  --- {label} ---")
+        print(f"  [maritime_compare_speed_groups: pre vs post Laki, months {m_start}-{m_end}]")
+
+        result = await runner.run(
+            "maritime_compare_speed_groups",
+            group1_years="1778/1782",
+            group2_years="1783/1786",
+            lat_min=RF_LAT_MIN,
+            lat_max=RF_LAT_MAX,
+            lon_min=RF_LON_MIN,
+            lon_max=RF_LON_MAX,
+            direction="eastbound",
+            month_start=m_start,
+            month_end=m_end,
+        )
+
+        n1, n2 = result["group1_n"], result["group2_n"]
+        if n1 == 0 or n2 == 0:
+            print(f"  Insufficient data: pre={n1}, post={n2}")
+            continue
+
+        diff = result["group2_mean"] - result["group1_mean"]
+        pct = (diff / result["group1_mean"] * 100) if result["group1_mean"] else 0
+        p_str = f"{result['p_value']:.6f}" if result["p_value"] > 0 else "< 1e-300"
+        sig = "SIGNIFICANT" if result["significant"] else "not significant"
+
+        print(f"  Pre-Laki:  n={n1:>5,}, mean={result['group1_mean']:.1f} km/day")
+        print(f"  Post-Laki: n={n2:>5,}, mean={result['group2_mean']:.1f} km/day")
+        print(f"  Difference: {diff:+.1f} km/day ({pct:+.1f}%)")
+        print(f"  Mann-Whitney z={result['z_score']:.4f}, p={p_str} ({sig})")
+        print(f"  Cohen's d = {result['effect_size']:.3f}")
+
+    print()
+    print("  Interpretation: If the winter signal is stronger than summer,")
+    print("  that confirms volcanic aerosol forcing acting through the")
+    print("  meridional temperature gradient → jet stream pathway.")
+    print("  Equal signals would suggest a more uniform atmospheric effect.")
+
+
 async def main() -> None:
     runner = ToolRunner()
 
@@ -452,6 +516,7 @@ async def main() -> None:
     await section_ew_ratio(runner)
     await section_seasonal_amplitude(runner)
     await section_spatial(runner)
+    await section_laki_seasonal(runner)
 
     # Summary
     print("\n" + "=" * 72)
@@ -479,6 +544,11 @@ async def main() -> None:
     print("     for spatial structure in the westerly wind field — do")
     print("     winds strengthen everywhere equally, or are there")
     print("     preferred zones of change?")
+    print()
+    print("  5. SEASONAL LAKI: Austral winter (Jun-Aug) vs summer (Dec-Feb)")
+    print("     decomposition tests whether the Laki signal acts through")
+    print("     the expected jet-stream pathway — stronger in winter when")
+    print("     the meridional temperature gradient matters most.")
     print()
     print("  Each of these analyses could be a standalone research paper.")
     print("  Together they demonstrate that maritime logbook data — ")

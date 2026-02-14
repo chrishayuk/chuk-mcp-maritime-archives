@@ -448,6 +448,24 @@ Two bugfixes discovered during GPT-5.2 testing and architecture review.
 **Quality:**
 - 1042+ tests across 15 test modules, 96%+ branch coverage
 
+### v0.19.0 -- Seasonal Climate Filters
+
+Seasonal month filtering for track analytics tools, driven by GPT-5.2 Laki volcanic signal analysis.
+
+**Context:** A GPT-5.2 session autonomously discovered a statistically significant Laki 1783 volcanic signal — UK eastbound speeds in the Roaring Forties increased +56 km/day (+31%) post-Laki with p≈0 and effect size d=0.64, while westbound speeds were flat. The model identified that `month_start`/`month_end` filtering would unlock the most diagnostic seasonal test for volcanic aerosol forcing.
+
+**Enhanced tools:**
+- `maritime_aggregate_track_speeds` -- added `month_start` / `month_end` params (1-12) with wrap-around support (e.g., 11-2 = Nov-Feb)
+- `maritime_compare_speed_groups` -- added `month_start` / `month_end` params for seasonal decomposition of Mann-Whitney U tests
+
+**Enables:**
+- Austral winter (Jun-Aug) vs summer (Dec-Feb) decomposition for volcanic signal isolation
+- Seasonal amplitude evolution analysis across decades
+- Month-restricted statistical testing for climate proxy research
+
+**Quality:**
+- 1055+ tests across 15 test modules, 96%+ branch coverage
+
 ---
 
 ## Planned

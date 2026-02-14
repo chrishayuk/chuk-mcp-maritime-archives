@@ -1,6 +1,6 @@
 # chuk-mcp-maritime-archives Specification
 
-Version 0.18.1
+Version 0.19.0
 
 ## Overview
 
@@ -977,6 +977,8 @@ by the requested dimension.
 | `year_start` | `int?` | `None` | Filter tracks starting from this year |
 | `year_end` | `int?` | `None` | Filter tracks ending at this year |
 | `direction` | `str?` | `None` | Filter by `"eastbound"` or `"westbound"` |
+| `month_start` | `int?` | `None` | Start month (1-12) for seasonal filtering. Supports wrap-around with month_end (e.g., 11-2 = Nov-Feb) |
+| `month_end` | `int?` | `None` | End month (1-12) for seasonal filtering |
 | `min_speed_km_day` | `float` | `5.0` | Minimum speed filter |
 | `max_speed_km_day` | `float` | `400.0` | Maximum speed filter |
 
@@ -992,6 +994,8 @@ by the requested dimension.
 | `longitude_band` | `str?` | Longitude filter applied |
 | `direction_filter` | `str?` | Direction filter applied |
 | `nationality_filter` | `str?` | Nationality filter applied |
+| `month_start_filter` | `int?` | Season start month filter applied (null if not filtered) |
+| `month_end_filter` | `int?` | Season end month filter applied (null if not filtered) |
 | `message` | `str` | Result message |
 
 **SpeedAggregationGroup fields:**
@@ -1028,6 +1032,8 @@ significant. Also returns Cohen's d effect size.
 | `lon_max` | `float?` | `None` | Maximum longitude for position bounding box |
 | `nationality` | `str?` | `None` | Filter tracks by nationality code |
 | `direction` | `str?` | `None` | Filter by `"eastbound"` or `"westbound"` |
+| `month_start` | `int?` | `None` | Start month (1-12) for seasonal filtering. Supports wrap-around with month_end (e.g., 11-2 = Nov-Feb) |
+| `month_end` | `int?` | `None` | End month (1-12) for seasonal filtering |
 | `min_speed_km_day` | `float` | `5.0` | Minimum speed filter |
 | `max_speed_km_day` | `float` | `400.0` | Maximum speed filter |
 
@@ -1048,6 +1054,8 @@ significant. Also returns Cohen's d effect size.
 | `p_value` | `float` | Two-tailed p-value |
 | `significant` | `bool` | Whether p < 0.05 |
 | `effect_size` | `float` | Cohen's d effect size |
+| `month_start_filter` | `int?` | Season start month filter applied (null if not filtered) |
+| `month_end_filter` | `int?` | Season end month filter applied (null if not filtered) |
 | `message` | `str` | Result message |
 
 ---

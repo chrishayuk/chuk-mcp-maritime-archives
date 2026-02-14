@@ -127,6 +127,8 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
         year_start: int | None = None,
         year_end: int | None = None,
         direction: str | None = None,
+        month_start: int | None = None,
+        month_end: int | None = None,
         min_speed_km_day: float = 5.0,
         max_speed_km_day: float = 400.0,
         output_mode: str = "json",
@@ -153,6 +155,9 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
             year_start: Filter tracks starting from this year
             year_end: Filter tracks ending at this year
             direction: Filter observations by "eastbound" or "westbound"
+            month_start: Filter by start month (1-12). Supports wrap-around
+                with month_end (e.g., month_start=11, month_end=2 = Nov-Feb)
+            month_end: Filter by end month (1-12). Used with month_start
             min_speed_km_day: Minimum speed filter (default: 5.0)
             max_speed_km_day: Maximum speed filter (default: 400.0)
             output_mode: Response format - "json" (default) or "text"
@@ -170,6 +175,10 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
             - group_by="nationality" controls for shipbuilding differences
             - Combine direction="eastbound" with group_by="decade" for the
               clearest wind signal (ships running before the wind)
+            - Use month_start=6, month_end=8 for austral winter (Jun-Aug)
+            - Use month_start=12, month_end=2 for austral summer (Dec-Feb)
+            - Seasonal filtering isolates volcanic aerosol signals in wind
+              data (e.g., Laki 1783 eruption effect on Southern Ocean winds)
             - Use maritime_compare_speed_groups for statistical significance
               testing between time periods
         """
@@ -184,6 +193,8 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
                 year_start=year_start,
                 year_end=year_end,
                 direction=direction,
+                month_start=month_start,
+                month_end=month_end,
                 min_speed=min_speed_km_day,
                 max_speed=max_speed_km_day,
             )
@@ -213,6 +224,8 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
                     longitude_band=result.get("longitude_band"),
                     direction_filter=result.get("direction_filter"),
                     nationality_filter=result.get("nationality_filter"),
+                    month_start_filter=result.get("month_start_filter"),
+                    month_end_filter=result.get("month_end_filter"),
                     message=SuccessMessages.SPEEDS_AGGREGATED.format(
                         result["total_observations"],
                         result["total_voyages"],
@@ -238,6 +251,8 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
         lon_max: float | None = None,
         nationality: str | None = None,
         direction: str | None = None,
+        month_start: int | None = None,
+        month_end: int | None = None,
         min_speed_km_day: float = 5.0,
         max_speed_km_day: float = 400.0,
         output_mode: str = "json",
@@ -258,6 +273,9 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
             lon_max: Maximum longitude for position bounding box
             nationality: Filter tracks by nationality code
             direction: Filter by "eastbound" or "westbound"
+            month_start: Filter by start month (1-12). Supports wrap-around
+                with month_end (e.g., month_start=6, month_end=8 = Jun-Aug)
+            month_end: Filter by end month (1-12). Used with month_start
             min_speed_km_day: Minimum speed filter (default: 5.0)
             max_speed_km_day: Maximum speed filter (default: 400.0)
             output_mode: Response format - "json" (default) or "text"
@@ -272,6 +290,10 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
             - p < 0.05 indicates statistically significant difference
             - Cohen's d > 0.8 indicates a large effect size
             - Use with direction="eastbound" for clearest wind signal
+            - Use month_start=6, month_end=8 for austral winter only
+            - Use month_start=12, month_end=2 for austral summer only
+            - Seasonal filtering is the most diagnostic test for volcanic
+              aerosol forcing (e.g., Laki 1783 effect on westerlies)
             - Combine with maritime_aggregate_track_speeds to understand
               the trend before testing significance
         """
@@ -285,6 +307,8 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
                 lon_max=lon_max,
                 nationality=nationality,
                 direction=direction,
+                month_start=month_start,
+                month_end=month_end,
                 min_speed=min_speed_km_day,
                 max_speed=max_speed_km_day,
             )
@@ -304,6 +328,8 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
                     p_value=result["p_value"],
                     significant=result["significant"],
                     effect_size=result["effect_size"],
+                    month_start_filter=result.get("month_start_filter"),
+                    month_end_filter=result.get("month_end_filter"),
                     message=SuccessMessages.SPEED_GROUPS_COMPARED.format(
                         result["group1_n"],
                         result["group2_n"],

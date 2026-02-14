@@ -400,6 +400,17 @@ def _infer_direction(lon1: float, lon2: float) -> str:
     return "eastbound" if dlon >= 0 else "westbound"
 
 
+def _month_in_range(month: int, start: int | None, end: int | None) -> bool:
+    """Check if month is within [start, end], handling wrap-around (e.g., 11→2)."""
+    if start is None and end is None:
+        return True
+    s = start if start is not None else 1
+    e = end if end is not None else 12
+    if s <= e:
+        return s <= month <= e
+    return month >= s or month <= e
+
+
 def _parse_date(d: str) -> date | None:
     """Parse a YYYY-MM-DD string to a date object."""
     try:
@@ -577,6 +588,8 @@ def aggregate_track_speeds(
     year_start: int | None = None,
     year_end: int | None = None,
     direction: str | None = None,
+    month_start: int | None = None,
+    month_end: int | None = None,
     min_speed: float = 5.0,
     max_speed: float = 400.0,
 ) -> dict[str, Any]:
@@ -588,6 +601,7 @@ def aggregate_track_speeds(
         nationality: Filter tracks by nationality code
         year_start/year_end: Filter tracks by year range
         direction: Filter observations by "eastbound" or "westbound"
+        month_start/month_end: Filter by month (1-12), supports wrap-around (11-2 = Nov-Feb)
         min_speed/max_speed: Speed bounds in km/day
 
     Returns:
@@ -618,6 +632,12 @@ def aggregate_track_speeds(
             if direction and obs.get("direction") != direction:
                 continue
 
+            # Apply month filter
+            if month_start is not None or month_end is not None:
+                d = _parse_date(obs["date"])
+                if d is None or not _month_in_range(d.month, month_start, month_end):
+                    continue
+
             key = _group_key(obs, group_by, track)
             if key is None:
                 continue
@@ -644,6 +664,8 @@ def aggregate_track_speeds(
         else None,
         "direction_filter": direction,
         "nationality_filter": nationality,
+        "month_start_filter": month_start,
+        "month_end_filter": month_end,
     }
 
 
@@ -656,6 +678,8 @@ def compare_speed_groups(
     lon_max: float | None = None,
     nationality: str | None = None,
     direction: str | None = None,
+    month_start: int | None = None,
+    month_end: int | None = None,
     min_speed: float = 5.0,
     max_speed: float = 400.0,
 ) -> dict[str, Any]:
@@ -664,6 +688,7 @@ def compare_speed_groups(
     Args:
         group1_years: First period as "YYYY/YYYY" (e.g., "1750/1789")
         group2_years: Second period as "YYYY/YYYY" (e.g., "1820/1859")
+        month_start/month_end: Filter by month (1-12), supports wrap-around
         Other args: same as aggregate_track_speeds
 
     Returns:
@@ -696,6 +721,9 @@ def compare_speed_groups(
                     continue
                 d = _parse_date(obs["date"])
                 if d and yr_start <= d.year <= yr_end:
+                    if month_start is not None or month_end is not None:
+                        if not _month_in_range(d.month, month_start, month_end):
+                            continue
                     values.append(obs["km_day"])
         return values
 
@@ -729,6 +757,8 @@ def compare_speed_groups(
         "p_value": round(p_value, 6),
         "significant": p_value < 0.05,
         "effect_size": round(cohens_d, 3),
+        "month_start_filter": month_start,
+        "month_end_filter": month_end,
     }
 
 

@@ -1,6 +1,6 @@
 [project]
 name = "chuk-mcp-maritime-archives"
-version = "0.1.0"
+version = "0.2.0"
 description = "Historical Maritime Archives MCP Server"
 authors = []
 license = { text = "Apache-2.0" }

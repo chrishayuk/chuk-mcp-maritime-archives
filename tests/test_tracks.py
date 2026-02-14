@@ -8,6 +8,7 @@ from chuk_mcp_maritime_archives.core.cliwoc_tracks import (
     _TRACKS,
     _haversine_km,
     _mann_whitney_u,
+    _month_in_range,
     aggregate_track_speeds,
     compare_speed_groups,
     compute_track_speeds,
@@ -678,6 +679,56 @@ class TestAggregateTrackSpeeds:
         assert result["total_observations"] == 0
         assert len(result["groups"]) == 0
 
+    def test_aggregate_with_month_filter(self):
+        result = aggregate_track_speeds(
+            group_by="decade",
+            lat_min=-50,
+            lat_max=-30,
+            month_start=6,
+            month_end=8,
+        )
+        assert result["month_start_filter"] == 6
+        assert result["month_end_filter"] == 8
+
+    def test_aggregate_with_month_wrap_around(self):
+        result = aggregate_track_speeds(
+            group_by="decade",
+            lat_min=-50,
+            lat_max=-30,
+            month_start=11,
+            month_end=2,
+        )
+        assert result["month_start_filter"] == 11
+        assert result["month_end_filter"] == 2
+
+    def test_aggregate_month_filter_reduces_count(self):
+        full = aggregate_track_speeds(
+            group_by="decade",
+            lat_min=-50,
+            lat_max=-30,
+        )
+        filtered = aggregate_track_speeds(
+            group_by="decade",
+            lat_min=-50,
+            lat_max=-30,
+            month_start=6,
+            month_end=8,
+        )
+        assert filtered["total_observations"] <= full["total_observations"]
+
+    def test_aggregate_month_filter_in_response(self):
+        result = aggregate_track_speeds(
+            group_by="decade",
+            lat_min=-50,
+            lat_max=-30,
+            month_start=1,
+            month_end=3,
+        )
+        assert "month_start_filter" in result
+        assert "month_end_filter" in result
+        assert result["month_start_filter"] == 1
+        assert result["month_end_filter"] == 3
+
 
 # ---------------------------------------------------------------------------
 # Compare speed groups
@@ -724,6 +775,31 @@ class TestCompareSpeedGroups:
         assert result["group1_n"] == 0
         assert result["p_value"] == 1.0
 
+    def test_compare_with_month_filter(self):
+        result = compare_speed_groups(
+            group1_years="1750/1789",
+            group2_years="1820/1859",
+            lat_min=-50,
+            lat_max=-30,
+            month_start=6,
+            month_end=8,
+        )
+        assert result["month_start_filter"] == 6
+        assert result["month_end_filter"] == 8
+        assert isinstance(result["p_value"], float)
+
+    def test_compare_with_month_wrap_around(self):
+        result = compare_speed_groups(
+            group1_years="1750/1789",
+            group2_years="1820/1859",
+            lat_min=-50,
+            lat_max=-30,
+            month_start=11,
+            month_end=2,
+        )
+        assert result["month_start_filter"] == 11
+        assert result["month_end_filter"] == 2
+
 
 # ---------------------------------------------------------------------------
 # Mann-Whitney U helper
@@ -754,6 +830,46 @@ class TestMannWhitneyU:
         assert isinstance(u, float)
         assert isinstance(z, float)
         assert isinstance(p, float)
+
+
+# ---------------------------------------------------------------------------
+# Month range helper
+# ---------------------------------------------------------------------------
+
+
+class TestMonthInRange:
+    def test_no_filter(self):
+        assert _month_in_range(5, None, None) is True
+        assert _month_in_range(1, None, None) is True
+        assert _month_in_range(12, None, None) is True
+
+    def test_normal_range(self):
+        # Jun-Aug (austral winter)
+        assert _month_in_range(6, 6, 8) is True
+        assert _month_in_range(7, 6, 8) is True
+        assert _month_in_range(8, 6, 8) is True
+        assert _month_in_range(5, 6, 8) is False
+        assert _month_in_range(9, 6, 8) is False
+
+    def test_wrap_around(self):
+        # Nov-Feb (austral summer, wraps through December)
+        assert _month_in_range(11, 11, 2) is True
+        assert _month_in_range(12, 11, 2) is True
+        assert _month_in_range(1, 11, 2) is True
+        assert _month_in_range(2, 11, 2) is True
+        assert _month_in_range(5, 11, 2) is False
+        assert _month_in_range(10, 11, 2) is False
+
+    def test_single_month(self):
+        assert _month_in_range(6, 6, 6) is True
+        assert _month_in_range(5, 6, 6) is False
+        assert _month_in_range(7, 6, 6) is False
+
+    def test_start_only(self):
+        # start=6, end=None → treated as 6-12
+        assert _month_in_range(6, 6, None) is True
+        assert _month_in_range(12, 6, None) is True
+        assert _month_in_range(5, 6, None) is False
 
 
 # ---------------------------------------------------------------------------
@@ -895,3 +1011,32 @@ class TestAnalyticsTools:
             result = await fn(group1_years="1750/1789", group2_years="1820/1859")
         parsed = json.loads(result)
         assert "crash" in parsed["error"]
+
+    @pytest.mark.asyncio
+    async def test_aggregate_with_month_filter(self):
+        fn = self.mcp.get_tool("maritime_aggregate_track_speeds")
+        result = await fn(
+            group_by="decade",
+            lat_min=-50,
+            lat_max=-30,
+            month_start=6,
+            month_end=8,
+        )
+        parsed = json.loads(result)
+        assert parsed["month_start_filter"] == 6
+        assert parsed["month_end_filter"] == 8
+
+    @pytest.mark.asyncio
+    async def test_compare_with_month_filter(self):
+        fn = self.mcp.get_tool("maritime_compare_speed_groups")
+        result = await fn(
+            group1_years="1750/1789",
+            group2_years="1820/1859",
+            lat_min=-50,
+            lat_max=-30,
+            month_start=6,
+            month_end=8,
+        )
+        parsed = json.loads(result)
+        assert parsed["month_start_filter"] == 6
+        assert parsed["month_end_filter"] == 8

@@ -1191,10 +1191,18 @@ class TrackSpeedAggregationResponse(BaseModel):
     longitude_band: list[float] | None = None
     direction_filter: str | None = None
     nationality_filter: str | None = None
+    month_start_filter: int | None = None
+    month_end_filter: int | None = None
     message: str = ""
 
     def to_text(self) -> str:
-        lines = [self.message, f"Grouped by: {self.group_by}", ""]
+        lines = [self.message, f"Grouped by: {self.group_by}"]
+        if self.month_start_filter is not None or self.month_end_filter is not None:
+            lines.append(
+                f"Season filter: months {self.month_start_filter or 1}"
+                f"-{self.month_end_filter or 12}"
+            )
+        lines.append("")
         for g in self.groups:
             lines.append(
                 f"  {g.group_key:>12s}: {g.mean_km_day:6.1f} km/day "
@@ -1222,22 +1230,31 @@ class SpeedComparisonResponse(BaseModel):
     p_value: float
     significant: bool
     effect_size: float
+    month_start_filter: int | None = None
+    month_end_filter: int | None = None
     message: str = ""
 
     def to_text(self) -> str:
         sig = "SIGNIFICANT" if self.significant else "not significant"
-        lines = [
-            self.message,
-            f"Group 1 ({self.group1_label}): n={self.group1_n}, "
-            f"mean={self.group1_mean:.1f} km/day, std={self.group1_std:.1f}",
-            f"Group 2 ({self.group2_label}): n={self.group2_n}, "
-            f"mean={self.group2_mean:.1f} km/day, std={self.group2_std:.1f}",
-            "",
-            f"Mann-Whitney U = {self.mann_whitney_u:.1f}",
-            f"z = {self.z_score:.4f}",
-            f"p = {self.p_value:.6f} ({sig} at p<0.05)",
-            f"Cohen's d = {self.effect_size:.3f}",
-        ]
+        lines = [self.message]
+        if self.month_start_filter is not None or self.month_end_filter is not None:
+            lines.append(
+                f"Season filter: months {self.month_start_filter or 1}"
+                f"-{self.month_end_filter or 12}"
+            )
+        lines.extend(
+            [
+                f"Group 1 ({self.group1_label}): n={self.group1_n}, "
+                f"mean={self.group1_mean:.1f} km/day, std={self.group1_std:.1f}",
+                f"Group 2 ({self.group2_label}): n={self.group2_n}, "
+                f"mean={self.group2_mean:.1f} km/day, std={self.group2_std:.1f}",
+                "",
+                f"Mann-Whitney U = {self.mann_whitney_u:.1f}",
+                f"z = {self.z_score:.4f}",
+                f"p = {self.p_value:.6f} ({sig} at p<0.05)",
+                f"Cohen's d = {self.effect_size:.3f}",
+            ]
+        )
         return "\n".join(lines)
 
 

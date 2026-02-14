@@ -261,33 +261,259 @@ uv run chuk-mcp-maritime-archives --mode http
 **STDIO mode** is for MCP clients like Claude Desktop and mcp-cli.
 **HTTP mode** runs a web server on http://localhost:8005 for HTTP-based MCP clients.
 
-## Example Usage
+## Example Prompts
 
-Once configured, you can ask Claude questions like:
+Once configured with an MCP client, here are prompts organised by use case. Each prompt
+exercises one or more of the 40 tools and demonstrates a different capability of the server.
 
-- "List the available maritime archives"
-- "Search for VOC voyages that were wrecked near the Cape of Good Hope"
-- "Show me the full record for the Batavia voyage"
-- "Search for EIC voyages involving the Earl of Abergavenny"
-- "Find Portuguese Carreira voyages commanded by Vasco da Gama"
-- "Show me Manila Galleon wrecks in the Pacific"
-- "Search for Swedish East India Company voyages of the Gotheborg"
-- "What crew served on the Ridderschap van Holland?"
-- "Search for wrecks with cargo worth over 1 million guilders"
-- "Get the hull profile for a retourschip -- I need drag coefficients for drift modelling"
-- "Where are the coordinates for Batavia?" (gazetteer lookup)
-- "What route would a ship take from Texel to Batavia?"
-- "If a ship left Texel on 1629-10-28, where would it be on 1630-02-15?"
-- "Search for Dutch ship tracks from the 1780s"
-- "What other ships were near the Batavia wreck site on 1629-06-04?"
-- "What were the typical sailing speeds on the outward route via the Roaring Forties?"
-- "Show me the timeline of the Batavia's final voyage"
-- "Assess the position quality for wreck VOC-0456"
-- "Export all Cape wrecks as GeoJSON"
-- "Show me loss statistics by decade across all archives"
-- "Find all mentions of monsoon across all archives"
-- "Which wrecks mention cannon in their descriptions?"
-- "Search for narratives about storms near the Cape of Good Hope"
+### Exploration & Discovery
+
+Start here. These require no domain knowledge and produce immediately compelling results.
+
+```
+"List the available maritime archives and tell me what each one covers."
+```
+→ `maritime_list_archives` · Overview of all 11 archives across 6 nations
+
+```
+"If I sailed from Texel on October 28, 1628, where would I be by Christmas?"
+```
+→ `maritime_estimate_position` · Position interpolation along historical routes
+
+```
+"Show me the full story of the Batavia — the voyage, the wreck, the vessel, and any crew records."
+```
+→ `maritime_get_voyage_full` · Cross-archive linking across DAS, MAARER, vessel registry, and CLIWOC tracks
+
+```
+"What other ships were sailing near the Batavia wreck site on June 4, 1629?"
+```
+→ `maritime_nearby_tracks` · Proximity search across 261K CLIWOC logbook positions
+
+```
+"Where are the coordinates for Batavia? What about the Cape of Good Hope?"
+```
+→ `maritime_lookup_location` · Historical place-name resolution with modern coordinates
+
+```
+"What route would a ship take from Texel to Batavia via the Roaring Forties?"
+```
+→ `maritime_get_route` · Full route with waypoints, hazards, and season notes
+
+```
+"Show me the timeline of the Batavia's final voyage — every event in chronological order."
+```
+→ `maritime_get_timeline` · Assembled from DAS voyages, route estimates, CLIWOC tracks, and wreck records
+
+### Wreck Investigation
+
+These follow the pattern a maritime archaeologist would use: search → assess → export.
+
+```
+"Search for VOC wrecks near the Cape of Good Hope. How many are still unfound?"
+```
+→ `maritime_search_wrecks` · Region + status filtering across 7 wreck archives
+
+```
+"Find all wrecks with cargo worth over 1 million guilders."
+```
+→ `maritime_search_wrecks` · Cargo value filtering
+
+```
+"Get the wreck record for the Batavia, then assess the position quality."
+```
+→ `maritime_get_wreck` + `maritime_assess_position` · Position uncertainty with navigation-era detection
+
+```
+"Export all Cape wrecks as GeoJSON so I can plot them on a map."
+```
+→ `maritime_export_geojson` · GeoJSON FeatureCollection with uncertainty radii
+
+```
+"Get the hull profile for a retourschip — I need drag coefficients for drift modelling."
+```
+→ `maritime_get_hull_profile` · Hydrodynamic data for 6 ship types
+
+```
+"Show me loss statistics by decade across all archives. What were the deadliest decades?"
+```
+→ `maritime_get_statistics` · Aggregate losses by region, cause, and decade
+
+```
+"Search for UKHO wrecks flagged as Dutch in the Indian Ocean."
+```
+→ `maritime_search_wrecks` · UKHO 94K+ global wrecks with nationality filtering
+
+```
+"Find NOAA wrecks in the Gulf of Mexico with high position quality."
+```
+→ `maritime_search_wrecks` · NOAA AWOIS wrecks with GP quality codes
+
+### Multi-Nation Voyages
+
+The server covers Dutch, English, Portuguese, Spanish, and Swedish maritime archives.
+
+```
+"Search for EIC voyages involving the Earl of Abergavenny."
+```
+→ `maritime_search_voyages` · English East India Company (~150 voyages)
+
+```
+"Find Portuguese Carreira voyages commanded by Vasco da Gama."
+```
+→ `maritime_search_voyages` · Portuguese Carreira da India (~500 voyages, 1497–1835)
+
+```
+"Show me Manila Galleon wrecks in the Pacific."
+```
+→ `maritime_search_wrecks` · Spanish Manila Galleon (~42 wrecks)
+
+```
+"Search for Swedish East India Company voyages of the Gotheborg."
+```
+→ `maritime_search_voyages` · SOIC (~132 voyages, 1731–1813)
+
+```
+"Compare Portuguese Carreira wrecks with VOC wrecks in the same regions — different loss causes?"
+```
+→ `maritime_search_wrecks` + `maritime_get_statistics` · Cross-archive comparison
+
+### Crew & Social History
+
+774,000 VOC crew records enable prosopographical research at scale.
+
+```
+"What crew served on the Ridderschap van Holland?"
+```
+→ `maritime_search_crew` · Crew muster roll search
+
+```
+"Show me crew survival rates by rank across the full VOC period. Were officers more likely to survive?"
+```
+→ `maritime_crew_survival_analysis` · Mortality and desertion rates by dimension
+
+```
+"What were the most common ranks on VOC ships? How did the distribution change by decade?"
+```
+→ `maritime_crew_demographics` · Aggregate statistics across 774K records
+
+```
+"Reconstruct the career of any crew member named Pietersz from Amsterdam."
+```
+→ `maritime_crew_career` · Career tracing across multiple voyages with rank progression
+
+```
+"Compare crew wages between 1691–1740 and 1741–1791. Did wages keep up?"
+```
+→ `maritime_compare_wages` · GZMVOC muster wage comparison between time periods
+
+### Narrative & Full-Text Search
+
+Search across all free-text fields in all archives.
+
+```
+"Find all mentions of monsoon across all archives."
+```
+→ `maritime_search_narratives` · Full-text search across voyage and wreck particulars
+
+```
+"Which wrecks mention cannon in their descriptions?"
+```
+→ `maritime_search_narratives` · Keyword search with snippet extraction
+
+```
+"Search for narratives about storms near the Cape of Good Hope."
+```
+→ `maritime_search_narratives` · Phrase matching with relevance ranking
+
+### Climate Science & Speed Analytics
+
+Ship speeds as wind proxies — original research capability using 261K CLIWOC logbook positions.
+
+```
+"Aggregate Dutch ship speeds in the Roaring Forties by decade from 1750 to 1860, eastbound only.
+Then do the same for westbound. Are ships getting faster, and is the trend different by direction?"
+```
+→ `maritime_aggregate_track_speeds` · If eastbound increases faster than westbound, that's wind
+(strengthening westerlies), not technology. This is the core climate proxy signal.
+
+```
+"Compare ship speeds in the Roaring Forties between 1780–1782 (pre-Laki) and 1784–1786 (post-Laki).
+Did the 1783 Laki eruption in Iceland measurably affect Southern Ocean wind patterns?"
+```
+→ `maritime_compare_speed_groups` · Mann-Whitney U test for volcanic signal detection. The Laki
+eruption injected massive SO₂ into the atmosphere — a speed dip in this window indicates weakened
+westerlies detectable in 240-year-old logbook data.
+
+```
+"Aggregate ship speeds in the Roaring Forties by month across all years. Which months have the
+strongest winds? Then compare seasonal amplitude between 1750–1789 and 1820–1859."
+```
+→ `maritime_aggregate_track_speeds` · Seasonal wind cycle decomposition
+
+```
+"Compare ship speeds in the western Indian Ocean (lon 15–60) versus the eastern Indian Ocean
+(lon 60–110) for the same latitude band. Do wind patterns differ between the two basins?"
+```
+→ `maritime_aggregate_track_speeds` · Spatial variation in Southern Ocean wind strength
+
+```
+"Search for Dutch ship tracks passing through the Roaring Forties in the 1780s."
+```
+→ `maritime_search_tracks` · Geographic bounding box filtering on CLIWOC data
+
+```
+"What were the typical sailing speeds on the outward route via the Roaring Forties?"
+```
+→ `maritime_get_speed_profile` · CLIWOC-derived speed statistics per route segment
+
+### Cargo & Trade
+
+```
+"Search for pepper shipments from the Malabar coast."
+```
+→ `maritime_search_cargo` · Commodity search across 200 curated BGB records
+
+```
+"What cargo was on the most valuable VOC voyage?"
+```
+→ `maritime_search_cargo` + `maritime_get_cargo_manifest` · Value filtering and full manifests
+
+### Advanced: Multi-Tool Investigation Chains
+
+These prompts naturally trigger 3–8 tool calls as the model builds a complete picture.
+
+```
+"Investigate the Batavia wreck: find the voyage, get the full linked record with crew,
+assess the position quality, get the hull profile for drift modelling, and check what other
+ships were in the area when it wrecked."
+```
+→ Chains: `maritime_search_voyages` → `maritime_get_voyage_full` → `maritime_assess_position`
+→ `maritime_get_hull_profile` → `maritime_nearby_tracks`
+
+```
+"I want to understand VOC losses in the Cape region. Search for all Cape wrecks, show me the
+statistics by cause, export the found wrecks as GeoJSON, and tell me which unfound wrecks
+have the best position data for a search expedition."
+```
+→ Chains: `maritime_search_wrecks` → `maritime_get_statistics` → `maritime_export_geojson`
+→ `maritime_assess_position` (for each candidate)
+
+```
+"Plan a historical sailing voyage: pick a route from Texel to Batavia, show me the waypoints
+and hazards, estimate where I'd be after 90 days, and tell me what speeds to expect based on
+historical data. Also find any wrecks along the route."
+```
+→ Chains: `maritime_list_routes` → `maritime_get_route` → `maritime_estimate_position`
+→ `maritime_get_speed_profile` → `maritime_search_wrecks`
+
+```
+"Full climate analysis: aggregate Roaring Forties speeds by decade, test for a Laki volcanic
+signal, decompose by month for seasonal patterns, and compare the western vs eastern Indian
+Ocean for spatial variation."
+```
+→ Chains: `maritime_aggregate_track_speeds` (×4 with different parameters)
+→ `maritime_compare_speed_groups` · Complete climate research workflow
 
 ### Running the Examples
 
@@ -856,7 +1082,7 @@ Built on top of chuk-mcp-server, this server uses:
 
 - **Async-First**: Native async/await with sync HTTP wrapped in `asyncio.to_thread()`
 - **Type-Safe**: Pydantic v2 models with `extra="forbid"` for all responses, `extra="allow"` for domain models
-- **LRU Caching**: OrderedDict-based caches for voyages (500), wrecks (500), and vessels
+- **In-Memory Caching**: Data loaded once from JSON via `_load_json()` and cached in instance attributes
 - **Reproducible Data**: Download scripts fetch real data from DAS, CLIWOC, and Nationaal Archief; curated generation scripts for Carreira, Galleon, SOIC; all scripts support `--force` and cache-check pattern
 - **Pluggable Storage**: Artifact storage via chuk-artifacts (memory, filesystem, S3)
 - **No External HTTP Deps**: Uses stdlib `urllib.request` -- no requests/httpx dependency
