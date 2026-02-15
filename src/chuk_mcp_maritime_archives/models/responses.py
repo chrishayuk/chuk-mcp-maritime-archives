@@ -1468,6 +1468,84 @@ class TortuosityAggregationResponse(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# Speed export
+# ---------------------------------------------------------------------------
+
+
+class SpeedSample(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    voyage_id: int
+    year: int
+    month: int | None = None
+    direction: str | None = None
+    speed_km_day: float
+    nationality: str | None = None
+    ship_name: str | None = None
+    lat: float | None = None
+    lon: float | None = None
+    wind_force: int | None = None
+    wind_direction: int | None = None
+    n_observations: int | None = None
+
+
+class SpeedExportResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    total_matching: int
+    returned: int
+    truncated: bool
+    aggregate_by: str
+    samples: list[SpeedSample]
+    latitude_band: list[float] | None = None
+    longitude_band: list[float] | None = None
+    direction_filter: str | None = None
+    nationality_filter: str | None = None
+    year_start_filter: int | None = None
+    year_end_filter: int | None = None
+    month_start_filter: int | None = None
+    month_end_filter: int | None = None
+    wind_force_min_filter: int | None = None
+    wind_force_max_filter: int | None = None
+    message: str = ""
+
+    def to_text(self) -> str:
+        lines = [self.message, ""]
+        lines.append(f"Total matching: {self.total_matching:,}")
+        lines.append(f"Returned: {self.returned:,}")
+        if self.truncated:
+            lines.append("(truncated — increase max_results for more)")
+        lines.append(f"Aggregate by: {self.aggregate_by}")
+        lines.append("")
+        if self.aggregate_by == "voyage":
+            header = (
+                f"{'VoyID':>6} {'Year':>5} {'Mon':>3} {'Dir':>10} {'km/day':>8} {'Nat':>3} {'N':>3}"
+            )
+            lines.append(header)
+            lines.append("-" * len(header))
+            for s in self.samples[:50]:
+                lines.append(
+                    f"{s.voyage_id:>6} {s.year:>5} {s.month or 0:>3} "
+                    f"{(s.direction or '?'):>10} {s.speed_km_day:>8.1f} "
+                    f"{(s.nationality or '?'):>3} {s.n_observations or 0:>3}"
+                )
+        else:
+            header = f"{'VoyID':>6} {'Year':>5} {'Mon':>3} {'Dir':>10} {'km/day':>8} {'Nat':>3} {'BF':>3}"
+            lines.append(header)
+            lines.append("-" * len(header))
+            for s in self.samples[:50]:
+                bf = str(s.wind_force) if s.wind_force is not None else ""
+                lines.append(
+                    f"{s.voyage_id:>6} {s.year:>5} {s.month or 0:>3} "
+                    f"{(s.direction or '?'):>10} {s.speed_km_day:>8.1f} "
+                    f"{(s.nationality or '?'):>3} {bf:>3}"
+                )
+        if len(self.samples) > 50:
+            lines.append(f"... and {len(self.samples) - 50} more")
+        return "\n".join(lines)
+
+
+# ---------------------------------------------------------------------------
 # Wind Rose
 # ---------------------------------------------------------------------------
 
@@ -1838,6 +1916,160 @@ class ToolInfo(BaseModel):
     name: str
     category: str
     description: str
+
+
+# ---------------------------------------------------------------------------
+# Galleon Transit Times
+# ---------------------------------------------------------------------------
+
+
+class GalleonTransitSummary(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    n: int
+    mean: float
+    median: float
+    std: float
+    min: int
+    max: int
+
+
+class GalleonTransitRecord(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    voyage_id: str
+    ship_name: str | None = None
+    captain: str | None = None
+    tonnage: int | None = None
+    departure_date: str | None = None
+    departure_port: str | None = None
+    arrival_date: str | None = None
+    destination_port: str | None = None
+    trade_direction: str | None = None
+    fate: str | None = None
+    transit_days: int
+    year: int
+
+
+class GalleonTransitResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    total_matching: int
+    returned: int
+    truncated: bool
+    skipped_no_dates: int
+    records: list[GalleonTransitRecord]
+    summary: GalleonTransitSummary | None = None
+    eastbound_summary: GalleonTransitSummary | None = None
+    westbound_summary: GalleonTransitSummary | None = None
+    trade_direction_filter: str | None = None
+    year_start_filter: int | None = None
+    year_end_filter: int | None = None
+    fate_filter: str | None = None
+    message: str = ""
+
+    def to_text(self) -> str:
+        lines = [self.message, ""]
+        lines.append(f"Total matching: {self.total_matching:,}")
+        lines.append(f"Returned: {self.returned:,}")
+        if self.truncated:
+            lines.append("(truncated — increase max_results for more)")
+        lines.append(f"Skipped (no dates): {self.skipped_no_dates}")
+        lines.append("")
+        if self.summary:
+            lines.append(
+                f"Overall: mean={self.summary.mean:.1f} days, "
+                f"median={self.summary.median:.1f}, "
+                f"std={self.summary.std:.1f}, "
+                f"range={self.summary.min}-{self.summary.max}"
+            )
+        if self.eastbound_summary:
+            s = self.eastbound_summary
+            lines.append(
+                f"Eastbound (Acapulco→Manila): n={s.n}, mean={s.mean:.1f} days, std={s.std:.1f}"
+            )
+        if self.westbound_summary:
+            s = self.westbound_summary
+            lines.append(
+                f"Westbound (Manila→Acapulco): n={s.n}, mean={s.mean:.1f} days, std={s.std:.1f}"
+            )
+        lines.append("")
+        header = f"{'VoyID':>14} {'Year':>5} {'Dir':>10} {'Days':>5} {'Ship':>20} {'Fate':>10}"
+        lines.append(header)
+        lines.append("-" * len(header))
+        for r in self.records[:50]:
+            lines.append(
+                f"{r.voyage_id:>14} {r.year:>5} "
+                f"{(r.trade_direction or '?'):>10} {r.transit_days:>5} "
+                f"{(r.ship_name or '?'):>20} {(r.fate or '?'):>10}"
+            )
+        if len(self.records) > 50:
+            lines.append(f"... and {len(self.records) - 50} more")
+        return "\n".join(lines)
+
+
+# ---------------------------------------------------------------------------
+# Wind Direction by Year
+# ---------------------------------------------------------------------------
+
+
+class WindDirectionYearSector(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    sector: str
+    count: int
+    percent: float
+    mean_speed_km_day: float | None = None
+
+
+class WindDirectionYearGroup(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    year: int
+    total_observations: int
+    sectors: list[WindDirectionYearSector]
+
+
+class WindDirectionByYearResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    total_observations: int
+    total_with_direction: int
+    total_years: int
+    years: list[WindDirectionYearGroup]
+    latitude_band: list[float] | None = None
+    longitude_band: list[float] | None = None
+    direction_filter: str | None = None
+    nationality_filter: str | None = None
+    month_start_filter: int | None = None
+    month_end_filter: int | None = None
+    message: str = ""
+
+    def to_text(self) -> str:
+        lines = [self.message, ""]
+        lines.append(f"Total observations: {self.total_observations:,}")
+        lines.append(f"With direction: {self.total_with_direction:,}")
+        lines.append(f"Years covered: {self.total_years}")
+        lines.append("")
+        header = (
+            f"{'Year':>5} {'N':>6}  "
+            f"{'N':>4} {'NE':>4} {'E':>4} {'SE':>4} "
+            f"{'S':>4} {'SW':>4} {'W':>4} {'NW':>4}"
+        )
+        lines.append(header)
+        lines.append("-" * len(header))
+        for yg in self.years[:50]:
+            pcts = {s.sector: f"{s.percent:.0f}" for s in yg.sectors}
+            lines.append(
+                f"{yg.year:>5} {yg.total_observations:>6}  "
+                f"{pcts.get('N', '0'):>4} {pcts.get('NE', '0'):>4} "
+                f"{pcts.get('E', '0'):>4} {pcts.get('SE', '0'):>4} "
+                f"{pcts.get('S', '0'):>4} {pcts.get('SW', '0'):>4} "
+                f"{pcts.get('W', '0'):>4} {pcts.get('NW', '0'):>4}"
+            )
+        if len(self.years) > 50:
+            lines.append(f"... and {len(self.years) - 50} more")
+        return "\n".join(lines)
 
 
 class CapabilitiesResponse(BaseModel):

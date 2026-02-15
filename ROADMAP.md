@@ -490,7 +490,7 @@ Voyage-level aggregation for statistically independent samples and formal 2×2 D
 
 ### v0.21.0 -- Tortuosity, Wind Force & Wind Rose
 
-Expanded to 44 tools across 19 categories. Route efficiency analysis via tortuosity metrics, Beaufort wind force stratification on existing analytics tools, and a new wind rose tool.
+Expanded to 47 tools across 19 categories. Route efficiency analysis via tortuosity metrics, Beaufort wind force stratification on existing analytics tools, wind rose, and raw speed data export.
 
 **New tools:**
 - `maritime_track_tortuosity` -- compute tortuosity (ratio of actual track distance to great-circle distance) for a single CLIWOC voyage, measuring route efficiency
@@ -510,18 +510,21 @@ Expanded to 44 tools across 19 categories. Route efficiency analysis via tortuos
 - Wind-conditioned Laki volcanic signal analysis: isolate speed changes at constant wind forcing
 
 **Quality:**
-- ~1129+ tests across 15 test modules, 96%+ branch coverage
+- ~1075+ tests across 15 test modules, 96%+ branch coverage
 
-### v0.21.1 -- Anchor Filtering, Wind Directions & Distance Calibration
+### v0.21.1 -- Anchor Filtering, Wind Directions, Distance Calibration & Speed Export
 
-Refinements to tortuosity and wind analytics tools based on data quality review.
+Refinements to tortuosity and wind analytics tools based on data quality review, plus a new raw speed export tool for arbitrary downstream analysis.
 
 - **Anchor filtering** -- exclude stationary (at-anchor) observations from track analytics to avoid deflating speed and inflating tortuosity metrics
 - **Wind direction distributions** -- wind rose tool enhanced with directional frequency distributions and calm-wind handling
 - **Distance calibration** -- improved haversine distance calculations with segment-level sanity checks for more accurate tortuosity and speed metrics
+- **`maritime_export_speeds`** -- export raw speed samples with full metadata (voyage_id, year, month, direction, nationality, ship_name, wind data) for arbitrary grouping: ENSO phase classification, volcanic event detection, arbitrary epoch comparison
+- **`maritime_galleon_transit_times`** -- compute Manila Galleon transit times (1565-1815) for ENSO and climate signal detection
+- **`maritime_wind_direction_by_year`** -- year-by-year wind direction sector distributions from CLIWOC logbooks (97.5% coverage, 1662-1854)
 
 **Quality:**
-- ~1129+ tests across 15 test modules, 96%+ branch coverage
+- ~1160+ tests across 15 test modules, 96%+ branch coverage
 
 ---
 
@@ -589,7 +592,7 @@ This server is the data layer in a composable stack of MCP servers:
 
 | Server | Tools | Tests | Role |
 |--------|-------|-------|------|
-| chuk-mcp-maritime-archives | 44 | ~1129+ | Voyage, wreck, vessel, crew, cargo, musters, demographics, analytics |
+| chuk-mcp-maritime-archives | 47 | ~1160+ | Voyage, wreck, vessel, crew, cargo, musters, demographics, analytics |
 | chuk-mcp-ocean-drift | 10 | 235 | Forward/backtrack/Monte Carlo drift |
 | chuk-mcp-dem | 4 | 711 | Bathymetry and elevation data |
 | chuk-mcp-stac | 5 | 382 | Satellite imagery via STAC catalogues |
@@ -597,7 +600,7 @@ This server is the data layer in a composable stack of MCP servers:
 | chuk-mcp-tides | 8 | 717 | Tidal current data |
 | chuk-mcp-physics | 66 | 240 | Fluid dynamics computations |
 | chuk-mcp-open-meteo | 6 | 22 | Weather and wind data |
-| **Total** | **149** | **3,566+** | |
+| **Total** | **151** | **3,584+** | |
 
 All servers follow the same patterns: Pydantic v2 models, dual output mode, chuk-artifacts storage.
 

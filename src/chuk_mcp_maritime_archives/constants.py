@@ -581,3 +581,8 @@ class SuccessMessages:
         "No wind force data found. Wind fields (W, D) are only available in "
         "CLIWOC 2.1 Full. Re-run scripts/download_cliwoc.py to extract wind data."
     )
+    SPEED_EXPORT_COMPUTED = "Exported {} speed samples ({} total matching)"
+    GALLEON_TRANSIT_COMPUTED = "Computed {} galleon transit times ({} total matching)"
+    WIND_DIRECTION_BY_YEAR_COMPUTED = (
+        "Wind direction by year: {} years, {} observations with direction data"
+    )

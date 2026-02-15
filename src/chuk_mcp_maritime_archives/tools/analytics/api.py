@@ -10,23 +10,34 @@ from ...core.cliwoc_tracks import (
     compute_track_speeds,
     compute_track_tortuosity,
     did_speed_test,
+    export_speeds,
+    wind_direction_by_year,
     wind_rose,
 )
+from ...core.galleon_analysis import galleon_transit_times
 from ...models import (
     BeaufortCount,
     DailySpeed,
     DiDSpeedTestResponse,
     DistanceCalibration,
     ErrorResponse,
+    GalleonTransitRecord,
+    GalleonTransitResponse,
+    GalleonTransitSummary,
     SpeedAggregationGroup,
     SpeedComparisonResponse,
+    SpeedExportResponse,
+    SpeedSample,
     TortuosityAggregationGroup,
     TortuosityAggregationResponse,
     TortuosityComparisonResult,
     TrackSpeedAggregationResponse,
     TrackSpeedsResponse,
     TrackTortuosityResponse,
+    WindDirectionByYearResponse,
     WindDirectionCount,
+    WindDirectionYearGroup,
+    WindDirectionYearSector,
     WindRoseResponse,
     format_response,
 )
@@ -909,5 +920,332 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
             logger.error("Wind rose computation failed: %s", e)
             return format_response(
                 ErrorResponse(error=str(e), message="Wind rose computation failed"),
+                output_mode,
+            )
+
+    @mcp.tool  # type: ignore[union-attr]
+    async def maritime_export_speeds(
+        lat_min: float | None = None,
+        lat_max: float | None = None,
+        lon_min: float | None = None,
+        lon_max: float | None = None,
+        nationality: str | None = None,
+        year_start: int | None = None,
+        year_end: int | None = None,
+        direction: str | None = None,
+        month_start: int | None = None,
+        month_end: int | None = None,
+        aggregate_by: str = "voyage",
+        min_speed_km_day: float = 5.0,
+        max_speed_km_day: float = 400.0,
+        wind_force_min: int | None = None,
+        wind_force_max: int | None = None,
+        max_results: int = 5000,
+        output_mode: str = "json",
+    ) -> str:
+        """
+        Export raw speed samples for downstream statistical analysis.
+
+        Returns individual speed records with full metadata (voyage_id,
+        year, month, direction, nationality, ship_name, wind data) so
+        models can perform arbitrary grouping and statistical tests.
+
+        Unlike maritime_aggregate_track_speeds which groups and summarises,
+        this tool returns the underlying data. Essential for analyses
+        requiring non-contiguous year comparisons (e.g. ENSO phase
+        classification, volcanic event detection, arbitrary epoch testing).
+
+        Args:
+            lat_min/lat_max/lon_min/lon_max: Bounding box
+            nationality: Filter by nationality code
+            year_start/year_end: Filter by year range
+            direction: Filter by "eastbound" or "westbound"
+            month_start/month_end: Month filter (supports wrap-around)
+            aggregate_by: "voyage" (one mean speed per voyage, recommended
+                for statistical independence) or "observation" (each daily
+                speed with position and wind data)
+            min_speed_km_day: Minimum speed filter (default: 5.0)
+            max_speed_km_day: Maximum speed filter (default: 400.0)
+            wind_force_min/wind_force_max: Beaufort force bounds
+            max_results: Maximum records to return (default: 5000)
+            output_mode: Response format - "json" (default) or "text"
+
+        Returns:
+            JSON or text with speed samples and metadata
+
+        Tips for LLMs:
+            - Use aggregate_by="observation" to get individual dated records
+              with full date (ISO YYYY-MM-DD), lat, lon, wind data — essential
+              for lunar phase, tidal, or day-level temporal analyses
+            - Use aggregate_by="voyage" for statistically independent samples
+            - Each observation-level sample includes date, year, month, day
+              for precise temporal correlation (e.g. lunar phase, tidal cycles)
+            - Combine with known ENSO chronology to classify years and
+              compute El Nino vs La Nina vs Neutral speed distributions
+            - For tidal analysis: export observations in narrow channels
+              (e.g. Mozambique Channel lat -26/-12, lon 35/45), use date
+              field to compute lunar phase, correlate with speed
+            - For Laki 1783: compare 1782-1784 samples vs surrounding years
+            - max_results=5000 covers most regional queries; increase if needed
+        """
+        try:
+            result = export_speeds(
+                lat_min=lat_min,
+                lat_max=lat_max,
+                lon_min=lon_min,
+                lon_max=lon_max,
+                nationality=nationality,
+                year_start=year_start,
+                year_end=year_end,
+                direction=direction,
+                month_start=month_start,
+                month_end=month_end,
+                aggregate_by=aggregate_by,
+                min_speed=min_speed_km_day,
+                max_speed=max_speed_km_day,
+                wind_force_min=wind_force_min,
+                wind_force_max=wind_force_max,
+                max_results=max_results,
+            )
+
+            msg = SuccessMessages.SPEED_EXPORT_COMPUTED.format(
+                result["returned"], result["total_matching"]
+            )
+
+            samples = [
+                SpeedSample(
+                    voyage_id=s["voyage_id"],
+                    year=s["year"],
+                    month=s.get("month"),
+                    direction=s.get("direction"),
+                    speed_km_day=s["speed_km_day"],
+                    nationality=s.get("nationality"),
+                    ship_name=s.get("ship_name"),
+                    lat=s.get("lat"),
+                    lon=s.get("lon"),
+                    wind_force=s.get("wind_force"),
+                    wind_direction=s.get("wind_direction"),
+                    n_observations=s.get("n_observations"),
+                )
+                for s in result["samples"]
+            ]
+
+            return format_response(
+                SpeedExportResponse(
+                    total_matching=result["total_matching"],
+                    returned=result["returned"],
+                    truncated=result["truncated"],
+                    aggregate_by=result["aggregate_by"],
+                    samples=samples,
+                    latitude_band=result.get("latitude_band"),
+                    longitude_band=result.get("longitude_band"),
+                    direction_filter=result.get("direction_filter"),
+                    nationality_filter=result.get("nationality_filter"),
+                    year_start_filter=result.get("year_start_filter"),
+                    year_end_filter=result.get("year_end_filter"),
+                    month_start_filter=result.get("month_start_filter"),
+                    month_end_filter=result.get("month_end_filter"),
+                    wind_force_min_filter=result.get("wind_force_min_filter"),
+                    wind_force_max_filter=result.get("wind_force_max_filter"),
+                    message=msg,
+                ),
+                output_mode,
+            )
+        except Exception as e:
+            logger.error("Speed export failed: %s", e)
+            return format_response(
+                ErrorResponse(error=str(e), message="Speed export failed"),
+                output_mode,
+            )
+
+    @mcp.tool  # type: ignore[union-attr]
+    async def maritime_galleon_transit_times(
+        trade_direction: str | None = None,
+        year_start: int | None = None,
+        year_end: int | None = None,
+        fate: str | None = None,
+        max_results: int = 500,
+        output_mode: str = "json",
+    ) -> str:
+        """
+        Compute transit times for Manila Galleon voyages (1565-1815).
+
+        Returns per-voyage transit days (arrival_date - departure_date)
+        for 250 years of Pacific crossings. The galleon trade provides
+        direct tropical Pacific exposure through the ENSO-affected trade
+        wind belt, making transit times a potential ENSO proxy.
+
+        Args:
+            trade_direction: "eastbound" (Acapulco→Manila, trade-wind route,
+                ~75 days) or "westbound" (Manila→Acapulco, northern route,
+                ~165 days)
+            year_start: Earliest departure year (inclusive)
+            year_end: Latest departure year (inclusive)
+            fate: Filter by voyage fate ("completed", "wrecked", etc.)
+            max_results: Maximum records to return (default: 500)
+            output_mode: Response format - "json" (default) or "text"
+
+        Returns:
+            JSON or text with transit records and summary statistics
+
+        Tips for LLMs:
+            - Eastbound galleons are the best ENSO detector: they sail
+              directly through the trade wind belt
+            - During El Nino (weakened trades), eastbound crossings should
+              take LONGER; during La Nina (stronger trades), FASTER
+            - Westbound route goes north via Kuroshio Current at ~38N,
+              less directly affected by tropical ENSO
+            - Use trade_direction="eastbound" for ENSO analysis
+            - Compare transit_days across known ENSO years vs neutral years
+            - 213 voyages have complete transit data (of 250 total)
+            - Mean eastbound: 75 days (std 14); westbound: 165 days (std 17)
+        """
+        try:
+            result = galleon_transit_times(
+                trade_direction=trade_direction,
+                year_start=year_start,
+                year_end=year_end,
+                fate=fate,
+                max_results=max_results,
+            )
+
+            msg = SuccessMessages.GALLEON_TRANSIT_COMPUTED.format(
+                result["returned"], result["total_matching"]
+            )
+
+            records = [GalleonTransitRecord(**r) for r in result["records"]]
+
+            summary = GalleonTransitSummary(**result["summary"]) if result.get("summary") else None
+            eb_summary = (
+                GalleonTransitSummary(**result["eastbound_summary"])
+                if result.get("eastbound_summary")
+                else None
+            )
+            wb_summary = (
+                GalleonTransitSummary(**result["westbound_summary"])
+                if result.get("westbound_summary")
+                else None
+            )
+
+            return format_response(
+                GalleonTransitResponse(
+                    total_matching=result["total_matching"],
+                    returned=result["returned"],
+                    truncated=result["truncated"],
+                    skipped_no_dates=result["skipped_no_dates"],
+                    records=records,
+                    summary=summary,
+                    eastbound_summary=eb_summary,
+                    westbound_summary=wb_summary,
+                    trade_direction_filter=result.get("trade_direction_filter"),
+                    year_start_filter=result.get("year_start_filter"),
+                    year_end_filter=result.get("year_end_filter"),
+                    fate_filter=result.get("fate_filter"),
+                    message=msg,
+                ),
+                output_mode,
+            )
+        except Exception as e:
+            logger.error("Galleon transit computation failed: %s", e)
+            return format_response(
+                ErrorResponse(error=str(e), message="Galleon transit computation failed"),
+                output_mode,
+            )
+
+    @mcp.tool  # type: ignore[union-attr]
+    async def maritime_wind_direction_by_year(
+        lat_min: float | None = None,
+        lat_max: float | None = None,
+        lon_min: float | None = None,
+        lon_max: float | None = None,
+        nationality: str | None = None,
+        year_start: int | None = None,
+        year_end: int | None = None,
+        direction: str | None = None,
+        month_start: int | None = None,
+        month_end: int | None = None,
+        min_speed_km_day: float = 5.0,
+        max_speed_km_day: float = 400.0,
+        output_mode: str = "json",
+    ) -> str:
+        """
+        Year-by-year wind direction distributions from CLIWOC logbooks.
+
+        Returns 8-compass-sector wind direction distributions for each year,
+        with ~97.5% coverage across the full 1662-1854 period. This makes
+        it a powerful tool for detecting long-term atmospheric circulation
+        shifts, including ENSO phases and Walker circulation changes.
+
+        Args:
+            lat_min/lat_max/lon_min/lon_max: Bounding box filter
+            nationality: Filter by nationality code
+            year_start/year_end: Year range filter
+            direction: "eastbound" or "westbound"
+            month_start/month_end: Month filter (1-12, supports wrap-around)
+            min_speed_km_day: Minimum speed filter (default: 5.0)
+            max_speed_km_day: Maximum speed filter (default: 400.0)
+            output_mode: Response format - "json" (default) or "text"
+
+        Returns:
+            JSON or text with per-year sector distributions
+
+        Tips for LLMs:
+            - Wind direction has 97.5% coverage (vs 17% for Beaufort force)
+            - Covers full 1662-1854 period — ideal for ENSO detection
+            - In trade wind belt (lat -30 to 30): expect E/SE dominance
+            - During El Nino: trades weaken, may shift toward variable/W
+            - During La Nina: trades strengthen, E/SE percentages increase
+            - Compare sector percentages across known ENSO/neutral years
+            - Use month_start=11, month_end=2 for peak ENSO season
+        """
+        try:
+            result = wind_direction_by_year(
+                lat_min=lat_min,
+                lat_max=lat_max,
+                lon_min=lon_min,
+                lon_max=lon_max,
+                nationality=nationality,
+                year_start=year_start,
+                year_end=year_end,
+                direction=direction,
+                month_start=month_start,
+                month_end=month_end,
+                min_speed=min_speed_km_day,
+                max_speed=max_speed_km_day,
+            )
+
+            msg = SuccessMessages.WIND_DIRECTION_BY_YEAR_COMPUTED.format(
+                result["total_years"], result["total_with_direction"]
+            )
+
+            years = [
+                WindDirectionYearGroup(
+                    year=yg["year"],
+                    total_observations=yg["total_observations"],
+                    sectors=[WindDirectionYearSector(**s) for s in yg["sectors"]],
+                )
+                for yg in result["years"]
+            ]
+
+            return format_response(
+                WindDirectionByYearResponse(
+                    total_observations=result["total_observations"],
+                    total_with_direction=result["total_with_direction"],
+                    total_years=result["total_years"],
+                    years=years,
+                    latitude_band=result.get("latitude_band"),
+                    longitude_band=result.get("longitude_band"),
+                    direction_filter=result.get("direction_filter"),
+                    nationality_filter=result.get("nationality_filter"),
+                    month_start_filter=result.get("month_start_filter"),
+                    month_end_filter=result.get("month_end_filter"),
+                    message=msg,
+                ),
+                output_mode,
+            )
+        except Exception as e:
+            logger.error("Wind direction by year failed: %s", e)
+            return format_response(
+                ErrorResponse(error=str(e), message="Wind direction by year failed"),
                 output_mode,
             )

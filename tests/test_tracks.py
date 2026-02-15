@@ -14,6 +14,7 @@ from chuk_mcp_maritime_archives.core.cliwoc_tracks import (
     compare_speed_groups,
     compute_track_speeds,
     did_speed_test,
+    export_speeds,
     get_date_range,
     get_position_count,
     get_track,
@@ -21,7 +22,9 @@ from chuk_mcp_maritime_archives.core.cliwoc_tracks import (
     list_nationalities,
     nearby_tracks,
     search_tracks,
+    wind_direction_by_year,
 )
+from chuk_mcp_maritime_archives.core.galleon_analysis import galleon_transit_times
 
 from .conftest import MockMCPServer
 
@@ -2098,3 +2101,413 @@ class TestWindDirectionTools:
         if parsed.get("has_direction_data"):
             assert "period1_direction_counts" in parsed
             assert "period2_direction_counts" in parsed
+
+
+# ---------------------------------------------------------------------------
+# Speed export — core function
+# ---------------------------------------------------------------------------
+
+
+class TestExportSpeeds:
+    def test_voyage_level_basic(self):
+        result = export_speeds(
+            lat_min=-50,
+            lat_max=-30,
+            year_start=1780,
+            year_end=1820,
+            aggregate_by="voyage",
+        )
+        assert result["aggregate_by"] == "voyage"
+        assert result["total_matching"] > 0
+        assert result["returned"] > 0
+        assert result["returned"] <= result["total_matching"]
+        assert not result["truncated"]
+        s = result["samples"][0]
+        assert "voyage_id" in s
+        assert "year" in s
+        assert "speed_km_day" in s
+        assert "n_observations" in s
+        assert s["n_observations"] > 0
+
+    def test_observation_level_basic(self):
+        result = export_speeds(
+            lat_min=-50,
+            lat_max=-30,
+            year_start=1780,
+            year_end=1820,
+            aggregate_by="observation",
+        )
+        assert result["aggregate_by"] == "observation"
+        assert result["total_matching"] > 0
+        s = result["samples"][0]
+        assert "lat" in s
+        assert "lon" in s
+        assert "wind_force" in s or s.get("wind_force") is None
+        # Full date fields for temporal analyses (lunar phase, tidal, etc.)
+        assert "date" in s
+        assert "day" in s
+        assert isinstance(s["date"], str)
+        assert 1 <= s["day"] <= 31
+
+    def test_observation_has_more_than_voyage(self):
+        obs = export_speeds(
+            lat_min=-50,
+            lat_max=-30,
+            year_start=1780,
+            year_end=1820,
+            aggregate_by="observation",
+        )
+        voy = export_speeds(
+            lat_min=-50,
+            lat_max=-30,
+            year_start=1780,
+            year_end=1820,
+            aggregate_by="voyage",
+        )
+        assert obs["total_matching"] >= voy["total_matching"]
+
+    def test_direction_filter(self):
+        result = export_speeds(
+            lat_min=-50,
+            lat_max=-30,
+            direction="eastbound",
+            aggregate_by="voyage",
+        )
+        for s in result["samples"]:
+            assert s["direction"] == "eastbound"
+        assert result["direction_filter"] == "eastbound"
+
+    def test_truncation(self):
+        result = export_speeds(
+            lat_min=-50,
+            lat_max=-30,
+            aggregate_by="observation",
+            max_results=10,
+        )
+        assert result["returned"] <= 10
+        if result["total_matching"] > 10:
+            assert result["truncated"]
+
+    def test_wind_force_filter(self):
+        result = export_speeds(
+            lat_min=-50,
+            lat_max=-30,
+            aggregate_by="observation",
+            wind_force_min=4,
+            wind_force_max=6,
+        )
+        assert result["wind_force_min_filter"] == 4
+        assert result["wind_force_max_filter"] == 6
+        for s in result["samples"]:
+            if s.get("wind_force") is not None:
+                assert 4 <= s["wind_force"] <= 6
+
+    def test_nationality_filter(self):
+        result = export_speeds(nationality="NL", aggregate_by="voyage")
+        for s in result["samples"]:
+            assert s["nationality"] == "NL"
+        assert result["nationality_filter"] == "NL"
+
+    def test_empty_region(self):
+        result = export_speeds(
+            lat_min=80,
+            lat_max=85,
+            lon_min=170,
+            lon_max=180,
+            aggregate_by="voyage",
+        )
+        assert result["total_matching"] == 0
+        assert result["returned"] == 0
+        assert result["samples"] == []
+        assert not result["truncated"]
+
+    def test_filter_metadata_present(self):
+        result = export_speeds(
+            lat_min=-50,
+            lat_max=-30,
+            year_start=1780,
+            year_end=1820,
+            month_start=6,
+            month_end=8,
+            direction="westbound",
+            aggregate_by="voyage",
+        )
+        assert result["latitude_band"] == [-50, -30]
+        assert result["year_start_filter"] == 1780
+        assert result["year_end_filter"] == 1820
+        assert result["month_start_filter"] == 6
+        assert result["month_end_filter"] == 8
+        assert result["direction_filter"] == "westbound"
+
+
+# ---------------------------------------------------------------------------
+# Speed export — tool wrappers
+# ---------------------------------------------------------------------------
+
+
+class TestExportSpeedsTools:
+    @pytest.fixture(autouse=True)
+    def _register(self):
+        from unittest.mock import MagicMock
+
+        from chuk_mcp_maritime_archives.tools.analytics.api import register_analytics_tools
+
+        self.mcp = MockMCPServer()
+        self.mgr = MagicMock()
+        register_analytics_tools(self.mcp, self.mgr)
+
+    @pytest.mark.asyncio
+    async def test_export_speeds_json(self):
+        fn = self.mcp.get_tool("maritime_export_speeds")
+        result = await fn(
+            lat_min=-50,
+            lat_max=-30,
+            year_start=1780,
+            year_end=1820,
+            aggregate_by="voyage",
+        )
+        parsed = json.loads(result)
+        assert "total_matching" in parsed
+        assert "samples" in parsed
+        assert parsed["aggregate_by"] == "voyage"
+
+    @pytest.mark.asyncio
+    async def test_export_speeds_text(self):
+        fn = self.mcp.get_tool("maritime_export_speeds")
+        result = await fn(
+            lat_min=-50,
+            lat_max=-30,
+            year_start=1780,
+            year_end=1820,
+            aggregate_by="voyage",
+            output_mode="text",
+        )
+        assert "Total matching" in result
+        assert "Aggregate by: voyage" in result
+
+    @pytest.mark.asyncio
+    async def test_export_speeds_observation(self):
+        fn = self.mcp.get_tool("maritime_export_speeds")
+        result = await fn(
+            lat_min=-50,
+            lat_max=-30,
+            year_start=1780,
+            year_end=1820,
+            aggregate_by="observation",
+            max_results=20,
+        )
+        parsed = json.loads(result)
+        assert parsed["aggregate_by"] == "observation"
+        assert parsed["returned"] <= 20
+
+    @pytest.mark.asyncio
+    async def test_export_speeds_with_wind_filter(self):
+        fn = self.mcp.get_tool("maritime_export_speeds")
+        result = await fn(
+            lat_min=-50,
+            lat_max=-30,
+            wind_force_min=3,
+            wind_force_max=7,
+            aggregate_by="observation",
+            max_results=50,
+        )
+        parsed = json.loads(result)
+        assert parsed["wind_force_min_filter"] == 3
+        assert parsed["wind_force_max_filter"] == 7
+
+
+# ---------------------------------------------------------------------------
+# Galleon transit times — core function
+# ---------------------------------------------------------------------------
+
+
+class TestGalleonTransitTimes:
+    def test_basic(self):
+        result = galleon_transit_times()
+        assert result["total_matching"] > 0
+        assert result["returned"] > 0
+        assert result["records"]
+        r = result["records"][0]
+        assert "voyage_id" in r
+        assert "transit_days" in r
+        assert r["transit_days"] > 0
+
+    def test_summary_stats(self):
+        result = galleon_transit_times()
+        assert result["summary"] is not None
+        assert result["summary"]["n"] > 0
+        assert result["summary"]["mean"] > 0
+        assert result["eastbound_summary"] is not None
+        assert result["westbound_summary"] is not None
+
+    def test_eastbound_filter(self):
+        result = galleon_transit_times(trade_direction="eastbound")
+        for r in result["records"]:
+            assert r["trade_direction"] == "eastbound"
+        assert result["trade_direction_filter"] == "eastbound"
+        # Eastbound should be faster than westbound
+        assert result["summary"]["mean"] < 100
+
+    def test_westbound_filter(self):
+        result = galleon_transit_times(trade_direction="westbound")
+        for r in result["records"]:
+            assert r["trade_direction"] == "westbound"
+        assert result["summary"]["mean"] > 100
+
+    def test_year_filter(self):
+        result = galleon_transit_times(year_start=1600, year_end=1700)
+        for r in result["records"]:
+            assert 1600 <= r["year"] <= 1700
+
+    def test_fate_filter(self):
+        result = galleon_transit_times(fate="completed")
+        for r in result["records"]:
+            assert r["fate"] == "completed"
+
+    def test_truncation(self):
+        result = galleon_transit_times(max_results=5)
+        assert result["returned"] <= 5
+        if result["total_matching"] > 5:
+            assert result["truncated"]
+
+    def test_empty_filter(self):
+        result = galleon_transit_times(year_start=2000, year_end=2100)
+        assert result["total_matching"] == 0
+        assert result["records"] == []
+        assert result["summary"] is None
+
+
+# ---------------------------------------------------------------------------
+# Wind direction by year — core function
+# ---------------------------------------------------------------------------
+
+
+class TestWindDirectionByYear:
+    def test_basic(self):
+        result = wind_direction_by_year(
+            lat_min=-50,
+            lat_max=-30,
+            year_start=1780,
+            year_end=1820,
+        )
+        assert result["total_observations"] > 0
+        assert result["total_with_direction"] > 0
+        assert result["total_years"] > 0
+        assert len(result["years"]) > 0
+
+    def test_year_structure(self):
+        result = wind_direction_by_year(
+            lat_min=-50,
+            lat_max=-30,
+            year_start=1800,
+            year_end=1810,
+        )
+        for yg in result["years"]:
+            assert "year" in yg
+            assert "total_observations" in yg
+            assert "sectors" in yg
+            assert len(yg["sectors"]) == 8
+            # Sector percentages should sum to ~100%
+            total_pct = sum(s["percent"] for s in yg["sectors"])
+            assert 99.0 <= total_pct <= 101.0
+
+    def test_sectors_complete(self):
+        result = wind_direction_by_year(
+            lat_min=-50,
+            lat_max=-30,
+            year_start=1800,
+            year_end=1820,
+        )
+        if result["years"]:
+            sectors = {s["sector"] for s in result["years"][0]["sectors"]}
+            assert sectors == {"N", "NE", "E", "SE", "S", "SW", "W", "NW"}
+
+    def test_nationality_filter(self):
+        result = wind_direction_by_year(
+            lat_min=-50,
+            lat_max=-30,
+            nationality="NL",
+        )
+        assert result["nationality_filter"] == "NL"
+
+    def test_empty_region(self):
+        result = wind_direction_by_year(
+            lat_min=80,
+            lat_max=85,
+            lon_min=170,
+            lon_max=180,
+        )
+        assert result["total_years"] == 0
+        assert result["years"] == []
+
+    def test_filter_metadata(self):
+        result = wind_direction_by_year(
+            lat_min=-50,
+            lat_max=-30,
+            direction="eastbound",
+            month_start=6,
+            month_end=8,
+        )
+        assert result["direction_filter"] == "eastbound"
+        assert result["month_start_filter"] == 6
+        assert result["month_end_filter"] == 8
+
+
+# ---------------------------------------------------------------------------
+# Galleon transit + wind direction — tool wrappers
+# ---------------------------------------------------------------------------
+
+
+class TestGalleonAndWindTools:
+    @pytest.fixture(autouse=True)
+    def _register(self):
+        from unittest.mock import MagicMock
+
+        from chuk_mcp_maritime_archives.tools.analytics.api import register_analytics_tools
+
+        self.mcp = MockMCPServer()
+        self.mgr = MagicMock()
+        register_analytics_tools(self.mcp, self.mgr)
+
+    @pytest.mark.asyncio
+    async def test_galleon_transit_json(self):
+        fn = self.mcp.get_tool("maritime_galleon_transit_times")
+        result = await fn(trade_direction="eastbound")
+        parsed = json.loads(result)
+        assert "total_matching" in parsed
+        assert "records" in parsed
+        assert parsed["trade_direction_filter"] == "eastbound"
+
+    @pytest.mark.asyncio
+    async def test_galleon_transit_text(self):
+        fn = self.mcp.get_tool("maritime_galleon_transit_times")
+        result = await fn(output_mode="text")
+        assert "Eastbound" in result
+        assert "Westbound" in result
+
+    @pytest.mark.asyncio
+    async def test_wind_direction_by_year_json(self):
+        fn = self.mcp.get_tool("maritime_wind_direction_by_year")
+        result = await fn(
+            lat_min=-50,
+            lat_max=-30,
+            year_start=1800,
+            year_end=1820,
+        )
+        parsed = json.loads(result)
+        assert "total_years" in parsed
+        assert "years" in parsed
+        if parsed["years"]:
+            assert len(parsed["years"][0]["sectors"]) == 8
+
+    @pytest.mark.asyncio
+    async def test_wind_direction_by_year_text(self):
+        fn = self.mcp.get_tool("maritime_wind_direction_by_year")
+        result = await fn(
+            lat_min=-50,
+            lat_max=-30,
+            year_start=1800,
+            year_end=1820,
+            output_mode="text",
+        )
+        assert "Years covered" in result

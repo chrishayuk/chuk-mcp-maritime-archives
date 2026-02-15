@@ -1517,6 +1517,185 @@ def aggregate_track_tortuosity(
 
 
 # ---------------------------------------------------------------------------
+# Export raw speed samples
+# ---------------------------------------------------------------------------
+
+
+def export_speeds(
+    lat_min: float | None = None,
+    lat_max: float | None = None,
+    lon_min: float | None = None,
+    lon_max: float | None = None,
+    nationality: str | None = None,
+    year_start: int | None = None,
+    year_end: int | None = None,
+    direction: str | None = None,
+    month_start: int | None = None,
+    month_end: int | None = None,
+    aggregate_by: str = "voyage",
+    min_speed: float = 5.0,
+    max_speed: float = 400.0,
+    wind_force_min: int | None = None,
+    wind_force_max: int | None = None,
+    max_results: int = 5000,
+) -> dict[str, Any]:
+    """Export raw speed samples for downstream analysis.
+
+    Unlike aggregate_track_speeds which groups and summarises, this returns
+    individual speed records with full metadata so models can perform
+    arbitrary grouping (e.g. ENSO phase classification by year).
+
+    Args:
+        lat_min/lat_max/lon_min/lon_max: Bounding box for position filtering
+        nationality: Filter tracks by nationality code
+        year_start/year_end: Filter tracks by year range
+        direction: Filter observations by "eastbound" or "westbound"
+        month_start/month_end: Filter by month (1-12), supports wrap-around
+        aggregate_by: "observation" (each daily speed) or "voyage" (one mean
+            per voyage with metadata — recommended for statistical tests)
+        min_speed/max_speed: Speed bounds in km/day
+        wind_force_min/wind_force_max: Beaufort force bounds (0-12)
+        max_results: Maximum number of records to return (default 5000)
+
+    Returns:
+        Dict with samples list and total count. Each sample includes
+        voyage_id, year, month, direction, speed_km_day, nationality,
+        ship_name, and (for observation-level) date, day, wind_force,
+        wind_direction, lat, lon. The date field is ISO format (YYYY-MM-DD)
+        for lunar phase computation and other temporal analyses.
+    """
+    _load_tracks()
+    voyage_level = aggregate_by == "voyage"
+
+    samples: list[dict[str, Any]] = []
+    # For voyage-level: accumulate obs per voyage, then reduce
+    voyage_accum: dict[int, dict[str, Any]] = {}
+    total_obs = 0
+
+    for track in _TRACKS:
+        if nationality and track.get("nationality") != nationality.upper():
+            continue
+        if year_start and (track.get("year_start") or 9999) < year_start:
+            continue
+        if year_end and (track.get("year_end") or 0) > year_end:
+            continue
+
+        speeds = _compute_daily_speeds(
+            track, lat_min, lat_max, lon_min, lon_max, min_speed, max_speed
+        )
+        if not speeds:
+            continue
+
+        vid = track["voyage_id"]
+        nat = track.get("nationality")
+        ship = track.get("ship_name")
+
+        for obs in speeds:
+            if direction and obs.get("direction") != direction:
+                continue
+
+            d = _parse_date(obs["date"])
+            if d is None:
+                continue
+
+            if month_start is not None or month_end is not None:
+                if not _month_in_range(d.month, month_start, month_end):
+                    continue
+
+            if wind_force_min is not None or wind_force_max is not None:
+                wf = obs.get("wind_force")
+                if wf is None:
+                    continue
+                if wind_force_min is not None and wf < wind_force_min:
+                    continue
+                if wind_force_max is not None and wf > wind_force_max:
+                    continue
+
+            total_obs += 1
+
+            if voyage_level:
+                if vid not in voyage_accum:
+                    voyage_accum[vid] = {
+                        "voyage_id": vid,
+                        "nationality": nat,
+                        "ship_name": ship,
+                        "direction": obs.get("direction"),
+                        "year": d.year,
+                        "speeds": [],
+                        "months": [],
+                    }
+                voyage_accum[vid]["speeds"].append(obs["km_day"])
+                voyage_accum[vid]["months"].append(d.month)
+            else:
+                if len(samples) < max_results:
+                    samples.append(
+                        {
+                            "voyage_id": vid,
+                            "date": obs["date"],
+                            "year": d.year,
+                            "month": d.month,
+                            "day": d.day,
+                            "direction": obs.get("direction"),
+                            "speed_km_day": obs["km_day"],
+                            "nationality": nat,
+                            "ship_name": ship,
+                            "lat": obs.get("lat"),
+                            "lon": obs.get("lon"),
+                            "wind_force": obs.get("wind_force"),
+                            "wind_direction": obs.get("wind_direction"),
+                        }
+                    )
+
+    if voyage_level:
+        for va in voyage_accum.values():
+            spds = va["speeds"]
+            months = va["months"]
+            mean_spd = statistics.mean(spds) if spds else 0.0
+            # Use the most common month as representative
+            month_counts: dict[int, int] = {}
+            for m in months:
+                month_counts[m] = month_counts.get(m, 0) + 1
+            primary_month = (
+                max(month_counts, key=lambda k: month_counts[k]) if month_counts else None
+            )
+            if len(samples) < max_results:
+                samples.append(
+                    {
+                        "voyage_id": va["voyage_id"],
+                        "year": va["year"],
+                        "month": primary_month,
+                        "direction": va["direction"],
+                        "speed_km_day": round(mean_spd, 1),
+                        "nationality": va["nationality"],
+                        "ship_name": va["ship_name"],
+                        "n_observations": len(spds),
+                    }
+                )
+
+    total_samples = len(voyage_accum) if voyage_level else total_obs
+
+    return {
+        "total_matching": total_samples,
+        "returned": len(samples),
+        "truncated": total_samples > max_results,
+        "aggregate_by": aggregate_by,
+        "samples": samples,
+        "latitude_band": [lat_min, lat_max] if lat_min is not None or lat_max is not None else None,
+        "longitude_band": [lon_min, lon_max]
+        if lon_min is not None or lon_max is not None
+        else None,
+        "direction_filter": direction,
+        "nationality_filter": nationality,
+        "year_start_filter": year_start,
+        "year_end_filter": year_end,
+        "month_start_filter": month_start,
+        "month_end_filter": month_end,
+        "wind_force_min_filter": wind_force_min,
+        "wind_force_max_filter": wind_force_max,
+    }
+
+
+# ---------------------------------------------------------------------------
 # Wind Rose — Beaufort force distribution
 # ---------------------------------------------------------------------------
 
@@ -1742,6 +1921,126 @@ def wind_rose(
         result["period2_direction_counts"] = _make_direction_counts(p2_dir_counts, p2_dir_total)
 
     return result
+
+
+# ---------------------------------------------------------------------------
+# Wind direction by year — for ENSO phase detection
+# ---------------------------------------------------------------------------
+
+
+def wind_direction_by_year(
+    lat_min: float | None = None,
+    lat_max: float | None = None,
+    lon_min: float | None = None,
+    lon_max: float | None = None,
+    nationality: str | None = None,
+    year_start: int | None = None,
+    year_end: int | None = None,
+    direction: str | None = None,
+    month_start: int | None = None,
+    month_end: int | None = None,
+    min_speed: float = 5.0,
+    max_speed: float = 400.0,
+) -> dict[str, Any]:
+    """Compute year-by-year wind direction sector distributions.
+
+    Groups CLIWOC observations by year and returns 8-compass-sector
+    distributions for each year. Wind direction data has ~97.5% coverage
+    across the full 1662-1854 period, making this a powerful tool for
+    detecting long-term atmospheric circulation shifts (e.g. ENSO phases,
+    Walker circulation changes).
+
+    Args:
+        lat_min/lat_max/lon_min/lon_max: Bounding box filter
+        nationality: Filter by nationality code
+        year_start/year_end: Year range filter
+        direction: Filter by sailing direction ("eastbound"/"westbound")
+        month_start/month_end: Month filter (supports wrap-around)
+        min_speed/max_speed: Speed bounds in km/day
+
+    Returns:
+        Dict with per-year sector distributions, mean speeds per sector,
+        and summary statistics.
+    """
+    _load_tracks()
+
+    # year -> sector -> [speeds]
+    year_data: dict[int, dict[str, list[float]]] = defaultdict(lambda: defaultdict(list))
+    total_obs = 0
+    total_with_dir = 0
+
+    for track in _TRACKS:
+        if nationality and track.get("nationality") != nationality.upper():
+            continue
+        if year_start and (track.get("year_start") or 9999) < year_start:
+            continue
+        if year_end and (track.get("year_end") or 0) > year_end:
+            continue
+
+        speeds = _compute_daily_speeds(
+            track, lat_min, lat_max, lon_min, lon_max, min_speed, max_speed
+        )
+        if not speeds:
+            continue
+
+        for obs in speeds:
+            if direction and obs.get("direction") != direction:
+                continue
+            d = _parse_date(obs["date"])
+            if d is None:
+                continue
+            if month_start is not None or month_end is not None:
+                if not _month_in_range(d.month, month_start, month_end):
+                    continue
+
+            total_obs += 1
+            wd = obs.get("wind_direction")
+            sector = _wind_dir_to_sector(wd) if wd is not None else None
+            if sector is not None:
+                total_with_dir += 1
+                year_data[d.year][sector].append(obs["km_day"])
+
+    # Build per-year distributions
+    years_list: list[dict[str, Any]] = []
+    for yr in sorted(year_data.keys()):
+        sectors = year_data[yr]
+        total_yr = sum(len(v) for v in sectors.values())
+        sector_counts = []
+        for s in _COMPASS_SECTORS:
+            speeds_list = sectors.get(s, [])
+            count = len(speeds_list)
+            pct = (100 * count / total_yr) if total_yr > 0 else 0.0
+            mean_spd = statistics.mean(speeds_list) if speeds_list else None
+            sector_counts.append(
+                {
+                    "sector": s,
+                    "count": count,
+                    "percent": round(pct, 1),
+                    "mean_speed_km_day": round(mean_spd, 1) if mean_spd is not None else None,
+                }
+            )
+        years_list.append(
+            {
+                "year": yr,
+                "total_observations": total_yr,
+                "sectors": sector_counts,
+            }
+        )
+
+    return {
+        "total_observations": total_obs,
+        "total_with_direction": total_with_dir,
+        "total_years": len(years_list),
+        "years": years_list,
+        "latitude_band": [lat_min, lat_max] if lat_min is not None or lat_max is not None else None,
+        "longitude_band": [lon_min, lon_max]
+        if lon_min is not None or lon_max is not None
+        else None,
+        "direction_filter": direction,
+        "nationality_filter": nationality,
+        "month_start_filter": month_start,
+        "month_end_filter": month_end,
+    }
 
 
 # Load on import

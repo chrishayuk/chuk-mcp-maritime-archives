@@ -11,7 +11,7 @@ through the colonial era and beyond, 1497-2024. Covers Dutch (VOC), English (EIC
 (Carreira da India), Spanish (Manila Galleon), Swedish (SOIC), UK Hydrographic Office (UKHO), and NOAA maritime archives.
 
 - **Public server**: `https://maritime-archives.chukai.io/mcp`
-- **44 tools** for searching, retrieving, analysing, and exporting maritime archival data
+- **47 tools** for searching, retrieving, analysing, and exporting maritime archival data
 - **Cursor-based pagination** -- all 8 search tools support `cursor` / `next_cursor` / `has_more` for paging through large result sets
 - **Dual output mode** -- all tools return JSON (default) or human-readable text via `output_mode` parameter
 - **Async-first** -- tool entry points are async; sync HTTP I/O runs in thread pools
@@ -1337,6 +1337,160 @@ directional filters, as well as period comparison.
 ---
 
 > **Note on anchor filtering:** All speed-related tools (including `maritime_wind_rose`) now exclude anchored positions by default (`exclude_anchored=True` in `_compute_daily_speeds`). This filters out near-zero-speed observations where ships were stationary at anchor, producing cleaner speed and wind-speed distributions.
+
+---
+
+#### `maritime_export_speeds`
+
+Export raw speed samples with full metadata for downstream statistical analysis.
+Unlike `maritime_aggregate_track_speeds` which groups and summarises, this tool
+returns individual speed records so models can perform arbitrary grouping
+(e.g. ENSO phase classification by year, volcanic event detection, arbitrary
+epoch comparison).
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `lat_min` | `float?` | `None` | Southern latitude bound |
+| `lat_max` | `float?` | `None` | Northern latitude bound |
+| `lon_min` | `float?` | `None` | Western longitude bound |
+| `lon_max` | `float?` | `None` | Eastern longitude bound |
+| `nationality` | `str?` | `None` | Filter by nationality code |
+| `year_start` | `int?` | `None` | Earliest year (inclusive) |
+| `year_end` | `int?` | `None` | Latest year (inclusive) |
+| `direction` | `str?` | `None` | `"eastbound"` or `"westbound"` |
+| `month_start` | `int?` | `None` | Start month (1-12, wraps) |
+| `month_end` | `int?` | `None` | End month (1-12, wraps) |
+| `aggregate_by` | `str` | `"voyage"` | `"voyage"` (one mean per voyage) or `"observation"` (each daily speed) |
+| `min_speed_km_day` | `float` | `5.0` | Minimum speed filter (km/day) |
+| `max_speed_km_day` | `float` | `400.0` | Maximum speed filter (km/day) |
+| `wind_force_min` | `int?` | `None` | Minimum Beaufort force (0-12) |
+| `wind_force_max` | `int?` | `None` | Maximum Beaufort force (0-12) |
+| `max_results` | `int` | `5000` | Maximum records to return |
+| `output_mode` | `str` | `"json"` | `"json"` or `"text"` |
+
+**Response:** `SpeedExportResponse`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `total_matching` | `int` | Total speed records matching filters |
+| `returned` | `int` | Number of records returned (may be < total if truncated) |
+| `truncated` | `bool` | Whether results were capped at `max_results` |
+| `aggregate_by` | `str` | Aggregation level used |
+| `samples` | `SpeedSample[]` | Speed samples with metadata |
+| `latitude_band` | `float[]?` | Latitude filter applied |
+| `longitude_band` | `float[]?` | Longitude filter applied |
+| `direction_filter` | `str?` | Direction filter applied |
+| `nationality_filter` | `str?` | Nationality filter applied |
+| `year_start_filter` | `int?` | Year start filter applied |
+| `year_end_filter` | `int?` | Year end filter applied |
+| `month_start_filter` | `int?` | Month start filter applied |
+| `month_end_filter` | `int?` | Month end filter applied |
+| `wind_force_min_filter` | `int?` | Wind force min filter applied |
+| `wind_force_max_filter` | `int?` | Wind force max filter applied |
+| `message` | `str` | Result message |
+
+**SpeedSample fields (voyage-level):**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `voyage_id` | `int` | CLIWOC voyage identifier |
+| `year` | `int` | Year of observation |
+| `month` | `int?` | Most common month in the voyage's observations |
+| `direction` | `str?` | Inferred sailing direction |
+| `speed_km_day` | `float` | Mean speed for the voyage (km/day) |
+| `nationality` | `str?` | Ship nationality code |
+| `ship_name` | `str?` | Ship name |
+| `n_observations` | `int?` | Number of daily speed observations in this voyage |
+
+**SpeedSample fields (observation-level, additional):**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `lat` | `float?` | Latitude of observation |
+| `lon` | `float?` | Longitude of observation |
+| `wind_force` | `int?` | Beaufort wind force (0-12) |
+| `wind_direction` | `int?` | Wind direction in degrees |
+
+---
+
+#### `maritime_galleon_transit_times`
+
+Compute transit times for Manila Galleon voyages (1565-1815). Returns per-voyage
+transit days (arrival_date - departure_date) for 250 years of Pacific crossings.
+The galleon trade provides direct tropical Pacific exposure through the ENSO-affected
+trade wind belt, making transit times a potential ENSO proxy.
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `trade_direction` | `str?` | `None` | `"eastbound"` (Acapulco→Manila) or `"westbound"` (Manila→Acapulco) |
+| `year_start` | `int?` | `None` | Earliest departure year (inclusive) |
+| `year_end` | `int?` | `None` | Latest departure year (inclusive) |
+| `fate` | `str?` | `None` | Filter by voyage fate (`"completed"`, `"wrecked"`, etc.) |
+| `max_results` | `int` | `500` | Maximum records to return |
+| `output_mode` | `str` | `"json"` | `"json"` or `"text"` |
+
+**Response:** `GalleonTransitResponse`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `total_matching` | `int` | Total voyages matching filters with valid dates |
+| `returned` | `int` | Number of records returned |
+| `truncated` | `bool` | Whether results were capped at `max_results` |
+| `skipped_no_dates` | `int` | Voyages skipped due to missing dates |
+| `records` | `GalleonTransitRecord[]` | Per-voyage transit records |
+| `summary` | `GalleonTransitSummary?` | Overall statistics (n, mean, median, std, min, max) |
+| `eastbound_summary` | `GalleonTransitSummary?` | Eastbound statistics |
+| `westbound_summary` | `GalleonTransitSummary?` | Westbound statistics |
+| `message` | `str` | Result message |
+
+---
+
+#### `maritime_wind_direction_by_year`
+
+Year-by-year wind direction distributions from CLIWOC logbooks. Returns
+8-compass-sector distributions for each year with ~97.5% coverage across
+the full 1662-1854 period. Essential for detecting long-term atmospheric
+circulation shifts (ENSO phases, Walker circulation changes).
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `lat_min` | `float?` | `None` | Southern latitude bound |
+| `lat_max` | `float?` | `None` | Northern latitude bound |
+| `lon_min` | `float?` | `None` | Western longitude bound |
+| `lon_max` | `float?` | `None` | Eastern longitude bound |
+| `nationality` | `str?` | `None` | Filter by nationality code |
+| `year_start` | `int?` | `None` | Earliest year (inclusive) |
+| `year_end` | `int?` | `None` | Latest year (inclusive) |
+| `direction` | `str?` | `None` | `"eastbound"` or `"westbound"` |
+| `month_start` | `int?` | `None` | Start month (1-12, wraps) |
+| `month_end` | `int?` | `None` | End month (1-12, wraps) |
+| `min_speed_km_day` | `float` | `5.0` | Minimum speed filter |
+| `max_speed_km_day` | `float` | `400.0` | Maximum speed filter |
+| `output_mode` | `str` | `"json"` | `"json"` or `"text"` |
+
+**Response:** `WindDirectionByYearResponse`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `total_observations` | `int` | Total speed observations |
+| `total_with_direction` | `int` | Observations with wind direction data |
+| `total_years` | `int` | Number of years with data |
+| `years` | `WindDirectionYearGroup[]` | Per-year sector distributions |
+| `message` | `str` | Result message |
+
+**WindDirectionYearGroup fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `year` | `int` | Year |
+| `total_observations` | `int` | Observations in this year |
+| `sectors` | `WindDirectionYearSector[]` | 8 compass sectors with count, percent, mean_speed_km_day |
 
 ---
 

@@ -248,6 +248,21 @@ def register_discovery_tools(mcp: object, manager: object) -> None:
                     description="Beaufort force + wind direction distributions with distance calibration and period comparison",
                 ),
                 ToolInfo(
+                    name="maritime_export_speeds",
+                    category="analytics",
+                    description="Export raw speed samples with metadata for arbitrary downstream analysis (ENSO phases, volcanic events)",
+                ),
+                ToolInfo(
+                    name="maritime_galleon_transit_times",
+                    category="analytics",
+                    description="Compute Manila Galleon transit times (1565-1815) for ENSO and climate signal detection",
+                ),
+                ToolInfo(
+                    name="maritime_wind_direction_by_year",
+                    category="analytics",
+                    description="Year-by-year wind direction sector distributions from CLIWOC (97.5% coverage, 1662-1854)",
+                ),
+                ToolInfo(
                     name="maritime_crew_demographics",
                     category="demographics",
                     description="Aggregate crew demographics by rank, origin, fate, decade, or ship",
