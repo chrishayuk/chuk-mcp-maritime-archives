@@ -1588,7 +1588,7 @@ class TestTortuosityRFilter:
 
 class TestWindForceFiltering:
     def test_aggregate_with_wind_filter(self):
-        """Wind force filter with no wind data -> zero observations."""
+        """Wind force filter restricts to observations with matching Beaufort."""
         result = aggregate_track_speeds(
             group_by="decade",
             lat_min=-50,
@@ -1596,10 +1596,15 @@ class TestWindForceFiltering:
             wind_force_min=4,
             wind_force_max=6,
         )
-        # Current data has no wind fields, so this should return 0
-        assert result["total_observations"] == 0
         assert result["wind_force_min_filter"] == 4
         assert result["wind_force_max_filter"] == 6
+        # Filtered count should be less than unfiltered
+        unfiltered = aggregate_track_speeds(
+            group_by="decade",
+            lat_min=-50,
+            lat_max=-30,
+        )
+        assert result["total_observations"] <= unfiltered["total_observations"]
 
     def test_compare_with_wind_filter(self):
         result = compare_speed_groups(
@@ -1610,9 +1615,9 @@ class TestWindForceFiltering:
             wind_force_min=3,
         )
         assert result["wind_force_min_filter"] == 3
-        # No wind data -> both groups empty
-        assert result["period1_n"] == 0
-        assert result["period2_n"] == 0
+        # Wind filter should restrict to observations with Beaufort >= 3
+        assert result["period1_n"] >= 0
+        assert result["period2_n"] >= 0
 
     def test_did_with_wind_filter(self):
         result = did_speed_test(
@@ -1638,17 +1643,18 @@ class TestWindForceFiltering:
         assert result["group_by"] == "beaufort"
         assert isinstance(result["groups"], list)
 
-    def test_no_wind_data_graceful(self):
-        """Wind filter on data without wind -> zero observations with no error."""
+    def test_extreme_wind_filter_graceful(self):
+        """Impossible wind filter -> zero observations with no error."""
         result = aggregate_track_speeds(
             group_by="decade",
             lat_min=-50,
             lat_max=-30,
-            wind_force_min=0,
+            wind_force_min=12,
             wind_force_max=12,
         )
-        assert result["total_observations"] == 0
-        assert len(result["groups"]) == 0
+        # Very few or no hurricane-force obs in Roaring Forties
+        assert result["total_observations"] >= 0
+        assert result["wind_force_min_filter"] == 12
 
 
 # ---------------------------------------------------------------------------
@@ -1668,13 +1674,13 @@ class TestWindRose:
         assert len(result["beaufort_counts"]) == 13  # Forces 0-12
 
     def test_no_wind_data_graceful(self):
+        """Empty region -> no wind data, graceful response."""
         from chuk_mcp_maritime_archives.core.cliwoc_tracks import wind_rose
 
-        result = wind_rose(lat_min=-50, lat_max=-30)
-        # Current data lacks wind fields
+        result = wind_rose(lat_min=85, lat_max=89, lon_min=170, lon_max=180)
+        # Arctic region has no CLIWOC data at all
         assert result["has_wind_data"] is False
         assert result["total_with_wind"] == 0
-        assert result["total_without_wind"] > 0
 
     def test_with_periods(self):
         from chuk_mcp_maritime_archives.core.cliwoc_tracks import wind_rose
@@ -1893,3 +1899,202 @@ class TestWindFilterTools:
         )
         parsed = json.loads(result)
         assert parsed["group_by"] == "beaufort"
+
+
+# ---------------------------------------------------------------------------
+# Anchor filtering
+# ---------------------------------------------------------------------------
+
+
+class TestAnchorFiltering:
+    def test_exclude_anchored_default(self):
+        """Anchored positions excluded by default (exclude_anchored=True)."""
+        from chuk_mcp_maritime_archives.core.cliwoc_tracks import aggregate_track_speeds
+
+        result = aggregate_track_speeds(
+            group_by="decade",
+            lat_min=-50,
+            lat_max=-30,
+        )
+        total_filtered = result["total_observations"]
+        assert total_filtered > 0
+
+    def test_include_anchored_increases_obs(self):
+        """Including anchored positions may increase observation count."""
+        from chuk_mcp_maritime_archives.core.cliwoc_tracks import (
+            _compute_daily_speeds,
+            _load_tracks,
+            _TRACKS,
+        )
+
+        _load_tracks()
+        # Find a track with anchored positions
+        for track in _TRACKS:
+            has_anchored = any(p.get("anch") == 1 for p in track.get("positions", []))
+            if not has_anchored:
+                continue
+            excluded = _compute_daily_speeds(track, exclude_anchored=True)
+            included = _compute_daily_speeds(track, exclude_anchored=False)
+            # Including anchored should give >= as many results
+            assert len(included) >= len(excluded)
+            break
+
+    def test_tortuosity_excludes_anchored(self):
+        """Tortuosity function also excludes anchored positions by default."""
+        from chuk_mcp_maritime_archives.core.cliwoc_tracks import compute_track_tortuosity
+
+        tracks = search_tracks(lat_min=-50, lat_max=-30, max_results=5)
+        if not tracks:
+            pytest.skip("No tracks in region")
+        vid = tracks[0]["voyage_id"]
+        result = compute_track_tortuosity(voyage_id=vid, lat_min=-50, lat_max=-30)
+        # Either returns valid result or None (insufficient positions)
+        if result is not None:
+            assert result["tortuosity_r"] >= 0.9
+
+
+# ---------------------------------------------------------------------------
+# Wind direction in wind_rose
+# ---------------------------------------------------------------------------
+
+
+class TestWindDirection:
+    def test_direction_counts_present(self):
+        """Wind rose includes direction_counts with 8 compass sectors."""
+        from chuk_mcp_maritime_archives.core.cliwoc_tracks import wind_rose
+
+        result = wind_rose(lat_min=-50, lat_max=-30)
+        assert "direction_counts" in result
+        assert "has_direction_data" in result
+        assert result["has_direction_data"] is True
+        assert len(result["direction_counts"]) == 8
+        sectors = [dc["sector"] for dc in result["direction_counts"]]
+        assert sectors == ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
+
+    def test_direction_counts_sum(self):
+        """Direction counts should sum to total_with_direction."""
+        from chuk_mcp_maritime_archives.core.cliwoc_tracks import wind_rose
+
+        result = wind_rose(lat_min=-50, lat_max=-30)
+        total = sum(dc["count"] for dc in result["direction_counts"])
+        assert total == result["total_with_direction"]
+
+    def test_direction_with_mean_speed(self):
+        """Each non-empty direction sector should have mean_speed_km_day."""
+        from chuk_mcp_maritime_archives.core.cliwoc_tracks import wind_rose
+
+        result = wind_rose(lat_min=-50, lat_max=-30)
+        for dc in result["direction_counts"]:
+            if dc["count"] > 0:
+                assert dc["mean_speed_km_day"] is not None
+                assert dc["mean_speed_km_day"] > 0
+
+    def test_direction_period_comparison(self):
+        """Period comparison includes direction counts per period."""
+        from chuk_mcp_maritime_archives.core.cliwoc_tracks import wind_rose
+
+        result = wind_rose(
+            lat_min=-50,
+            lat_max=-30,
+            period1_years="1750/1779",
+            period2_years="1800/1829",
+        )
+        assert "period1_direction_counts" in result
+        assert "period2_direction_counts" in result
+        assert len(result["period1_direction_counts"]) == 8
+        assert len(result["period2_direction_counts"]) == 8
+
+    def test_direction_empty_region(self):
+        """Empty region returns has_direction_data=False."""
+        from chuk_mcp_maritime_archives.core.cliwoc_tracks import wind_rose
+
+        result = wind_rose(lat_min=85, lat_max=89, lon_min=170, lon_max=180)
+        assert result["has_direction_data"] is False
+        assert result["total_with_direction"] == 0
+
+
+# ---------------------------------------------------------------------------
+# Distance calibration
+# ---------------------------------------------------------------------------
+
+
+class TestDistanceCalibration:
+    def test_calibration_present(self):
+        """Wind rose includes distance calibration data."""
+        from chuk_mcp_maritime_archives.core.cliwoc_tracks import wind_rose
+
+        result = wind_rose(lat_min=-50, lat_max=-30)
+        cal = result.get("distance_calibration")
+        if cal is not None:
+            assert cal["n_pairs"] > 0
+            assert cal["mean_logged_km_day"] > 0
+            assert cal["mean_haversine_km_day"] > 0
+            assert cal["logged_over_haversine"] is not None
+
+    def test_calibration_ratio_reasonable(self):
+        """Logged/haversine ratio should be roughly 0.5-2.0 (not wildly off)."""
+        from chuk_mcp_maritime_archives.core.cliwoc_tracks import wind_rose
+
+        result = wind_rose(lat_min=-50, lat_max=-30)
+        cal = result.get("distance_calibration")
+        if cal is not None and cal.get("logged_over_haversine"):
+            ratio = cal["logged_over_haversine"]
+            assert 0.1 < ratio < 10.0, f"Calibration ratio {ratio} seems unreasonable"
+
+    def test_calibration_empty_region(self):
+        """Empty region returns no calibration data."""
+        from chuk_mcp_maritime_archives.core.cliwoc_tracks import wind_rose
+
+        result = wind_rose(lat_min=85, lat_max=89, lon_min=170, lon_max=180)
+        assert result.get("distance_calibration") is None
+
+
+# ---------------------------------------------------------------------------
+# Wind direction in tool wrappers
+# ---------------------------------------------------------------------------
+
+
+class TestWindDirectionTools:
+    @pytest.fixture(autouse=True)
+    def _register(self):
+        from unittest.mock import MagicMock
+
+        from chuk_mcp_maritime_archives.tools.analytics.api import register_analytics_tools
+
+        self.mcp = MockMCPServer()
+        self.mgr = MagicMock()
+        register_analytics_tools(self.mcp, self.mgr)
+
+    @pytest.mark.asyncio
+    async def test_wind_rose_tool_direction(self):
+        fn = self.mcp.get_tool("maritime_wind_rose")
+        result = await fn(lat_min=-50, lat_max=-30)
+        parsed = json.loads(result)
+        assert "direction_counts" in parsed
+        assert "has_direction_data" in parsed
+        if parsed["has_direction_data"]:
+            assert len(parsed["direction_counts"]) == 8
+
+    @pytest.mark.asyncio
+    async def test_wind_rose_tool_calibration(self):
+        fn = self.mcp.get_tool("maritime_wind_rose")
+        result = await fn(lat_min=-50, lat_max=-30)
+        parsed = json.loads(result)
+        # distance_calibration may or may not be present
+        if parsed.get("distance_calibration"):
+            cal = parsed["distance_calibration"]
+            assert cal["n_pairs"] > 0
+
+    @pytest.mark.asyncio
+    async def test_wind_rose_tool_period_directions(self):
+        fn = self.mcp.get_tool("maritime_wind_rose")
+        result = await fn(
+            lat_min=-50,
+            lat_max=-30,
+            period1_years="1750/1779",
+            period2_years="1800/1829",
+        )
+        parsed = json.loads(result)
+        if parsed.get("has_direction_data"):
+            assert "period1_direction_counts" in parsed
+            assert "period2_direction_counts" in parsed

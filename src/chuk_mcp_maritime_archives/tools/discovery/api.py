@@ -245,7 +245,7 @@ def register_discovery_tools(mcp: object, manager: object) -> None:
                 ToolInfo(
                     name="maritime_wind_rose",
                     category="analytics",
-                    description="Beaufort wind force distributions with period comparison",
+                    description="Beaufort force + wind direction distributions with distance calibration and period comparison",
                 ),
                 ToolInfo(
                     name="maritime_crew_demographics",

@@ -16,6 +16,7 @@ from ...models import (
     BeaufortCount,
     DailySpeed,
     DiDSpeedTestResponse,
+    DistanceCalibration,
     ErrorResponse,
     SpeedAggregationGroup,
     SpeedComparisonResponse,
@@ -25,6 +26,7 @@ from ...models import (
     TrackSpeedAggregationResponse,
     TrackSpeedsResponse,
     TrackTortuosityResponse,
+    WindDirectionCount,
     WindRoseResponse,
     format_response,
 )
@@ -755,18 +757,24 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
         output_mode: str = "json",
     ) -> str:
         """
-        Beaufort wind force distributions from CLIWOC logbook observations.
+        Beaufort wind force and wind direction distributions from CLIWOC logbooks.
 
-        Counts observations by Beaufort force (0-12) with mean speed at each
-        force level. Optionally compares distributions between two periods.
+        Counts observations by Beaufort force (0-12) and compass direction
+        (N, NE, E, SE, S, SW, W, NW) with mean speed at each level.
+        Optionally compares distributions between two periods.
+
+        Also includes distance calibration: compares logged distances from
+        ship logbooks against haversine-computed distances from lat/lon
+        positions. Ratio near 1.0 indicates good position accuracy.
 
         Key tool for the Kelly and O Grada approach: if recorded Beaufort
         distributions shift between periods, that indicates genuine wind
         change. If distributions are stable while speeds increase, that
         indicates technology improvement (hull, sails, routing).
 
-        Requires CLIWOC 2.1 Full with wind data. Returns has_wind_data=false
-        with a helpful message if wind data is not available.
+        Wind direction is available for ~97% of observations. Beaufort
+        force is available for ~17%. Returns has_wind_data/has_direction_data
+        flags. Anchored positions are excluded by default.
 
         Args:
             lat_min/lat_max/lon_min/lon_max: Bounding box
@@ -781,13 +789,16 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
             output_mode: Response format - "json" (default) or "text"
 
         Returns:
-            JSON or text with Beaufort distribution, optional period split
+            JSON or text with Beaufort + direction distribution, calibration,
+            and optional period splits
 
         Tips for LLMs:
             - Use period1_years/period2_years to compare distributions
+            - Wind direction available even without Beaufort force data
+            - direction_counts show prevailing wind patterns by compass sector
+            - distance_calibration compares logged vs computed distances
             - Combine with group_by="beaufort" on aggregate tool for
               speed profiles at each wind force
-            - Requires re-running download script for wind data
         """
         try:
             result = wind_rose(
@@ -807,57 +818,83 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
                 max_speed=max_speed_km_day,
             )
 
-            if not result["has_wind_data"]:
+            if not result["has_wind_data"] and not result.get("has_direction_data"):
                 msg = SuccessMessages.WIND_ROSE_NO_DATA
             else:
                 msg = SuccessMessages.WIND_ROSE_COMPUTED.format(
                     result["total_with_wind"], result["total_voyages"]
                 )
 
-            beaufort_counts = [
-                BeaufortCount(
-                    force=bc["force"],
-                    count=bc["count"],
-                    percent=bc["percent"],
-                    mean_speed_km_day=bc.get("mean_speed_km_day"),
-                )
-                for bc in result["beaufort_counts"]
-            ]
+            def _to_beaufort(items: list[dict]) -> list[BeaufortCount]:
+                return [
+                    BeaufortCount(
+                        force=bc["force"],
+                        count=bc["count"],
+                        percent=bc["percent"],
+                        mean_speed_km_day=bc.get("mean_speed_km_day"),
+                    )
+                    for bc in items
+                ]
+
+            def _to_direction(items: list[dict]) -> list[WindDirectionCount]:
+                return [
+                    WindDirectionCount(
+                        sector=dc["sector"],
+                        count=dc["count"],
+                        percent=dc["percent"],
+                        mean_speed_km_day=dc.get("mean_speed_km_day"),
+                    )
+                    for dc in items
+                ]
+
+            beaufort_counts = _to_beaufort(result["beaufort_counts"])
 
             p1_counts = None
             p2_counts = None
             if result.get("period1_counts"):
-                p1_counts = [
-                    BeaufortCount(
-                        force=bc["force"],
-                        count=bc["count"],
-                        percent=bc["percent"],
-                        mean_speed_km_day=bc.get("mean_speed_km_day"),
-                    )
-                    for bc in result["period1_counts"]
-                ]
+                p1_counts = _to_beaufort(result["period1_counts"])
             if result.get("period2_counts"):
-                p2_counts = [
-                    BeaufortCount(
-                        force=bc["force"],
-                        count=bc["count"],
-                        percent=bc["percent"],
-                        mean_speed_km_day=bc.get("mean_speed_km_day"),
-                    )
-                    for bc in result["period2_counts"]
-                ]
+                p2_counts = _to_beaufort(result["period2_counts"])
+
+            direction_counts = None
+            if result.get("direction_counts"):
+                direction_counts = _to_direction(result["direction_counts"])
+
+            p1_dir_counts = None
+            p2_dir_counts = None
+            if result.get("period1_direction_counts"):
+                p1_dir_counts = _to_direction(result["period1_direction_counts"])
+            if result.get("period2_direction_counts"):
+                p2_dir_counts = _to_direction(result["period2_direction_counts"])
+
+            calibration = None
+            cal = result.get("distance_calibration")
+            if cal:
+                calibration = DistanceCalibration(
+                    n_pairs=cal["n_pairs"],
+                    mean_logged_km_day=cal["mean_logged_km_day"],
+                    mean_haversine_km_day=cal["mean_haversine_km_day"],
+                    logged_over_haversine=cal.get("logged_over_haversine"),
+                )
 
             return format_response(
                 WindRoseResponse(
                     total_with_wind=result["total_with_wind"],
                     total_without_wind=result["total_without_wind"],
+                    total_with_direction=result.get("total_with_direction", 0),
+                    total_without_direction=result.get("total_without_direction", 0),
                     total_voyages=result["total_voyages"],
                     has_wind_data=result["has_wind_data"],
+                    has_direction_data=result.get("has_direction_data", False),
                     beaufort_counts=beaufort_counts,
+                    direction_counts=direction_counts,
+                    distance_calibration=calibration,
                     period1_label=result.get("period1_label"),
                     period1_counts=p1_counts,
                     period2_label=result.get("period2_label"),
                     period2_counts=p2_counts,
+                    period1_direction_counts=p1_dir_counts,
+                    period2_direction_counts=p2_dir_counts,
                     latitude_band=result.get("latitude_band"),
                     longitude_band=result.get("longitude_band"),
                     direction_filter=result.get("direction_filter"),

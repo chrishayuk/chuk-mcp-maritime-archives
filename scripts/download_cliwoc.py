@@ -96,7 +96,9 @@ def extract_full_positions(db_path: Path) -> list[dict]:
         """
         SELECT ID, YR, MO, DY, latitude, longitude, C1,
                ShipName, Company, DASnumber, ShipType,
-               VoyageFrom, VoyageTo, W, D
+               VoyageFrom, VoyageTo, WindScale, D,
+               ShipSpeed, Distance, SST, AT, SLP,
+               CMG, Anchored
         FROM CLIWOC21
         WHERE latitude IS NOT NULL
           AND longitude IS NOT NULL
@@ -118,8 +120,8 @@ def extract_full_positions(db_path: Path) -> list[dict]:
         else:
             date_str = None
 
-        # Wind data: W = Beaufort force (0-12), D = wind direction (degrees 1-362)
-        wf_raw = row["W"]
+        # Wind data: WindScale = Beaufort force (0-12), D = wind direction (1-362)
+        wf_raw = row["WindScale"]
         wd_raw = row["D"]
         wf = None
         wd = None
@@ -138,6 +140,33 @@ def extract_full_positions(db_path: Path) -> list[dict]:
             except (ValueError, TypeError):
                 pass
 
+        # Environmental observations (None if not recorded)
+        def _safe_float(val: object) -> float | None:
+            if val is None:
+                return None
+            try:
+                f = float(val)
+                return round(f, 1) if f == f else None  # NaN check
+            except (ValueError, TypeError):
+                return None
+
+        def _safe_int(val: object) -> int | None:
+            if val is None:
+                return None
+            try:
+                return int(val)
+            except (ValueError, TypeError):
+                return None
+
+        ship_speed = _safe_float(row["ShipSpeed"])  # logged speed (knots)
+        distance = _safe_float(row["Distance"])  # logged daily distance
+        sst = _safe_int(row["SST"])  # sea surface temp (tenths °C ICOADS)
+        at = _safe_int(row["AT"])  # air temp (tenths °C ICOADS)
+        slp = _safe_int(row["SLP"])  # sea level pressure (tenths hPa ICOADS)
+        cmg_raw = row["CMG"]  # course made good (compass text)
+        cmg = str(cmg_raw).strip() if cmg_raw else None
+        anchored = _safe_int(row["Anchored"])  # 1 = anchored
+
         positions.append(
             {
                 "voyage_id": int(row["ID"]),
@@ -153,9 +182,17 @@ def extract_full_positions(db_path: Path) -> list[dict]:
                 "ship_type": row["ShipType"],
                 "voyage_from": row["VoyageFrom"],
                 "voyage_to": row["VoyageTo"],
-                # Wind data (None if not available)
+                # Wind data
                 "wf": wf,
                 "wd": wd,
+                # Environmental observations
+                "ss": ship_speed,
+                "dist": distance,
+                "sst": sst,
+                "at": at,
+                "slp": slp,
+                "cmg": cmg,
+                "anch": anchored,
             }
         )
 
@@ -216,6 +253,13 @@ def group_full_positions_into_tracks(positions: list[dict]) -> list[dict]:
                         ("lon", p["lon"]),
                         ("wf", p.get("wf")),
                         ("wd", p.get("wd")),
+                        ("ss", p.get("ss")),
+                        ("dist", p.get("dist")),
+                        ("sst", p.get("sst")),
+                        ("at", p.get("at")),
+                        ("slp", p.get("slp")),
+                        ("cmg", p.get("cmg")),
+                        ("anch", p.get("anch")),
                     ]
                     if v is not None
                 }
@@ -402,13 +446,23 @@ def main() -> None:
 
             ships_with_name = sum(1 for t in tracks if t.get("ship_name"))
             ships_with_das = sum(1 for t in tracks if t.get("das_number"))
-            pos_with_wind = sum(
-                1 for t in tracks for p in t.get("positions", []) if p.get("wf") is not None
-            )
+            all_pos = [p for t in tracks for p in t.get("positions", [])]
+            pos_with_wind = sum(1 for p in all_pos if p.get("wf") is not None)
+            pos_with_sst = sum(1 for p in all_pos if p.get("sst") is not None)
+            pos_with_at = sum(1 for p in all_pos if p.get("at") is not None)
+            pos_with_slp = sum(1 for p in all_pos if p.get("slp") is not None)
+            pos_with_ss = sum(1 for p in all_pos if p.get("ss") is not None)
+            pos_anchored = sum(1 for p in all_pos if p.get("anch") == 1)
             logger.info("  Created %d voyage tracks", len(tracks))
             logger.info("    With ship name: %d", ships_with_name)
             logger.info("    With DAS number: %d (linked to DAS voyages)", ships_with_das)
-            logger.info("    Positions with wind data: %d", pos_with_wind)
+            logger.info("  Observations with data:")
+            logger.info("    Beaufort wind force: %d", pos_with_wind)
+            logger.info("    Ship speed (logged): %d", pos_with_ss)
+            logger.info("    Sea surface temp:    %d", pos_with_sst)
+            logger.info("    Air temperature:     %d", pos_with_at)
+            logger.info("    Sea level pressure:  %d", pos_with_slp)
+            logger.info("    Anchored:            %d", pos_anchored)
 
         except Exception as e:
             logger.warning("")

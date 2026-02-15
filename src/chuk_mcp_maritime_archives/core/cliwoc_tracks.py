@@ -412,6 +412,16 @@ def _month_in_range(month: int, start: int | None, end: int | None) -> bool:
     return month >= s or month <= e
 
 
+_COMPASS_SECTORS = ("N", "NE", "E", "SE", "S", "SW", "W", "NW")
+
+
+def _wind_dir_to_sector(degrees: int | float) -> str | None:
+    """Convert wind direction in degrees (1-360) to 8-point compass sector."""
+    if degrees is None or degrees < 0 or degrees > 360:
+        return None
+    return _COMPASS_SECTORS[int(((degrees + 22.5) % 360) / 45)]
+
+
 def _parse_date(d: str) -> date | None:
     """Parse a YYYY-MM-DD string to a date object."""
     try:
@@ -431,11 +441,12 @@ def _compute_daily_speeds(
     lon_max: float | None = None,
     min_speed: float = 5.0,
     max_speed: float = 400.0,
+    exclude_anchored: bool = True,
 ) -> list[dict[str, Any]]:
     """Compute daily speeds from consecutive positions in a track.
 
     Returns list of dicts with: date, lat, lon, km_day, direction.
-    Filters by bounding box and speed bounds.
+    Filters by bounding box, speed bounds, and anchored status.
     """
     positions = track.get("positions", [])
     if len(positions) < 2:
@@ -446,6 +457,11 @@ def _compute_daily_speeds(
 
     for i in range(1, len(positions)):
         p1, p2 = positions[i - 1], positions[i]
+
+        # Skip anchored positions (ship not sailing)
+        if exclude_anchored and (p1.get("anch") == 1 or p2.get("anch") == 1):
+            continue
+
         lat1, lon1 = p1.get("lat"), p1.get("lon")
         lat2, lon2 = p2.get("lat"), p2.get("lon")
         if lat1 is None or lon1 is None or lat2 is None or lon2 is None:
@@ -480,6 +496,8 @@ def _compute_daily_speeds(
                 "km_day": round(km_day, 1),
                 "direction": _infer_direction(lon1, lon2),
                 "wind_force": p2.get("wf"),
+                "wind_direction": p2.get("wd"),
+                "logged_dist": p2.get("dist"),
             }
         )
 
@@ -1139,6 +1157,7 @@ def compute_track_tortuosity(
     lon_max: float | None = None,
     min_speed: float = 5.0,
     max_speed: float = 400.0,
+    exclude_anchored: bool = True,
 ) -> dict[str, Any] | None:
     """Compute route tortuosity for a single voyage within a bounding box.
 
@@ -1155,9 +1174,11 @@ def compute_track_tortuosity(
 
     has_bbox = any(v is not None for v in (lat_min, lat_max, lon_min, lon_max))
 
-    # Collect positions within bbox
+    # Collect positions within bbox (excluding anchored positions)
     in_box: list[dict[str, Any]] = []
     for pos in track.get("positions", []):
+        if exclude_anchored and pos.get("anch") == 1:
+            continue
         lat, lon = pos.get("lat"), pos.get("lon")
         if lat is None or lon is None:
             continue
@@ -1516,20 +1537,32 @@ def wind_rose(
     min_speed: float = 5.0,
     max_speed: float = 400.0,
 ) -> dict[str, Any]:
-    """Count observations by Beaufort wind force, with optional period comparison.
+    """Count observations by Beaufort wind force and direction, with optional period comparison.
 
-    Returns dict with beaufort_counts, period splits, and wind data availability.
-    Each count includes force, count, percent, and mean_speed_km_day.
+    Returns dict with beaufort_counts, direction_counts, period splits,
+    and wind data availability. Wind direction is available for ~97% of
+    observations even when Beaufort force is missing.
     """
     _load_tracks()
 
-    # Counters: force -> [speeds]
+    # Beaufort force counters: force -> [speeds]
     all_counts: dict[int, list[float]] = defaultdict(list)
     p1_counts: dict[int, list[float]] = defaultdict(list)
     p2_counts: dict[int, list[float]] = defaultdict(list)
     total_with_wind = 0
     total_without_wind = 0
     voyage_ids: set[int] = set()
+
+    # Wind direction counters: sector -> [speeds]
+    all_dir_counts: dict[str, list[float]] = defaultdict(list)
+    p1_dir_counts: dict[str, list[float]] = defaultdict(list)
+    p2_dir_counts: dict[str, list[float]] = defaultdict(list)
+    total_with_direction = 0
+    total_without_direction = 0
+
+    # Logged vs haversine distance calibration
+    logged_dists: list[float] = []
+    haversine_dists: list[float] = []
 
     # Parse periods
     p1_start = p1_end = p2_start = p2_end = None
@@ -1561,6 +1594,47 @@ def wind_rose(
                 if d is None or not _month_in_range(d.month, month_start, month_end):
                     continue
 
+            # Collect logged vs haversine distances for calibration
+            # CLIWOC Distance field is in nautical miles; convert to km
+            logged = obs.get("logged_dist")
+            if logged is not None and logged > 0:
+                logged_dists.append(logged * 1.852)  # nm -> km
+                haversine_dists.append(obs["km_day"])
+
+            # Determine observation year for period splitting
+            obs_year: int | None = None
+            has_periods = (
+                p1_start is not None
+                and p1_end is not None
+                and p2_start is not None
+                and p2_end is not None
+            )
+            if has_periods:
+                d = _parse_date(obs["date"])
+                if d:
+                    obs_year = d.year
+
+            # Wind direction (available for ~97% of observations)
+            wd = obs.get("wind_direction")
+            sector = _wind_dir_to_sector(wd) if wd is not None else None
+            if sector is not None:
+                total_with_direction += 1
+                all_dir_counts[sector].append(obs["km_day"])
+                if (
+                    obs_year is not None
+                    and p1_start is not None
+                    and p1_end is not None
+                    and p2_start is not None
+                    and p2_end is not None
+                ):
+                    if p1_start <= obs_year <= p1_end:
+                        p1_dir_counts[sector].append(obs["km_day"])
+                    elif p2_start <= obs_year <= p2_end:
+                        p2_dir_counts[sector].append(obs["km_day"])
+            else:
+                total_without_direction += 1
+
+            # Beaufort force (available for ~17% of observations)
             wf = obs.get("wind_force")
             if wf is None:
                 total_without_wind += 1
@@ -1570,23 +1644,22 @@ def wind_rose(
             voyage_ids.add(track["voyage_id"])
             all_counts[wf].append(obs["km_day"])
 
-            # Period split
             if (
-                p1_start is not None
+                obs_year is not None
+                and p1_start is not None
                 and p1_end is not None
                 and p2_start is not None
                 and p2_end is not None
             ):
-                d = _parse_date(obs["date"])
-                if d:
-                    if p1_start <= d.year <= p1_end:
-                        p1_counts[wf].append(obs["km_day"])
-                    elif p2_start <= d.year <= p2_end:
-                        p2_counts[wf].append(obs["km_day"])
+                if p1_start <= obs_year <= p1_end:
+                    p1_counts[wf].append(obs["km_day"])
+                elif p2_start <= obs_year <= p2_end:
+                    p2_counts[wf].append(obs["km_day"])
 
     has_wind = total_with_wind > 0
+    has_direction = total_with_direction > 0
 
-    def _make_counts(counts: dict[int, list[float]], total: int) -> list[dict[str, Any]]:
+    def _make_beaufort_counts(counts: dict[int, list[float]], total: int) -> list[dict[str, Any]]:
         result = []
         for force in range(13):  # 0-12
             speeds_list = counts.get(force, [])
@@ -1603,12 +1676,48 @@ def wind_rose(
             )
         return result
 
+    def _make_direction_counts(counts: dict[str, list[float]], total: int) -> list[dict[str, Any]]:
+        result = []
+        for sector in _COMPASS_SECTORS:
+            speeds_list = counts.get(sector, [])
+            count = len(speeds_list)
+            pct = (100 * count / total) if total > 0 else 0.0
+            mean_spd = statistics.mean(speeds_list) if speeds_list else None
+            result.append(
+                {
+                    "sector": sector,
+                    "count": count,
+                    "percent": round(pct, 1),
+                    "mean_speed_km_day": round(mean_spd, 1) if mean_spd is not None else None,
+                }
+            )
+        return result
+
+    # Distance calibration stats
+    calibration = None
+    if logged_dists:
+        n_cal = len(logged_dists)
+        mean_logged = statistics.mean(logged_dists)
+        mean_haversine = statistics.mean(haversine_dists)
+        ratio = mean_logged / mean_haversine if mean_haversine > 0 else None
+        calibration = {
+            "n_pairs": n_cal,
+            "mean_logged_km_day": round(mean_logged, 1),
+            "mean_haversine_km_day": round(mean_haversine, 1),
+            "logged_over_haversine": round(ratio, 3) if ratio else None,
+        }
+
     result: dict[str, Any] = {
         "total_with_wind": total_with_wind,
         "total_without_wind": total_without_wind,
+        "total_with_direction": total_with_direction,
+        "total_without_direction": total_without_direction,
         "total_voyages": len(voyage_ids),
         "has_wind_data": has_wind,
-        "beaufort_counts": _make_counts(all_counts, total_with_wind),
+        "has_direction_data": has_direction,
+        "beaufort_counts": _make_beaufort_counts(all_counts, total_with_wind),
+        "direction_counts": _make_direction_counts(all_dir_counts, total_with_direction),
+        "distance_calibration": calibration,
         "latitude_band": [lat_min, lat_max] if lat_min is not None or lat_max is not None else None,
         "longitude_band": [lon_min, lon_max]
         if lon_min is not None or lon_max is not None
@@ -1623,9 +1732,14 @@ def wind_rose(
         p1_total = sum(len(v) for v in p1_counts.values())
         p2_total = sum(len(v) for v in p2_counts.values())
         result["period1_label"] = period1_years
-        result["period1_counts"] = _make_counts(p1_counts, p1_total)
+        result["period1_counts"] = _make_beaufort_counts(p1_counts, p1_total)
         result["period2_label"] = period2_years
-        result["period2_counts"] = _make_counts(p2_counts, p2_total)
+        result["period2_counts"] = _make_beaufort_counts(p2_counts, p2_total)
+        # Direction period splits
+        p1_dir_total = sum(len(v) for v in p1_dir_counts.values())
+        p2_dir_total = sum(len(v) for v in p2_dir_counts.values())
+        result["period1_direction_counts"] = _make_direction_counts(p1_dir_counts, p1_dir_total)
+        result["period2_direction_counts"] = _make_direction_counts(p2_dir_counts, p2_dir_total)
 
     return result
 

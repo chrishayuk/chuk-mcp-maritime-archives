@@ -1253,9 +1253,12 @@ requested dimension. Supports bootstrap comparison between two time periods.
 
 #### `maritime_wind_rose`
 
-Beaufort wind force distributions from CLIWOC logbook observations. Computes
-frequency and mean speed for each Beaufort force level, with optional geographic,
-temporal, and directional filters. Supports period comparison.
+Beaufort wind force and wind direction distributions from CLIWOC logbook observations.
+Computes frequency and mean speed for each Beaufort force level and for each of the
+8 compass sectors (N, NE, E, SE, S, SW, W, NW). Includes distance calibration
+comparing logged vs haversine distances, and automatically excludes anchored
+positions via anchor filtering. Supports optional geographic, temporal, and
+directional filters, as well as period comparison.
 
 **Parameters:**
 
@@ -1284,11 +1287,18 @@ temporal, and directional filters. Supports period comparison.
 | `total_without_wind` | `int` | Total observations without wind force data |
 | `total_voyages` | `int` | Total voyages contributing data |
 | `has_wind_data` | `bool` | Whether any wind data was found |
+| `total_with_direction` | `int` | Observations with wind direction data |
+| `total_without_direction` | `int` | Observations without direction data |
+| `has_direction_data` | `bool` | Whether direction data is available |
 | `beaufort_counts` | `BeaufortCount[]` | Frequency distribution by Beaufort force |
+| `direction_counts` | `WindDirectionCount[]` | Wind direction frequency by 8 compass sectors (N, NE, E, SE, S, SW, W, NW) |
+| `distance_calibration` | `DistanceCalibration?` | Logged vs haversine distance comparison (null when no paired data available) |
 | `period1_label` | `str?` | First period label (present when period comparison requested) |
 | `period2_label` | `str?` | Second period label (present when period comparison requested) |
 | `period1_counts` | `BeaufortCount[]?` | First period Beaufort distribution (present when period comparison requested) |
 | `period2_counts` | `BeaufortCount[]?` | Second period Beaufort distribution (present when period comparison requested) |
+| `period1_direction_counts` | `WindDirectionCount[]?` | Direction counts for period 1 (present when period comparison requested) |
+| `period2_direction_counts` | `WindDirectionCount[]?` | Direction counts for period 2 (present when period comparison requested) |
 | `latitude_band` | `list[float]?` | Latitude filter applied |
 | `longitude_band` | `list[float]?` | Longitude filter applied |
 | `direction_filter` | `str?` | Direction filter applied |
@@ -1305,6 +1315,28 @@ temporal, and directional filters. Supports period comparison.
 | `count` | `int` | Number of observations at this force level |
 | `percent` | `float` | Percentage of total observations |
 | `mean_speed_km_day` | `float?` | Mean sailing speed at this wind force (km/day) |
+
+**WindDirectionCount fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `sector` | `str` | Compass sector: `N`, `NE`, `E`, `SE`, `S`, `SW`, `W`, `NW` |
+| `count` | `int` | Number of observations from this direction |
+| `percent` | `float` | Percentage of total observations with direction data |
+| `mean_speed_km_day` | `float?` | Mean sailing speed when wind blows from this sector (km/day) |
+
+**DistanceCalibration fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `n_pairs` | `int` | Number of observation pairs with both logged and haversine distances |
+| `mean_logged_km_day` | `float` | Mean logged distance per day (km/day) |
+| `mean_haversine_km_day` | `float` | Mean haversine-computed distance per day (km/day) |
+| `logged_over_haversine` | `float?` | Ratio of logged to haversine distance (null when haversine is zero) |
+
+---
+
+> **Note on anchor filtering:** All speed-related tools (including `maritime_wind_rose`) now exclude anchored positions by default (`exclude_anchored=True` in `_compute_daily_speeds`). This filters out near-zero-speed observations where ships were stationary at anchor, producing cleaner speed and wind-speed distributions.
 
 ---
 

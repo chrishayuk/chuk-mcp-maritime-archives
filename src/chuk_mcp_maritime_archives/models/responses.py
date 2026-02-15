@@ -1481,18 +1481,43 @@ class BeaufortCount(BaseModel):
     mean_speed_km_day: float | None = None
 
 
+class WindDirectionCount(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    sector: str
+    count: int
+    percent: float
+    mean_speed_km_day: float | None = None
+
+
+class DistanceCalibration(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    n_pairs: int
+    mean_logged_km_day: float
+    mean_haversine_km_day: float
+    logged_over_haversine: float | None = None
+
+
 class WindRoseResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     total_with_wind: int
     total_without_wind: int
+    total_with_direction: int = 0
+    total_without_direction: int = 0
     total_voyages: int
     has_wind_data: bool
+    has_direction_data: bool = False
     beaufort_counts: list[BeaufortCount]
+    direction_counts: list[WindDirectionCount] | None = None
+    distance_calibration: DistanceCalibration | None = None
     period1_label: str | None = None
     period1_counts: list[BeaufortCount] | None = None
     period2_label: str | None = None
     period2_counts: list[BeaufortCount] | None = None
+    period1_direction_counts: list[WindDirectionCount] | None = None
+    period2_direction_counts: list[WindDirectionCount] | None = None
     latitude_band: list[float] | None = None
     longitude_band: list[float] | None = None
     direction_filter: str | None = None
@@ -1502,24 +1527,57 @@ class WindRoseResponse(BaseModel):
     message: str = ""
 
     def to_text(self) -> str:
-        if not self.has_wind_data:
+        if not self.has_wind_data and not self.has_direction_data:
             return self.message
         lines = [self.message, ""]
-        for bc in self.beaufort_counts:
-            if bc.count > 0:
-                bar = "#" * max(1, int(bc.percent / 2))
-                spd = f"{bc.mean_speed_km_day:.1f} km/day" if bc.mean_speed_km_day else ""
-                lines.append(
-                    f"  Beaufort {bc.force:>2d}: {bc.count:>6,} "
-                    f"({bc.percent:5.1f}%)  {spd:>12s}  {bar}"
-                )
-        lines.append(f"\nWith wind data: {self.total_with_wind:,}")
-        lines.append(f"Without wind data: {self.total_without_wind:,}")
+
+        # Beaufort distribution
+        if self.has_wind_data:
+            lines.append("Beaufort Force Distribution:")
+            for bc in self.beaufort_counts:
+                if bc.count > 0:
+                    bar = "#" * max(1, int(bc.percent / 2))
+                    spd = f"{bc.mean_speed_km_day:.1f} km/day" if bc.mean_speed_km_day else ""
+                    lines.append(
+                        f"  Beaufort {bc.force:>2d}: {bc.count:>6,} "
+                        f"({bc.percent:5.1f}%)  {spd:>12s}  {bar}"
+                    )
+            lines.append(f"\nWith Beaufort data: {self.total_with_wind:,}")
+            lines.append(f"Without Beaufort data: {self.total_without_wind:,}")
+
+        # Wind direction distribution
+        if self.has_direction_data and self.direction_counts:
+            lines.append("\nWind Direction Distribution:")
+            for dc in self.direction_counts:
+                if dc.count > 0:
+                    bar = "#" * max(1, int(dc.percent / 2))
+                    spd = f"{dc.mean_speed_km_day:.1f} km/day" if dc.mean_speed_km_day else ""
+                    lines.append(
+                        f"  {dc.sector:>2s}: {dc.count:>6,} ({dc.percent:5.1f}%)  {spd:>12s}  {bar}"
+                    )
+            lines.append(f"\nWith direction data: {self.total_with_direction:,}")
+
+        # Distance calibration
+        if self.distance_calibration:
+            cal = self.distance_calibration
+            lines.append(f"\nDistance Calibration ({cal.n_pairs:,} pairs):")
+            lines.append(f"  Mean logged: {cal.mean_logged_km_day:.1f} km/day")
+            lines.append(f"  Mean haversine: {cal.mean_haversine_km_day:.1f} km/day")
+            if cal.logged_over_haversine:
+                lines.append(f"  Ratio (logged/haversine): {cal.logged_over_haversine:.3f}")
+
+        # Period comparisons
         if self.period1_label and self.period1_counts:
             p1_n = sum(c.count for c in self.period1_counts)
             p2_n = sum(c.count for c in (self.period2_counts or []))
-            lines.append(f"\nPeriod 1 ({self.period1_label}): {p1_n:,} obs")
-            lines.append(f"Period 2 ({self.period2_label}): {p2_n:,} obs")
+            lines.append(f"\nPeriod 1 ({self.period1_label}): {p1_n:,} Beaufort obs")
+            lines.append(f"Period 2 ({self.period2_label}): {p2_n:,} Beaufort obs")
+        if self.period1_direction_counts:
+            p1_dir_n = sum(c.count for c in self.period1_direction_counts)
+            p2_dir_n = sum(c.count for c in (self.period2_direction_counts or []))
+            lines.append(f"Period 1 direction obs: {p1_dir_n:,}")
+            lines.append(f"Period 2 direction obs: {p2_dir_n:,}")
+
         return "\n".join(lines)
 
 

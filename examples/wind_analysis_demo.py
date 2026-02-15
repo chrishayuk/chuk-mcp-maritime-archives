@@ -215,8 +215,8 @@ async def main() -> None:
     )
 
     if wr["has_wind_data"]:
-        print(f"\n  Observations with wind data: {wr['total_with_wind']:,}")
-        print(f"  Observations without:        {wr['total_without_wind']:,}")
+        print(f"\n  Observations with Beaufort data: {wr['total_with_wind']:,}")
+        print(f"  Observations without:            {wr['total_without_wind']:,}")
         print()
         print(f"  {'Force':>5} {'Count':>8} {'%':>7} {'Mean km/day':>12}")
         print(f"  {'-' * 5} {'-' * 8} {'-' * 7} {'-' * 12}")
@@ -226,15 +226,58 @@ async def main() -> None:
                 print(f"  {bc['force']:>5} {bc['count']:>8} {bc['percent']:>6.1f}% {spd:>12}")
     else:
         print()
-        print("  No wind force data available in current dataset.")
-        print("  Wind fields (W, D) are only available in CLIWOC 2.1 Full.")
+        print("  No Beaufort force data available in current dataset.")
         print("  Re-run scripts/download_cliwoc.py to extract wind data.")
+
+    # =================================================================
+    # 4b. WIND DIRECTION DISTRIBUTION
+    # =================================================================
+    print()
+    print("-" * 72)
+    print("4b. WIND DIRECTION — Compass Sector Distribution")
+    print("-" * 72)
+
+    if wr.get("has_direction_data"):
+        print(f"\n  Observations with direction: {wr['total_with_direction']:,}")
         print()
-        print("  Once available, the wind rose will show:")
-        print("    - Beaufort force distribution by period")
-        print("    - Mean speed at each force level")
-        print("    - Whether wind distributions shifted (genuine wind change)")
-        print("    - Whether speed-at-force changed (technology improvement)")
+        print(f"  {'Sector':>6} {'Count':>8} {'%':>7} {'Mean km/day':>12}")
+        print(f"  {'-' * 6} {'-' * 8} {'-' * 7} {'-' * 12}")
+        for dc in wr["direction_counts"]:
+            if dc["count"] > 0:
+                spd = f"{dc['mean_speed_km_day']:.1f}" if dc.get("mean_speed_km_day") else "—"
+                print(f"  {dc['sector']:>6} {dc['count']:>8} {dc['percent']:>6.1f}% {spd:>12}")
+
+        print()
+        print("  Interpretation: Prevailing wind from W/NW/SW sectors confirms")
+        print("  westerly dominance in the Roaring Forties. Period shifts in")
+        print("  sector distribution would indicate genuine wind pattern change.")
+    else:
+        print("\n  No wind direction data available.")
+
+    # =================================================================
+    # 4c. DISTANCE CALIBRATION
+    # =================================================================
+    cal = wr.get("distance_calibration")
+    if cal:
+        print()
+        print("-" * 72)
+        print("4c. DISTANCE CALIBRATION — Logged vs Haversine")
+        print("-" * 72)
+        print(f"\n  Pairs compared:      {cal['n_pairs']:,}")
+        print(f"  Mean logged:         {cal['mean_logged_km_day']:.1f} km/day")
+        print(f"  Mean haversine:      {cal['mean_haversine_km_day']:.1f} km/day")
+        if cal.get("logged_over_haversine"):
+            print(f"  Ratio (log/hav):     {cal['logged_over_haversine']:.3f}")
+            print()
+            ratio = cal["logged_over_haversine"]
+            if 0.9 <= ratio <= 1.1:
+                print("  RESULT: Ratio near 1.0 — positions and logged distances agree well.")
+            elif ratio > 1.1:
+                print("  RESULT: Logged > haversine — ships sailed indirect routes or")
+                print("  position recording was less frequent than daily.")
+            else:
+                print("  RESULT: Logged < haversine — possible position errors or")
+                print("  speed estimation differences.")
 
     # =================================================================
     # 5. SINGLE-VOYAGE TORTUOSITY EXAMPLE
