@@ -2121,7 +2121,8 @@ class TestExportSpeeds:
         assert result["total_matching"] > 0
         assert result["returned"] > 0
         assert result["returned"] <= result["total_matching"]
-        assert not result["truncated"]
+        assert "has_more" in result
+        assert "offset" in result
         s = result["samples"][0]
         assert "voyage_id" in s
         assert "year" in s
@@ -2186,7 +2187,8 @@ class TestExportSpeeds:
         )
         assert result["returned"] <= 10
         if result["total_matching"] > 10:
-            assert result["truncated"]
+            assert result["has_more"]
+            assert result["next_offset"] == 10
 
     def test_wind_force_filter(self):
         result = export_speeds(
@@ -2219,7 +2221,70 @@ class TestExportSpeeds:
         assert result["total_matching"] == 0
         assert result["returned"] == 0
         assert result["samples"] == []
-        assert not result["truncated"]
+        assert not result["has_more"]
+        assert result["next_offset"] is None
+
+    def test_pagination_offset(self):
+        # Get all observations
+        full = export_speeds(
+            lat_min=-50,
+            lat_max=-30,
+            year_start=1780,
+            year_end=1820,
+            aggregate_by="observation",
+            max_results=10000,
+        )
+        total = full["total_matching"]
+        if total < 2:
+            return  # Not enough data to test pagination
+
+        # Get first page
+        page1 = export_speeds(
+            lat_min=-50,
+            lat_max=-30,
+            year_start=1780,
+            year_end=1820,
+            aggregate_by="observation",
+            max_results=5,
+            offset=0,
+        )
+        assert page1["returned"] == min(5, total)
+        assert page1["total_matching"] == total
+        assert page1["offset"] == 0
+        if total > 5:
+            assert page1["has_more"] is True
+            assert page1["next_offset"] == 5
+
+            # Get second page
+            page2 = export_speeds(
+                lat_min=-50,
+                lat_max=-30,
+                year_start=1780,
+                year_end=1820,
+                aggregate_by="observation",
+                max_results=5,
+                offset=5,
+            )
+            assert page2["offset"] == 5
+            assert page2["returned"] == min(5, total - 5)
+            # No overlap between pages
+            dates1 = {(s["voyage_id"], s["date"]) for s in page1["samples"]}
+            dates2 = {(s["voyage_id"], s["date"]) for s in page2["samples"]}
+            assert len(dates1 & dates2) == 0
+
+    def test_pagination_past_end(self):
+        result = export_speeds(
+            lat_min=-50,
+            lat_max=-30,
+            year_start=1780,
+            year_end=1820,
+            aggregate_by="observation",
+            max_results=5,
+            offset=999999,
+        )
+        assert result["returned"] == 0
+        assert result["samples"] == []
+        assert not result["has_more"]
 
     def test_filter_metadata_present(self):
         result = export_speeds(

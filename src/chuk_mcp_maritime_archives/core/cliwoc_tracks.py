@@ -1538,6 +1538,7 @@ def export_speeds(
     wind_force_min: int | None = None,
     wind_force_max: int | None = None,
     max_results: int = 5000,
+    offset: int = 0,
 ) -> dict[str, Any]:
     """Export raw speed samples for downstream analysis.
 
@@ -1555,7 +1556,8 @@ def export_speeds(
             per voyage with metadata — recommended for statistical tests)
         min_speed/max_speed: Speed bounds in km/day
         wind_force_min/wind_force_max: Beaufort force bounds (0-12)
-        max_results: Maximum number of records to return (default 5000)
+        max_results: Maximum number of records per page (default 5000)
+        offset: Skip this many records before returning (for pagination)
 
     Returns:
         Dict with samples list and total count. Each sample includes
@@ -1563,14 +1565,14 @@ def export_speeds(
         ship_name, and (for observation-level) date, day, wind_force,
         wind_direction, lat, lon. The date field is ISO format (YYYY-MM-DD)
         for lunar phase computation and other temporal analyses.
+        Includes has_more and next_offset for pagination.
     """
     _load_tracks()
     voyage_level = aggregate_by == "voyage"
 
-    samples: list[dict[str, Any]] = []
-    # For voyage-level: accumulate obs per voyage, then reduce
+    # Collect all matching records first, then paginate
+    all_records: list[dict[str, Any]] = []
     voyage_accum: dict[int, dict[str, Any]] = {}
-    total_obs = 0
 
     for track in _TRACKS:
         if nationality and track.get("nationality") != nationality.upper():
@@ -1611,8 +1613,6 @@ def export_speeds(
                 if wind_force_max is not None and wf > wind_force_max:
                     continue
 
-            total_obs += 1
-
             if voyage_level:
                 if vid not in voyage_accum:
                     voyage_accum[vid] = {
@@ -1627,59 +1627,62 @@ def export_speeds(
                 voyage_accum[vid]["speeds"].append(obs["km_day"])
                 voyage_accum[vid]["months"].append(d.month)
             else:
-                if len(samples) < max_results:
-                    samples.append(
-                        {
-                            "voyage_id": vid,
-                            "date": obs["date"],
-                            "year": d.year,
-                            "month": d.month,
-                            "day": d.day,
-                            "direction": obs.get("direction"),
-                            "speed_km_day": obs["km_day"],
-                            "nationality": nat,
-                            "ship_name": ship,
-                            "lat": obs.get("lat"),
-                            "lon": obs.get("lon"),
-                            "wind_force": obs.get("wind_force"),
-                            "wind_direction": obs.get("wind_direction"),
-                        }
-                    )
+                all_records.append(
+                    {
+                        "voyage_id": vid,
+                        "date": obs["date"],
+                        "year": d.year,
+                        "month": d.month,
+                        "day": d.day,
+                        "direction": obs.get("direction"),
+                        "speed_km_day": obs["km_day"],
+                        "nationality": nat,
+                        "ship_name": ship,
+                        "lat": obs.get("lat"),
+                        "lon": obs.get("lon"),
+                        "wind_force": obs.get("wind_force"),
+                        "wind_direction": obs.get("wind_direction"),
+                    }
+                )
 
     if voyage_level:
         for va in voyage_accum.values():
             spds = va["speeds"]
             months = va["months"]
             mean_spd = statistics.mean(spds) if spds else 0.0
-            # Use the most common month as representative
             month_counts: dict[int, int] = {}
             for m in months:
                 month_counts[m] = month_counts.get(m, 0) + 1
             primary_month = (
                 max(month_counts, key=lambda k: month_counts[k]) if month_counts else None
             )
-            if len(samples) < max_results:
-                samples.append(
-                    {
-                        "voyage_id": va["voyage_id"],
-                        "year": va["year"],
-                        "month": primary_month,
-                        "direction": va["direction"],
-                        "speed_km_day": round(mean_spd, 1),
-                        "nationality": va["nationality"],
-                        "ship_name": va["ship_name"],
-                        "n_observations": len(spds),
-                    }
-                )
+            all_records.append(
+                {
+                    "voyage_id": va["voyage_id"],
+                    "year": va["year"],
+                    "month": primary_month,
+                    "direction": va["direction"],
+                    "speed_km_day": round(mean_spd, 1),
+                    "nationality": va["nationality"],
+                    "ship_name": va["ship_name"],
+                    "n_observations": len(spds),
+                }
+            )
 
-    total_samples = len(voyage_accum) if voyage_level else total_obs
+    total_matching = len(all_records)
+    # Apply pagination: skip offset, take max_results
+    page = all_records[offset : offset + max_results]
+    has_more = (offset + max_results) < total_matching
+    next_offset = (offset + max_results) if has_more else None
 
     return {
-        "total_matching": total_samples,
-        "returned": len(samples),
-        "truncated": total_samples > max_results,
+        "total_matching": total_matching,
+        "returned": len(page),
+        "offset": offset,
+        "has_more": has_more,
+        "next_offset": next_offset,
         "aggregate_by": aggregate_by,
-        "samples": samples,
+        "samples": page,
         "latitude_band": [lat_min, lat_max] if lat_min is not None or lat_max is not None else None,
         "longitude_band": [lon_min, lon_max]
         if lon_min is not None or lon_max is not None

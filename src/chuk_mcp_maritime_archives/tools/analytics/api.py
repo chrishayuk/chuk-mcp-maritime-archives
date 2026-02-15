@@ -940,7 +940,8 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
         max_speed_km_day: float = 400.0,
         wind_force_min: int | None = None,
         wind_force_max: int | None = None,
-        max_results: int = 5000,
+        max_results: int = 500,
+        offset: int = 0,
         output_mode: str = "json",
     ) -> str:
         """
@@ -967,7 +968,10 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
             min_speed_km_day: Minimum speed filter (default: 5.0)
             max_speed_km_day: Maximum speed filter (default: 400.0)
             wind_force_min/wind_force_max: Beaufort force bounds
-            max_results: Maximum records to return (default: 5000)
+            max_results: Records per page (default: 500). Use with offset
+                for pagination through large result sets.
+            offset: Skip this many records (default: 0). Use next_offset
+                from previous response to get the next page.
             output_mode: Response format - "json" (default) or "text"
 
         Returns:
@@ -986,7 +990,8 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
               (e.g. Mozambique Channel lat -26/-12, lon 35/45), use date
               field to compute lunar phase, correlate with speed
             - For Laki 1783: compare 1782-1784 samples vs surrounding years
-            - max_results=5000 covers most regional queries; increase if needed
+            - Paginate large results: check has_more and use next_offset
+            - Default page size is 500 records; adjust max_results as needed
         """
         try:
             result = export_speeds(
@@ -1006,6 +1011,7 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
                 wind_force_min=wind_force_min,
                 wind_force_max=wind_force_max,
                 max_results=max_results,
+                offset=offset,
             )
 
             msg = SuccessMessages.SPEED_EXPORT_COMPUTED.format(
@@ -1015,8 +1021,10 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
             samples = [
                 SpeedSample(
                     voyage_id=s["voyage_id"],
+                    date=s.get("date"),
                     year=s["year"],
                     month=s.get("month"),
+                    day=s.get("day"),
                     direction=s.get("direction"),
                     speed_km_day=s["speed_km_day"],
                     nationality=s.get("nationality"),
@@ -1034,7 +1042,9 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
                 SpeedExportResponse(
                     total_matching=result["total_matching"],
                     returned=result["returned"],
-                    truncated=result["truncated"],
+                    offset=result.get("offset", 0),
+                    has_more=result.get("has_more", False),
+                    next_offset=result.get("next_offset"),
                     aggregate_by=result["aggregate_by"],
                     samples=samples,
                     latitude_band=result.get("latitude_band"),

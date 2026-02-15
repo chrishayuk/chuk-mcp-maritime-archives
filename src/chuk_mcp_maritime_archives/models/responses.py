@@ -1476,8 +1476,10 @@ class SpeedSample(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     voyage_id: int
+    date: str | None = None
     year: int
     month: int | None = None
+    day: int | None = None
     direction: str | None = None
     speed_km_day: float
     nationality: str | None = None
@@ -1494,7 +1496,9 @@ class SpeedExportResponse(BaseModel):
 
     total_matching: int
     returned: int
-    truncated: bool
+    offset: int = 0
+    has_more: bool = False
+    next_offset: int | None = None
     aggregate_by: str
     samples: list[SpeedSample]
     latitude_band: list[float] | None = None
@@ -1512,9 +1516,9 @@ class SpeedExportResponse(BaseModel):
     def to_text(self) -> str:
         lines = [self.message, ""]
         lines.append(f"Total matching: {self.total_matching:,}")
-        lines.append(f"Returned: {self.returned:,}")
-        if self.truncated:
-            lines.append("(truncated — increase max_results for more)")
+        lines.append(f"Returned: {self.returned:,} (offset {self.offset})")
+        if self.has_more:
+            lines.append(f"(more available — use offset={self.next_offset} for next page)")
         lines.append(f"Aggregate by: {self.aggregate_by}")
         lines.append("")
         if self.aggregate_by == "voyage":
@@ -1530,13 +1534,14 @@ class SpeedExportResponse(BaseModel):
                     f"{(s.nationality or '?'):>3} {s.n_observations or 0:>3}"
                 )
         else:
-            header = f"{'VoyID':>6} {'Year':>5} {'Mon':>3} {'Dir':>10} {'km/day':>8} {'Nat':>3} {'BF':>3}"
+            header = f"{'VoyID':>6} {'Date':>12} {'Dir':>10} {'km/day':>8} {'Nat':>3} {'BF':>3}"
             lines.append(header)
             lines.append("-" * len(header))
             for s in self.samples[:50]:
                 bf = str(s.wind_force) if s.wind_force is not None else ""
+                date_str = s.date or f"{s.year}-{s.month or 0:02d}"
                 lines.append(
-                    f"{s.voyage_id:>6} {s.year:>5} {s.month or 0:>3} "
+                    f"{s.voyage_id:>6} {date_str:>12} "
                     f"{(s.direction or '?'):>10} {s.speed_km_day:>8.1f} "
                     f"{(s.nationality or '?'):>3} {bf:>3}"
                 )
