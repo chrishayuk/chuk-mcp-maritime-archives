@@ -412,6 +412,19 @@ def _month_in_range(month: int, start: int | None, end: int | None) -> bool:
     return month >= s or month <= e
 
 
+def _parse_period(period_str: str) -> frozenset[int]:
+    """Parse a period string into a set of years.
+
+    Accepts two formats:
+        "YYYY/YYYY" — contiguous range (inclusive)
+        "YYYY,YYYY,YYYY,..." — explicit year list
+    """
+    if "/" in period_str:
+        parts = period_str.split("/")
+        return frozenset(range(int(parts[0]), int(parts[1]) + 1))
+    return frozenset(int(y.strip()) for y in period_str.split(","))
+
+
 _COMPASS_SECTORS = ("N", "NE", "E", "SE", "S", "SW", "W", "NW")
 
 
@@ -747,8 +760,8 @@ def compare_speed_groups(
     """Compare speed distributions between two time periods using Mann-Whitney U.
 
     Args:
-        period1_years: First period as "YYYY/YYYY" (e.g., "1750/1789")
-        period2_years: Second period as "YYYY/YYYY" (e.g., "1820/1859")
+        period1_years: Period as "YYYY/YYYY" range or "YYYY,YYYY,..." list
+        period2_years: Period as "YYYY/YYYY" range or "YYYY,YYYY,..." list
         month_start/month_end: Filter by month (1-12), supports wrap-around
         aggregate_by: "observation" (each daily speed) or "voyage" (one mean
             per voyage, statistically independent samples)
@@ -762,15 +775,12 @@ def compare_speed_groups(
     _load_tracks()
     voyage_level = aggregate_by == "voyage"
 
-    def _parse_year_range(s: str) -> tuple[int, int]:
-        parts = s.split("/")
-        return int(parts[0]), int(parts[1])
+    y1_set = _parse_period(period1_years)
+    y2_set = _parse_period(period2_years)
 
-    y1_start, y1_end = _parse_year_range(period1_years)
-    y2_start, y2_end = _parse_year_range(period2_years)
-
-    def _collect_speeds(yr_start: int, yr_end: int) -> list[float]:
+    def _collect_speeds(years: frozenset[int]) -> list[float]:
         values: list[float] = []
+        yr_min, yr_max = min(years), max(years)
         # For voyage-level: collect per-voyage, then reduce to means
         per_voyage: dict[int, list[float]] = defaultdict(list)
         for track in _TRACKS:
@@ -778,7 +788,7 @@ def compare_speed_groups(
                 continue
             t_start = track.get("year_start") or 9999
             t_end = track.get("year_end") or 0
-            if t_start > yr_end or t_end < yr_start:
+            if t_start > yr_max or t_end < yr_min:
                 continue
 
             speeds = _compute_daily_speeds(
@@ -788,7 +798,7 @@ def compare_speed_groups(
                 if direction and obs.get("direction") != direction:
                     continue
                 d = _parse_date(obs["date"])
-                if d and yr_start <= d.year <= yr_end:
+                if d and d.year in years:
                     if month_start is not None or month_end is not None:
                         if not _month_in_range(d.month, month_start, month_end):
                             continue
@@ -809,8 +819,8 @@ def compare_speed_groups(
                 values.append(statistics.mean(voy_speeds))
         return values
 
-    g1 = _collect_speeds(y1_start, y1_end)
-    g2 = _collect_speeds(y2_start, y2_end)
+    g1 = _collect_speeds(y1_set)
+    g2 = _collect_speeds(y2_set)
 
     n1, n2 = len(g1), len(g2)
     g1_mean = statistics.mean(g1) if g1 else 0.0
@@ -926,8 +936,8 @@ def did_speed_test(
     indicating strengthened westerlies (not just better ships).
 
     Args:
-        period1_years: First period as "YYYY/YYYY" (e.g., "1750/1783")
-        period2_years: Second period as "YYYY/YYYY" (e.g., "1784/1810")
+        period1_years: Period as "YYYY/YYYY" range or "YYYY,YYYY,..." list
+        period2_years: Period as "YYYY/YYYY" range or "YYYY,YYYY,..." list
         lat_min/lat_max/lon_min/lon_max: Bounding box for position filtering
         nationality: Filter tracks by nationality code
         month_start/month_end: Filter by month (1-12), supports wrap-around
@@ -945,26 +955,23 @@ def did_speed_test(
     _load_tracks()
     voyage_level = aggregate_by == "voyage"
 
-    def _parse_year_range(s: str) -> tuple[int, int]:
-        parts = s.split("/")
-        return int(parts[0]), int(parts[1])
+    y1_set = _parse_period(period1_years)
+    y2_set = _parse_period(period2_years)
 
-    y1_start, y1_end = _parse_year_range(period1_years)
-    y2_start, y2_end = _parse_year_range(period2_years)
-
-    def _collect_by_direction(yr_start: int, yr_end: int) -> tuple[list[float], list[float]]:
+    def _collect_by_direction(years: frozenset[int]) -> tuple[list[float], list[float]]:
         """Collect speeds split by direction for a time period."""
         east_obs: list[float] = []
         west_obs: list[float] = []
         east_voy: dict[int, list[float]] = defaultdict(list)
         west_voy: dict[int, list[float]] = defaultdict(list)
+        yr_min, yr_max = min(years), max(years)
 
         for track in _TRACKS:
             if nationality and track.get("nationality") != nationality.upper():
                 continue
             t_start = track.get("year_start") or 9999
             t_end = track.get("year_end") or 0
-            if t_start > yr_end or t_end < yr_start:
+            if t_start > yr_max or t_end < yr_min:
                 continue
 
             speeds = _compute_daily_speeds(
@@ -973,7 +980,7 @@ def did_speed_test(
             vid = track["voyage_id"]
             for obs in speeds:
                 d = _parse_date(obs["date"])
-                if not d or not (yr_start <= d.year <= yr_end):
+                if not d or d.year not in years:
                     continue
                 if month_start is not None or month_end is not None:
                     if not _month_in_range(d.month, month_start, month_end):
@@ -1005,8 +1012,8 @@ def did_speed_test(
                 west_obs.append(statistics.mean(voy_speeds))
         return east_obs, west_obs
 
-    pre_east, pre_west = _collect_by_direction(y1_start, y1_end)
-    post_east, post_west = _collect_by_direction(y2_start, y2_end)
+    pre_east, pre_west = _collect_by_direction(y1_set)
+    post_east, post_west = _collect_by_direction(y2_set)
 
     def _safe_mean(xs: list[float]) -> float:
         return statistics.mean(xs) if xs else 0.0
@@ -1398,7 +1405,8 @@ def aggregate_track_tortuosity(
         min_positions: Minimum positions in bbox segment (default: 5)
         r_min: Minimum tortuosity R to include (e.g. 1.0 to exclude artifacts)
         r_max: Maximum tortuosity R to include (e.g. 5.0 to exclude loiterers)
-        period1_years/period2_years: Two periods for bootstrap comparison
+        period1_years/period2_years: Two periods for bootstrap comparison.
+            "YYYY/YYYY" range or "YYYY,YYYY,..." year list.
         n_bootstrap: Bootstrap iterations (default: 10000)
         seed: Random seed (default: 42)
 
@@ -1413,12 +1421,11 @@ def aggregate_track_tortuosity(
     total_voyages = 0
 
     # Parse period ranges if provided
-    p1_start = p1_end = p2_start = p2_end = None
+    p1_set: frozenset[int] | None = None
+    p2_set: frozenset[int] | None = None
     if period1_years and period2_years:
-        parts1 = period1_years.split("/")
-        parts2 = period2_years.split("/")
-        p1_start, p1_end = int(parts1[0]), int(parts1[1])
-        p2_start, p2_end = int(parts2[0]), int(parts2[1])
+        p1_set = _parse_period(period1_years)
+        p2_set = _parse_period(period2_years)
 
     for track in _TRACKS:
         if nationality and track.get("nationality") != nationality.upper():
@@ -1464,10 +1471,10 @@ def aggregate_track_tortuosity(
 
         # Period comparison
         yr = info.get("year")
-        if yr and p1_start is not None:
-            if p1_start <= yr <= p1_end:
+        if yr and p1_set is not None and p2_set is not None:
+            if yr in p1_set:
                 period1_vals.append(tort)
-            elif p2_start <= yr <= p2_end:
+            elif yr in p2_set:
                 period2_vals.append(tort)
 
     # Compute group stats
@@ -1747,12 +1754,11 @@ def wind_rose(
     haversine_dists: list[float] = []
 
     # Parse periods
-    p1_start = p1_end = p2_start = p2_end = None
+    p1_set: frozenset[int] | None = None
+    p2_set: frozenset[int] | None = None
     if period1_years and period2_years:
-        parts1 = period1_years.split("/")
-        parts2 = period2_years.split("/")
-        p1_start, p1_end = int(parts1[0]), int(parts1[1])
-        p2_start, p2_end = int(parts2[0]), int(parts2[1])
+        p1_set = _parse_period(period1_years)
+        p2_set = _parse_period(period2_years)
 
     for track in _TRACKS:
         if nationality and track.get("nationality") != nationality.upper():
@@ -1785,12 +1791,7 @@ def wind_rose(
 
             # Determine observation year for period splitting
             obs_year: int | None = None
-            has_periods = (
-                p1_start is not None
-                and p1_end is not None
-                and p2_start is not None
-                and p2_end is not None
-            )
+            has_periods = p1_set is not None and p2_set is not None
             if has_periods:
                 d = _parse_date(obs["date"])
                 if d:
@@ -1802,16 +1803,10 @@ def wind_rose(
             if sector is not None:
                 total_with_direction += 1
                 all_dir_counts[sector].append(obs["km_day"])
-                if (
-                    obs_year is not None
-                    and p1_start is not None
-                    and p1_end is not None
-                    and p2_start is not None
-                    and p2_end is not None
-                ):
-                    if p1_start <= obs_year <= p1_end:
+                if obs_year is not None and p1_set is not None and p2_set is not None:
+                    if obs_year in p1_set:
                         p1_dir_counts[sector].append(obs["km_day"])
-                    elif p2_start <= obs_year <= p2_end:
+                    elif obs_year in p2_set:
                         p2_dir_counts[sector].append(obs["km_day"])
             else:
                 total_without_direction += 1
@@ -1826,16 +1821,10 @@ def wind_rose(
             voyage_ids.add(track["voyage_id"])
             all_counts[wf].append(obs["km_day"])
 
-            if (
-                obs_year is not None
-                and p1_start is not None
-                and p1_end is not None
-                and p2_start is not None
-                and p2_end is not None
-            ):
-                if p1_start <= obs_year <= p1_end:
+            if obs_year is not None and p1_set is not None and p2_set is not None:
+                if obs_year in p1_set:
                     p1_counts[wf].append(obs["km_day"])
-                elif p2_start <= obs_year <= p2_end:
+                elif obs_year in p2_set:
                     p2_counts[wf].append(obs["km_day"])
 
     has_wind = total_with_wind > 0

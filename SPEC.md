@@ -1030,8 +1030,8 @@ significant. Also returns Cohen's d effect size.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `period1_years` | `str` | *required* | First period as `"YYYY/YYYY"` (e.g., `"1750/1789"`) |
-| `period2_years` | `str` | *required* | Second period as `"YYYY/YYYY"` (e.g., `"1820/1859"`) |
+| `period1_years` | `str` | *required* | Period as `"YYYY/YYYY"` range or `"YYYY,YYYY,..."` year list |
+| `period2_years` | `str` | *required* | Period as `"YYYY/YYYY"` range or `"YYYY,YYYY,..."` year list |
 | `lat_min` | `float?` | `None` | Minimum latitude for position bounding box |
 | `lat_max` | `float?` | `None` | Maximum latitude for position bounding box |
 | `lon_min` | `float?` | `None` | Minimum longitude for position bounding box |
@@ -1085,8 +1085,8 @@ whether one direction experienced a differential speed change relative to the ot
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `period1_years` | `str` | *required* | First period as `"YYYY/YYYY"` (e.g., `"1750/1789"`) |
-| `period2_years` | `str` | *required* | Second period as `"YYYY/YYYY"` (e.g., `"1790/1830"`) |
+| `period1_years` | `str` | *required* | Period as `"YYYY/YYYY"` range or `"YYYY,YYYY,..."` year list |
+| `period2_years` | `str` | *required* | Period as `"YYYY/YYYY"` range or `"YYYY,YYYY,..."` year list |
 | `lat_min` | `float?` | `None` | Minimum latitude for position bounding box |
 | `lat_max` | `float?` | `None` | Maximum latitude for position bounding box |
 | `lon_min` | `float?` | `None` | Minimum longitude for position bounding box |
@@ -1196,8 +1196,8 @@ requested dimension. Supports bootstrap comparison between two time periods.
 | `min_positions` | `int` | `5` | Minimum number of positions required per voyage |
 | `r_min` | `float?` | `None` | Minimum tortuosity R to include (e.g. `1.0` to exclude speed-filter artifacts) |
 | `r_max` | `float?` | `None` | Maximum tortuosity R to include (e.g. `5.0` to exclude loiterers/turnarounds) |
-| `period1_years` | `str?` | `None` | First comparison period as `"YYYY/YYYY"` |
-| `period2_years` | `str?` | `None` | Second comparison period as `"YYYY/YYYY"` |
+| `period1_years` | `str?` | `None` | Period as `"YYYY/YYYY"` range or `"YYYY,YYYY,..."` year list |
+| `period2_years` | `str?` | `None` | Period as `"YYYY/YYYY"` range or `"YYYY,YYYY,..."` year list |
 | `n_bootstrap` | `int` | `10000` | Number of bootstrap iterations for confidence intervals |
 
 **Response:** `TortuosityAggregationResponse`
@@ -1274,8 +1274,8 @@ directional filters, as well as period comparison.
 | `direction` | `str?` | `None` | Filter by `"eastbound"` or `"westbound"` |
 | `month_start` | `int?` | `None` | Start month (1-12) for seasonal filtering |
 | `month_end` | `int?` | `None` | End month (1-12) for seasonal filtering |
-| `period1_years` | `str?` | `None` | First comparison period as `"YYYY/YYYY"` |
-| `period2_years` | `str?` | `None` | Second comparison period as `"YYYY/YYYY"` |
+| `period1_years` | `str?` | `None` | Period as `"YYYY/YYYY"` range or `"YYYY,YYYY,..."` year list |
+| `period2_years` | `str?` | `None` | Period as `"YYYY/YYYY"` range or `"YYYY,YYYY,..."` year list |
 | `min_speed_km_day` | `float` | `5.0` | Minimum speed filter |
 | `max_speed_km_day` | `float` | `400.0` | Maximum speed filter |
 

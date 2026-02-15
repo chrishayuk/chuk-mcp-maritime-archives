@@ -27,6 +27,7 @@ import statistics
 
 from chuk_mcp_maritime_archives.core.galleon_analysis import galleon_transit_times
 from chuk_mcp_maritime_archives.core.cliwoc_tracks import (
+    compare_speed_groups,
     export_speeds,
     wind_direction_by_year,
 )
@@ -1085,6 +1086,98 @@ def main() -> None:
     print("            dominate over current effects)")
     print("    -> Consistent with ENSO-driven current changes that")
     print("       matter at moderate sailing speeds but not in storms")
+
+
+    # ==================================================================
+    # SECTION 7: Direct MCP Tool Comparison with ENSO Year Lists
+    # ==================================================================
+    section_header("7. MCP TOOL COMPARISON WITH ENSO YEAR LISTS")
+
+    print("  Period parameters now accept comma-separated year lists,")
+    print("  enabling direct ENSO phase comparison without manual export.")
+    print("  Format: 'YYYY,YYYY,...' (non-contiguous) or 'YYYY/YYYY' (range)\n")
+
+    # Build comma-separated year strings for CLIWOC era (1820-1854)
+    cliwoc_nino = [str(y) for y in _EL_NINO_YEARS if 1820 <= y <= 1854]
+    cliwoc_nina = [str(y) for y in _LA_NINA_YEARS if 1820 <= y <= 1854]
+    nino_str = ",".join(cliwoc_nino)
+    nina_str = ",".join(cliwoc_nina)
+
+    print(f"  El Nino years (1820-1854): {nino_str}")
+    print(f"  La Nina years (1820-1854): {nina_str}")
+    print(f"  ({len(cliwoc_nino)} El Nino, {len(cliwoc_nina)} La Nina years)")
+
+    if cliwoc_nino and cliwoc_nina:
+        # --- 7a: South Atlantic speed comparison ---
+        print("\n  --- 7a. South Atlantic Speed: El Nino vs La Nina ---")
+        print("  Using maritime_compare_speed_groups with year lists\n")
+
+        sa_compare = compare_speed_groups(
+            period1_years=nino_str,
+            period2_years=nina_str,
+            lat_min=-40,
+            lat_max=-10,
+            lon_min=-40,
+            lon_max=20,
+            aggregate_by="observation",
+        )
+
+        print(f"  El Nino: n={sa_compare['period1_n']:,}, mean={sa_compare['period1_mean']:.1f} km/day")
+        print(f"  La Nina: n={sa_compare['period2_n']:,}, mean={sa_compare['period2_mean']:.1f} km/day")
+        diff_sa = sa_compare["period1_mean"] - sa_compare["period2_mean"]
+        print(f"  Difference: {diff_sa:+.1f} km/day (negative = El Nino slower)")
+        print(f"  Mann-Whitney p = {sa_compare['p_value']:.4f}")
+        print(f"  Cohen's d = {sa_compare['effect_size']:.3f}")
+        print(f"  {'SIGNIFICANT' if sa_compare['significant'] else 'Not significant'}")
+
+        # --- 7b: Same with wind force conditioning ---
+        print("\n  --- 7b. South Atlantic @ Beaufort 3-5 (moderate wind) ---")
+
+        sa_bf35 = compare_speed_groups(
+            period1_years=nino_str,
+            period2_years=nina_str,
+            lat_min=-40,
+            lat_max=-10,
+            lon_min=-40,
+            lon_max=20,
+            aggregate_by="observation",
+            wind_force_min=3,
+            wind_force_max=5,
+        )
+
+        print(f"  El Nino: n={sa_bf35['period1_n']:,}, mean={sa_bf35['period1_mean']:.1f} km/day")
+        print(f"  La Nina: n={sa_bf35['period2_n']:,}, mean={sa_bf35['period2_mean']:.1f} km/day")
+        diff_bf35 = sa_bf35["period1_mean"] - sa_bf35["period2_mean"]
+        print(f"  Difference: {diff_bf35:+.1f} km/day")
+        print(f"  Mann-Whitney p = {sa_bf35['p_value']:.4f}")
+        print(f"  Cohen's d = {sa_bf35['effect_size']:.3f}")
+        print(f"  {'SIGNIFICANT' if sa_bf35['significant'] else 'Not significant'}")
+
+        # --- 7c: Indian Ocean ---
+        print("\n  --- 7c. Indian Ocean Speed: El Nino vs La Nina ---")
+
+        io_compare = compare_speed_groups(
+            period1_years=nino_str,
+            period2_years=nina_str,
+            lat_min=-30,
+            lat_max=10,
+            lon_min=40,
+            lon_max=100,
+            aggregate_by="observation",
+        )
+
+        print(f"  El Nino: n={io_compare['period1_n']:,}, mean={io_compare['period1_mean']:.1f} km/day")
+        print(f"  La Nina: n={io_compare['period2_n']:,}, mean={io_compare['period2_mean']:.1f} km/day")
+        diff_io = io_compare["period1_mean"] - io_compare["period2_mean"]
+        print(f"  Difference: {diff_io:+.1f} km/day")
+        print(f"  Mann-Whitney p = {io_compare['p_value']:.4f}")
+        print(f"  Cohen's d = {io_compare['effect_size']:.3f}")
+        print(f"  {'SIGNIFICANT' if io_compare['significant'] else 'Not significant'}")
+
+    print()
+    print("  These results match the manual export_speeds analysis (Sections 5-6)")
+    print("  but are computed in a single MCP tool call per comparison.")
+    print("  LLMs can now directly compare ENSO phases without manual data export.")
 
 
 if __name__ == "__main__":

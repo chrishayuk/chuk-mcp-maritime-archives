@@ -302,8 +302,8 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
         Also returns Cohen's d effect size.
 
         Args:
-            period1_years: First period as "YYYY/YYYY" (e.g., "1750/1789")
-            period2_years: Second period as "YYYY/YYYY" (e.g., "1820/1859")
+            period1_years: First period as "YYYY/YYYY" range or "YYYY,YYYY,..." list
+            period2_years: Second period as "YYYY/YYYY" range or "YYYY,YYYY,..." list
             lat_min: Minimum latitude for position bounding box
             lat_max: Maximum latitude for position bounding box
             lon_min: Minimum longitude for position bounding box
@@ -331,6 +331,8 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
             - Use maritime_did_speed_test for formal direction x period interaction
             - p < 0.05 indicates statistically significant difference
             - Cohen's d > 0.8 indicates a large effect size
+            - Periods accept comma-separated year lists for non-contiguous
+              years (e.g., "1720,1728,1747" for ENSO El Nino years)
         """
         try:
             result = compare_speed_groups(
@@ -424,8 +426,8 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
         samples (daily observations within a voyage are autocorrelated).
 
         Args:
-            period1_years: First period as "YYYY/YYYY" (e.g., "1750/1783")
-            period2_years: Second period as "YYYY/YYYY" (e.g., "1784/1810")
+            period1_years: First period as "YYYY/YYYY" range or "YYYY,YYYY,..." list
+            period2_years: Second period as "YYYY/YYYY" range or "YYYY,YYYY,..." list
             lat_min: Minimum latitude for position bounding box
             lat_max: Maximum latitude for position bounding box
             lon_min: Minimum longitude for position bounding box
@@ -453,6 +455,8 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
             - Use wind_force_min/max for Beaufort-stratified DiD
             - Default aggregate_by="voyage" gives correct p-values
             - If DiD scales with Beaufort, that is genuine wind change
+            - Periods accept comma-separated year lists for non-contiguous
+              years (e.g., "1720,1728,1747" for ENSO El Nino years)
         """
         try:
             result = did_speed_test(
@@ -646,8 +650,8 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
             min_positions: Minimum positions in bbox (default: 5)
             r_min: Minimum tortuosity R to include (e.g. 1.0 excludes artifacts)
             r_max: Maximum tortuosity R to include (e.g. 5.0 excludes loiterers)
-            period1_years: First period as "YYYY/YYYY" for comparison
-            period2_years: Second period as "YYYY/YYYY" for comparison
+            period1_years: First period as "YYYY/YYYY" range or "YYYY,YYYY,..." list
+            period2_years: Second period as "YYYY/YYYY" range or "YYYY,YYYY,..." list
             n_bootstrap: Bootstrap iterations (default: 10000)
             output_mode: Response format - "json" (default) or "text"
 
@@ -659,6 +663,7 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
             - Use direction="eastbound" vs "westbound" separately
             - r_min=1.0, r_max=5.0 focuses on normal transit voyages
             - period1_years/period2_years for formal comparison with CI
+            - Periods accept "YYYY/YYYY" ranges or "YYYY,YYYY,..." year lists
             - Combine with maritime_did_speed_test for complete decomposition
             - min_positions=5 filters out short transits
         """
@@ -793,8 +798,8 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
             year_start/year_end: Filter by year range
             direction: Filter by "eastbound" or "westbound"
             month_start/month_end: Month filter (supports wrap-around)
-            period1_years: First period as "YYYY/YYYY" for comparison
-            period2_years: Second period as "YYYY/YYYY" for comparison
+            period1_years: First period as "YYYY/YYYY" range or "YYYY,YYYY,..." list
+            period2_years: Second period as "YYYY/YYYY" range or "YYYY,YYYY,..." list
             min_speed_km_day: Minimum speed filter (default: 5.0)
             max_speed_km_day: Maximum speed filter (default: 400.0)
             output_mode: Response format - "json" (default) or "text"
@@ -805,6 +810,7 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
 
         Tips for LLMs:
             - Use period1_years/period2_years to compare distributions
+            - Periods accept "YYYY/YYYY" ranges or "YYYY,YYYY,..." year lists
             - Wind direction available even without Beaufort force data
             - direction_counts show prevailing wind patterns by compass sector
             - distance_calibration compares logged vs computed distances

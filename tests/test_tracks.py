@@ -10,6 +10,7 @@ from chuk_mcp_maritime_archives.core.cliwoc_tracks import (
     _haversine_km,
     _mann_whitney_u,
     _month_in_range,
+    _parse_period,
     aggregate_track_speeds,
     compare_speed_groups,
     compute_track_speeds,
@@ -2576,3 +2577,87 @@ class TestGalleonAndWindTools:
             output_mode="text",
         )
         assert "Years covered" in result
+
+
+# ---------------------------------------------------------------------------
+# Period parsing (comma-separated year lists)
+# ---------------------------------------------------------------------------
+
+
+class TestParsePeriod:
+    """Tests for _parse_period helper — range vs year list formats."""
+
+    def test_range_format(self):
+        result = _parse_period("1750/1789")
+        assert isinstance(result, frozenset)
+        assert len(result) == 40
+        assert 1750 in result
+        assert 1789 in result
+        assert 1749 not in result
+        assert 1790 not in result
+
+    def test_comma_format(self):
+        result = _parse_period("1720,1728,1747")
+        assert isinstance(result, frozenset)
+        assert result == frozenset({1720, 1728, 1747})
+
+    def test_comma_format_with_spaces(self):
+        result = _parse_period("1720, 1728, 1747")
+        assert result == frozenset({1720, 1728, 1747})
+
+    def test_single_year_comma(self):
+        result = _parse_period("1800")
+        assert result == frozenset({1800})
+
+    def test_range_single_year(self):
+        result = _parse_period("1800/1800")
+        assert result == frozenset({1800})
+
+
+class TestCommaYearListIntegration:
+    """Test that comma-separated year lists work end-to-end in all tools."""
+
+    def test_compare_speed_groups_comma_years(self):
+        """compare_speed_groups accepts comma-separated year lists."""
+        result = compare_speed_groups(
+            period1_years="1780,1785,1790,1795,1800",
+            period2_years="1810,1815,1820,1825,1830",
+            lat_min=-50,
+            lat_max=-30,
+        )
+        assert result["period1_label"] == "1780,1785,1790,1795,1800"
+        assert result["period2_label"] == "1810,1815,1820,1825,1830"
+        assert isinstance(result["p_value"], float)
+
+    def test_compare_speed_groups_range_still_works(self):
+        """Existing range format still works."""
+        result = compare_speed_groups(
+            period1_years="1750/1789",
+            period2_years="1820/1859",
+            lat_min=-50,
+            lat_max=-30,
+        )
+        assert result["period1_n"] > 0
+        assert result["period2_n"] > 0
+
+    def test_did_speed_test_comma_years(self):
+        """did_speed_test accepts comma-separated year lists."""
+        result = did_speed_test(
+            period1_years="1780,1785,1790,1795,1800",
+            period2_years="1810,1815,1820,1825,1830",
+            lat_min=-50,
+            lat_max=-30,
+        )
+        assert result["period1_label"] == "1780,1785,1790,1795,1800"
+        assert isinstance(result["did_p_value"], float)
+
+    def test_did_speed_test_empty_comma_years(self):
+        """did_speed_test with years that have no data."""
+        result = did_speed_test(
+            period1_years="1500,1505,1510",
+            period2_years="1515,1520,1525",
+            lat_min=-50,
+            lat_max=-30,
+        )
+        assert result["did_p_value"] == 1.0
+        assert result["did_estimate"] == 0.0
