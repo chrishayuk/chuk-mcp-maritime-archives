@@ -756,6 +756,7 @@ def compare_speed_groups(
     max_speed: float = 400.0,
     wind_force_min: int | None = None,
     wind_force_max: int | None = None,
+    exclude_years: str | None = None,
 ) -> dict[str, Any]:
     """Compare speed distributions between two time periods using Mann-Whitney U.
 
@@ -767,6 +768,8 @@ def compare_speed_groups(
             per voyage, statistically independent samples)
         include_samples: If True, include raw speed arrays in response
         wind_force_min/wind_force_max: Beaufort force bounds (0-12)
+        exclude_years: Years to exclude from both periods, as "YYYY/YYYY"
+            range or "YYYY,YYYY,..." list.
         Other args: same as aggregate_track_speeds
 
     Returns:
@@ -777,9 +780,15 @@ def compare_speed_groups(
 
     y1_set = _parse_period(period1_years)
     y2_set = _parse_period(period2_years)
+    if exclude_years:
+        excl = _parse_period(exclude_years)
+        y1_set = y1_set - excl
+        y2_set = y2_set - excl
 
     def _collect_speeds(years: frozenset[int]) -> list[float]:
         values: list[float] = []
+        if not years:
+            return values
         yr_min, yr_max = min(years), max(years)
         # For voyage-level: collect per-voyage, then reduce to means
         per_voyage: dict[int, list[float]] = defaultdict(list)
@@ -923,6 +932,7 @@ def did_speed_test(
     max_speed: float = 400.0,
     wind_force_min: int | None = None,
     wind_force_max: int | None = None,
+    exclude_years: str | None = None,
 ) -> dict[str, Any]:
     """Formal 2×2 Difference-in-Differences test: direction × period.
 
@@ -947,6 +957,8 @@ def did_speed_test(
         seed: Random seed for reproducibility (default: 42)
         wind_force_min/wind_force_max: Beaufort force bounds (0-12)
         min_speed/max_speed: Speed bounds in km/day
+        exclude_years: Years to exclude from both periods, as "YYYY/YYYY"
+            range or "YYYY,YYYY,..." list.
 
     Returns:
         Dict with 4-cell summary, marginal diffs, DiD estimate,
@@ -957,11 +969,17 @@ def did_speed_test(
 
     y1_set = _parse_period(period1_years)
     y2_set = _parse_period(period2_years)
+    if exclude_years:
+        excl = _parse_period(exclude_years)
+        y1_set = y1_set - excl
+        y2_set = y2_set - excl
 
     def _collect_by_direction(years: frozenset[int]) -> tuple[list[float], list[float]]:
         """Collect speeds split by direction for a time period."""
         east_obs: list[float] = []
         west_obs: list[float] = []
+        if not years:
+            return east_obs, west_obs
         east_voy: dict[int, list[float]] = defaultdict(list)
         west_voy: dict[int, list[float]] = defaultdict(list)
         yr_min, yr_max = min(years), max(years)

@@ -1087,7 +1087,6 @@ def main() -> None:
     print("    -> Consistent with ENSO-driven current changes that")
     print("       matter at moderate sailing speeds but not in storms")
 
-
     # ==================================================================
     # SECTION 7: Direct MCP Tool Comparison with ENSO Year Lists
     # ==================================================================
@@ -1122,8 +1121,12 @@ def main() -> None:
             aggregate_by="observation",
         )
 
-        print(f"  El Nino: n={sa_compare['period1_n']:,}, mean={sa_compare['period1_mean']:.1f} km/day")
-        print(f"  La Nina: n={sa_compare['period2_n']:,}, mean={sa_compare['period2_mean']:.1f} km/day")
+        print(
+            f"  El Nino: n={sa_compare['period1_n']:,}, mean={sa_compare['period1_mean']:.1f} km/day"
+        )
+        print(
+            f"  La Nina: n={sa_compare['period2_n']:,}, mean={sa_compare['period2_mean']:.1f} km/day"
+        )
         diff_sa = sa_compare["period1_mean"] - sa_compare["period2_mean"]
         print(f"  Difference: {diff_sa:+.1f} km/day (negative = El Nino slower)")
         print(f"  Mann-Whitney p = {sa_compare['p_value']:.4f}")
@@ -1166,8 +1169,12 @@ def main() -> None:
             aggregate_by="observation",
         )
 
-        print(f"  El Nino: n={io_compare['period1_n']:,}, mean={io_compare['period1_mean']:.1f} km/day")
-        print(f"  La Nina: n={io_compare['period2_n']:,}, mean={io_compare['period2_mean']:.1f} km/day")
+        print(
+            f"  El Nino: n={io_compare['period1_n']:,}, mean={io_compare['period1_mean']:.1f} km/day"
+        )
+        print(
+            f"  La Nina: n={io_compare['period2_n']:,}, mean={io_compare['period2_mean']:.1f} km/day"
+        )
         diff_io = io_compare["period1_mean"] - io_compare["period2_mean"]
         print(f"  Difference: {diff_io:+.1f} km/day")
         print(f"  Mann-Whitney p = {io_compare['p_value']:.4f}")

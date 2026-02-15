@@ -8,7 +8,7 @@
 
 ## Features
 
-This MCP server provides structured access to historical maritime archives and reference data through 40 tools across 11 archives and 6 nations.
+This MCP server provides structured access to historical maritime archives and reference data through 47 tools across 11 archives and 6 nations.
 
 **All tools return fully-typed Pydantic v2 models** for type safety, validation, and excellent IDE support. All tools support `output_mode="text"` for human-readable output alongside the default JSON.
 
@@ -144,13 +144,19 @@ GZMVOC ship-level muster records and wage comparison from the DSS Linked Data Cl
 - Cross-link to DAS voyages via `das_voyage_id`
 - Compare wage distributions between time periods (GZMVOC or MDB data)
 
-### 18. Track Analytics (`maritime_compute_track_speeds`, `maritime_aggregate_track_speeds`, `maritime_compare_speed_groups`)
+### 18. Track Analytics (`maritime_compute_track_speeds`, `maritime_aggregate_track_speeds`, `maritime_compare_speed_groups`, `maritime_did_speed_test`, `maritime_track_tortuosity`, `maritime_aggregate_track_tortuosity`, `maritime_wind_rose`, `maritime_export_speeds`, `maritime_galleon_transit_times`, `maritime_wind_direction_by_year`)
 Server-side speed computation and statistical analysis on CLIWOC track data:
 - **Per-voyage speeds**: compute daily haversine-based speeds from consecutive logbook positions
 - **Bulk aggregation**: aggregate speeds across all matching tracks by decade, year, month, direction, or nationality
 - **Statistical testing**: Mann-Whitney U test comparing speed distributions between two time periods (no scipy needed)
 - Geographic bounding box filtering, speed bounds, direction filtering
 - Enables climate proxy analysis: detect wind trends, seasonal patterns, volcanic signals in historical ship speeds
+- **Difference-in-differences**: formal 2×2 DiD test (direction × period) with bootstrap confidence intervals
+- **Route tortuosity**: per-voyage and aggregate tortuosity (great-circle vs. actual distance) with optional period comparison
+- **Wind rose**: Beaufort wind force and wind direction distributions from CLIWOC logbooks
+- **Speed export**: raw speed samples for downstream statistical analysis (CSV-ready JSON)
+- **Galleon transit times**: compute transit durations for Manila Galleon voyages (1565–1815) by trade direction
+- **Wind direction by year**: year-by-year wind direction distributions for trend detection
 
 ### 19. Server Discovery (`maritime_capabilities`)
 List full server capabilities for LLM workflow planning:
@@ -166,7 +172,7 @@ A hosted instance is available at:
 https://maritime-archives.chukai.io/mcp
 ```
 
-Use this with any MCP client -- no installation required. All 40 tools and 774K crew records are available.
+Use this with any MCP client -- no installation required. All 47 tools and 774K crew records are available.
 
 ## Installation
 
@@ -264,7 +270,7 @@ uv run chuk-mcp-maritime-archives --mode http
 ## Example Prompts
 
 Once configured with an MCP client, here are prompts organised by use case. Each prompt
-exercises one or more of the 40 tools and demonstrates a different capability of the server.
+exercises one or more of the 47 tools and demonstrates a different capability of the server.
 
 ### Exploration & Discovery
 
@@ -619,6 +625,13 @@ All tools accept an optional `output_mode` parameter (`"json"` default, or `"tex
 | `maritime_compute_track_speeds` | Analytics | Compute daily sailing speeds for a CLIWOC voyage |
 | `maritime_aggregate_track_speeds` | Analytics | Aggregate track speeds by decade, year, month, direction, or nationality |
 | `maritime_compare_speed_groups` | Analytics | Compare speed distributions between two time periods (Mann-Whitney U) |
+| `maritime_did_speed_test` | Analytics | Formal 2×2 Difference-in-Differences test (direction × period) |
+| `maritime_track_tortuosity` | Analytics | Compute route tortuosity for a single CLIWOC voyage |
+| `maritime_aggregate_track_tortuosity` | Analytics | Aggregate route tortuosity across CLIWOC tracks |
+| `maritime_wind_rose` | Analytics | Beaufort wind force and direction distributions from CLIWOC logbooks |
+| `maritime_export_speeds` | Analytics | Export raw speed samples for downstream statistical analysis |
+| `maritime_galleon_transit_times` | Analytics | Compute transit times for Manila Galleon voyages (1565–1815) |
+| `maritime_wind_direction_by_year` | Analytics | Year-by-year wind direction distributions from CLIWOC logbooks |
 | `maritime_crew_demographics` | Demographics | Aggregate crew statistics by rank, origin, fate, decade, or ship |
 | `maritime_crew_career` | Demographics | Reconstruct individual crew careers across multiple voyages |
 | `maritime_crew_survival_analysis` | Demographics | Crew survival, mortality, and desertion rates by dimension |
@@ -1089,7 +1102,7 @@ Built on top of chuk-mcp-server, this server uses:
 - **Indexed Lookups**: Lazy-built in-memory indexes for large datasets (774K crew records)
 - **Cross-Archive Linking**: Unified voyage view with wreck, vessel, hull profile, and CLIWOC track linking
 - **Multi-Archive Dispatch**: 11 archives across 6 nations (Dutch, English, Portuguese, Spanish, Swedish, American) with unified query interface
-- **Dual Output**: All 40 tools support `output_mode="text"` for human-readable responses
+- **Dual Output**: All 47 tools support `output_mode="text"` for human-readable responses
 - **Domain Reference Data**: ~170 place gazetteer, 18 routes (5 nations), 6 hull profiles, 215 speed profiles, ~261K ship positions, 22 regions, 7 navigation eras
 - **Cursor-Based Pagination**: All 8 search tools support `cursor` / `next_cursor` / `has_more` for paging through large result sets
 - **1042+ Tests**: Across 15 test modules with 96%+ branch coverage

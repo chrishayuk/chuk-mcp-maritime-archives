@@ -49,12 +49,28 @@ def _pagination_footer(count: int, total: int | None, has_more: bool, cursor: st
     return ""
 
 
-def format_response(response: BaseModel, output_mode: str = "json") -> str:
-    """Format a response model as JSON or text."""
+def format_response(
+    response: BaseModel,
+    output_mode: str = "json",
+    fields: list[str] | None = None,
+) -> str:
+    """Format a response model as JSON, text, or CSV.
+
+    Args:
+        response: Pydantic response model
+        output_mode: "json" (default), "text", or "csv"
+        fields: For CSV/JSON — limit output to these field names
+    """
+    if output_mode == "csv":
+        if hasattr(response, "to_csv"):
+            return response.to_csv(fields=fields)
+        return response.model_dump_json(indent=2, exclude_none=True)
     if output_mode == "text":
         if hasattr(response, "to_text"):
             return response.to_text()
         return response.model_dump_json(indent=2, exclude_none=True)
+    if fields and hasattr(response, "to_json_with_fields"):
+        return response.to_json_with_fields(fields=fields)
     return response.model_dump_json(indent=2, exclude_none=True)
 
 
@@ -1548,6 +1564,68 @@ class SpeedExportResponse(BaseModel):
         if len(self.samples) > 50:
             lines.append(f"... and {len(self.samples) - 50} more")
         return "\n".join(lines)
+
+    _OBS_FIELDS = [
+        "voyage_id",
+        "date",
+        "year",
+        "month",
+        "day",
+        "direction",
+        "speed_km_day",
+        "nationality",
+        "ship_name",
+        "lat",
+        "lon",
+        "wind_force",
+        "wind_direction",
+    ]
+    _VOY_FIELDS = [
+        "voyage_id",
+        "year",
+        "month",
+        "direction",
+        "speed_km_day",
+        "nationality",
+        "ship_name",
+        "n_observations",
+    ]
+
+    def _resolve_fields(self, fields: list[str] | None) -> list[str]:
+        """Return the field list to use, validating against available columns."""
+        available = self._VOY_FIELDS if self.aggregate_by == "voyage" else self._OBS_FIELDS
+        if not fields:
+            return available
+        return [f for f in fields if f in available]
+
+    def to_csv(self, fields: list[str] | None = None) -> str:
+        """Compact CSV format — all records, not truncated.
+
+        Returns a metadata header (lines starting with #) followed by
+        standard CSV. Token-efficient: ~3-4x smaller than JSON.
+        """
+        cols = self._resolve_fields(fields)
+        lines = [
+            f"# total_matching={self.total_matching} returned={self.returned}"
+            f" offset={self.offset} has_more={self.has_more}"
+            + (f" next_offset={self.next_offset}" if self.next_offset else ""),
+            ",".join(cols),
+        ]
+        for s in self.samples:
+            d = s.model_dump(include=set(cols))
+            lines.append(",".join(str(d.get(c, "")) if d.get(c) is not None else "" for c in cols))
+        return "\n".join(lines)
+
+    def to_json_with_fields(self, fields: list[str] | None = None) -> str:
+        """JSON output with only selected fields per sample."""
+        cols = self._resolve_fields(fields)
+        col_set = set(cols)
+        data = self.model_dump(exclude_none=True)
+        data["samples"] = [
+            {k: v for k, v in s.items() if k in col_set}
+            for s in (sample.model_dump(include=col_set) for sample in self.samples)
+        ]
+        return json.dumps(data, indent=2)
 
 
 # ---------------------------------------------------------------------------

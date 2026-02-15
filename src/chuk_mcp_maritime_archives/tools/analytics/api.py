@@ -292,6 +292,7 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
         max_speed_km_day: float = 400.0,
         wind_force_min: int | None = None,
         wind_force_max: int | None = None,
+        exclude_years: str | None = None,
         output_mode: str = "json",
     ) -> str:
         """
@@ -319,6 +320,8 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
             max_speed_km_day: Maximum speed filter (default: 400.0)
             wind_force_min: Minimum Beaufort force (0-12). Requires wind data
             wind_force_max: Maximum Beaufort force (0-12). Requires wind data
+            exclude_years: Years to exclude from both periods, as "YYYY/YYYY"
+                range or "YYYY,YYYY,..." list.
             output_mode: Response format - "json" (default) or "text"
 
         Returns:
@@ -352,6 +355,7 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
                 max_speed=max_speed_km_day,
                 wind_force_min=wind_force_min,
                 wind_force_max=wind_force_max,
+                exclude_years=exclude_years,
             )
 
             return format_response(
@@ -409,6 +413,7 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
         max_speed_km_day: float = 400.0,
         wind_force_min: int | None = None,
         wind_force_max: int | None = None,
+        exclude_years: str | None = None,
         output_mode: str = "json",
     ) -> str:
         """
@@ -442,6 +447,8 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
             max_speed_km_day: Maximum speed filter (default: 400.0)
             wind_force_min: Minimum Beaufort force (0-12). Requires wind data
             wind_force_max: Maximum Beaufort force (0-12). Requires wind data
+            exclude_years: Years to exclude from both periods, as "YYYY/YYYY"
+                range or "YYYY,YYYY,..." list.
             output_mode: Response format - "json" (default) or "text"
 
         Returns:
@@ -475,6 +482,7 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
                 max_speed=max_speed_km_day,
                 wind_force_min=wind_force_min,
                 wind_force_max=wind_force_max,
+                exclude_years=exclude_years,
             )
 
             return format_response(
@@ -948,6 +956,7 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
         wind_force_max: int | None = None,
         max_results: int = 500,
         offset: int = 0,
+        fields: str | None = None,
         output_mode: str = "json",
     ) -> str:
         """
@@ -978,12 +987,24 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
                 for pagination through large result sets.
             offset: Skip this many records (default: 0). Use next_offset
                 from previous response to get the next page.
-            output_mode: Response format - "json" (default) or "text"
+            fields: Comma-separated list of fields to include in output.
+                Observation fields: voyage_id, date, year, month, day,
+                direction, speed_km_day, nationality, ship_name, lat, lon,
+                wind_force, wind_direction.
+                Voyage fields: voyage_id, year, month, direction,
+                speed_km_day, nationality, ship_name, n_observations.
+                Omit for all fields.
+            output_mode: Response format - "json" (default), "text", or
+                "csv". Use "csv" for compact tabular output (~3-4x fewer
+                tokens than JSON). CSV includes a # metadata header.
 
         Returns:
-            JSON or text with speed samples and metadata
+            JSON, text, or CSV with speed samples and metadata
 
         Tips for LLMs:
+            - Use output_mode="csv" to reduce token usage by ~3-4x
+            - Combine fields="voyage_id,year,speed_km_day" with csv
+              for minimal token footprint (~10 tokens/row vs ~50 in JSON)
             - Use aggregate_by="observation" to get individual dated records
               with full date (ISO YYYY-MM-DD), lat, lon, wind data — essential
               for lunar phase, tidal, or day-level temporal analyses
@@ -1044,6 +1065,8 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
                 for s in result["samples"]
             ]
 
+            field_list = [f.strip() for f in fields.split(",")] if fields else None
+
             return format_response(
                 SpeedExportResponse(
                     total_matching=result["total_matching"],
@@ -1066,6 +1089,7 @@ def register_analytics_tools(mcp: object, manager: object) -> None:
                     message=msg,
                 ),
                 output_mode,
+                fields=field_list,
             )
         except Exception as e:
             logger.error("Speed export failed: %s", e)

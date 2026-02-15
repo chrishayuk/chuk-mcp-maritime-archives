@@ -1,6 +1,6 @@
 # chuk-mcp-maritime-archives Specification
 
-Version 0.21.0
+Version 0.21.3
 
 ## Overview
 
@@ -1046,6 +1046,7 @@ significant. Also returns Cohen's d effect size.
 | `max_speed_km_day` | `float` | `400.0` | Maximum speed filter |
 | `wind_force_min` | `int?` | `None` | Minimum Beaufort wind force (0-12) |
 | `wind_force_max` | `int?` | `None` | Maximum Beaufort wind force (0-12) |
+| `exclude_years` | `str?` | `None` | Years to exclude from both periods. Format: "YYYY/YYYY" range or "YYYY,YYYY,..." list. |
 
 **Response:** `SpeedComparisonResponse`
 
@@ -1100,6 +1101,7 @@ whether one direction experienced a differential speed change relative to the ot
 | `max_speed_km_day` | `float?` | `None` | Maximum speed filter (km/day) |
 | `wind_force_min` | `int?` | `None` | Minimum Beaufort wind force (0-12) |
 | `wind_force_max` | `int?` | `None` | Maximum Beaufort wind force (0-12) |
+| `exclude_years` | `str?` | `None` | Years to exclude from both periods. Format: "YYYY/YYYY" range or "YYYY,YYYY,..." list. |
 | `output_mode` | `str` | `"json"` | `"json"` or `"text"` |
 
 **Response:** `DIDSpeedTestResponse`
@@ -1368,7 +1370,8 @@ epoch comparison).
 | `wind_force_min` | `int?` | `None` | Minimum Beaufort force (0-12) |
 | `wind_force_max` | `int?` | `None` | Maximum Beaufort force (0-12) |
 | `max_results` | `int` | `5000` | Maximum records to return |
-| `output_mode` | `str` | `"json"` | `"json"` or `"text"` |
+| `fields` | `str?` | `None` | Comma-separated list of field names to include. Observation fields: voyage_id, date, year, month, day, direction, speed_km_day, nationality, ship_name, lat, lon, wind_force, wind_direction. Voyage fields: voyage_id, year, month, direction, speed_km_day, nationality, ship_name, n_observations. Omit for all fields. |
+| `output_mode` | `str` | `"json"` | `"json"` (default), `"text"`, or `"csv"`. CSV returns compact tabular output (~3-4x fewer tokens than JSON). |
 
 **Response:** `SpeedExportResponse`
 

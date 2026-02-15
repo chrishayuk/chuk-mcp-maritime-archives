@@ -2661,3 +2661,285 @@ class TestCommaYearListIntegration:
         )
         assert result["did_p_value"] == 1.0
         assert result["did_estimate"] == 0.0
+
+
+# ---------------------------------------------------------------------------
+# CSV output & fields filtering
+# ---------------------------------------------------------------------------
+
+
+class TestCsvOutput:
+    """Tests for CSV output mode and field selection on export_speeds."""
+
+    def test_csv_output_has_header_and_rows(self):
+        """CSV output starts with # metadata and has CSV header + rows."""
+        from chuk_mcp_maritime_archives.models.responses import (
+            SpeedExportResponse,
+            SpeedSample,
+            format_response,
+        )
+
+        samples = [
+            SpeedSample(voyage_id=1, year=1780, speed_km_day=120.5),
+            SpeedSample(voyage_id=2, year=1785, speed_km_day=130.0),
+        ]
+        resp = SpeedExportResponse(
+            total_matching=2,
+            returned=2,
+            aggregate_by="voyage",
+            samples=samples,
+        )
+        csv = format_response(resp, output_mode="csv")
+        lines = csv.strip().split("\n")
+        assert lines[0].startswith("# total_matching=2")
+        assert "voyage_id" in lines[1]
+        assert lines[1].count(",") > 0
+        assert len(lines) == 4  # metadata + header + 2 rows
+
+    def test_csv_fields_filter(self):
+        """CSV with fields parameter returns only requested columns."""
+        from chuk_mcp_maritime_archives.models.responses import (
+            SpeedExportResponse,
+            SpeedSample,
+            format_response,
+        )
+
+        samples = [
+            SpeedSample(
+                voyage_id=1,
+                year=1780,
+                speed_km_day=120.5,
+                direction="eastbound",
+                nationality="NL",
+            ),
+        ]
+        resp = SpeedExportResponse(
+            total_matching=1,
+            returned=1,
+            aggregate_by="voyage",
+            samples=samples,
+        )
+        csv = format_response(
+            resp,
+            output_mode="csv",
+            fields=["voyage_id", "year", "speed_km_day"],
+        )
+        lines = csv.strip().split("\n")
+        header = lines[1]
+        assert header == "voyage_id,year,speed_km_day"
+        # Data row should have exactly 2 commas (3 fields)
+        assert lines[2].count(",") == 2
+
+    def test_csv_observation_level(self):
+        """CSV works for observation-level aggregate_by."""
+        from chuk_mcp_maritime_archives.models.responses import (
+            SpeedExportResponse,
+            SpeedSample,
+            format_response,
+        )
+
+        samples = [
+            SpeedSample(
+                voyage_id=1,
+                date="1780-06-15",
+                year=1780,
+                month=6,
+                day=15,
+                speed_km_day=120.5,
+                direction="eastbound",
+                lat=-35.0,
+                lon=25.0,
+            ),
+        ]
+        resp = SpeedExportResponse(
+            total_matching=1,
+            returned=1,
+            aggregate_by="observation",
+            samples=samples,
+        )
+        csv = format_response(resp, output_mode="csv")
+        lines = csv.strip().split("\n")
+        assert "date" in lines[1]
+        assert "lat" in lines[1]
+        assert "1780-06-15" in lines[2]
+
+    def test_csv_all_records_not_truncated(self):
+        """CSV returns ALL records, not just first 50 like text mode."""
+        from chuk_mcp_maritime_archives.models.responses import (
+            SpeedExportResponse,
+            SpeedSample,
+            format_response,
+        )
+
+        samples = [
+            SpeedSample(voyage_id=i, year=1780 + i, speed_km_day=100.0 + i) for i in range(80)
+        ]
+        resp = SpeedExportResponse(
+            total_matching=80,
+            returned=80,
+            aggregate_by="voyage",
+            samples=samples,
+        )
+        csv = format_response(resp, output_mode="csv")
+        lines = csv.strip().split("\n")
+        # metadata + header + 80 data rows
+        assert len(lines) == 82
+
+    def test_json_with_fields(self):
+        """JSON output_mode with fields returns filtered samples."""
+        from chuk_mcp_maritime_archives.models.responses import (
+            SpeedExportResponse,
+            SpeedSample,
+            format_response,
+        )
+
+        samples = [
+            SpeedSample(
+                voyage_id=1,
+                year=1780,
+                speed_km_day=120.5,
+                direction="eastbound",
+                nationality="NL",
+            ),
+        ]
+        resp = SpeedExportResponse(
+            total_matching=1,
+            returned=1,
+            aggregate_by="voyage",
+            samples=samples,
+        )
+        result = format_response(
+            resp,
+            output_mode="json",
+            fields=["voyage_id", "speed_km_day"],
+        )
+        data = json.loads(result)
+        sample = data["samples"][0]
+        assert "voyage_id" in sample
+        assert "speed_km_day" in sample
+        # nationality should be filtered out
+        assert "nationality" not in sample
+
+    def test_csv_integration_with_export(self):
+        """export_speeds data renders correctly in CSV."""
+        result = export_speeds(
+            lat_min=-50,
+            lat_max=-30,
+            lon_min=15,
+            lon_max=110,
+            aggregate_by="voyage",
+            max_results=5,
+        )
+        from chuk_mcp_maritime_archives.models.responses import (
+            SpeedExportResponse,
+            SpeedSample,
+            format_response,
+        )
+
+        samples = [
+            SpeedSample(**{k: v for k, v in s.items() if v is not None}) for s in result["samples"]
+        ]
+        resp = SpeedExportResponse(
+            total_matching=result["total_matching"],
+            returned=result["returned"],
+            aggregate_by=result["aggregate_by"],
+            samples=samples,
+        )
+        csv = format_response(resp, output_mode="csv")
+        lines = csv.strip().split("\n")
+        assert len(lines) >= 3  # at least metadata + header + 1 row
+
+
+# ---------------------------------------------------------------------------
+# Exclude years
+# ---------------------------------------------------------------------------
+
+
+class TestExcludeYears:
+    """Tests for exclude_years parameter on compare_speed_groups and did_speed_test."""
+
+    def test_compare_exclude_reduces_samples(self):
+        """Excluding years reduces the sample count in compare_speed_groups."""
+        base = compare_speed_groups(
+            period1_years="1750/1800",
+            period2_years="1800/1850",
+            lat_min=-50,
+            lat_max=-30,
+        )
+        with_excl = compare_speed_groups(
+            period1_years="1750/1800",
+            period2_years="1800/1850",
+            lat_min=-50,
+            lat_max=-30,
+            exclude_years="1780,1783,1785,1790,1795,1800",
+        )
+        # Excluding years from period1 should reduce its count
+        assert with_excl["period1_n"] <= base["period1_n"]
+
+    def test_compare_exclude_range(self):
+        """Excluding a range of years works."""
+        result = compare_speed_groups(
+            period1_years="1750/1830",
+            period2_years="1750/1830",
+            lat_min=-50,
+            lat_max=-30,
+            exclude_years="1780/1800",
+        )
+        # Both periods have same years minus excluded, so stats are identical
+        assert result["period1_n"] == result["period2_n"]
+
+    def test_compare_exclude_affects_both_periods(self):
+        """Excluding years removes from both periods uniformly."""
+        result = compare_speed_groups(
+            period1_years="1780,1785",
+            period2_years="1750/1830",
+            lat_min=-50,
+            lat_max=-30,
+            exclude_years="1780,1785",
+        )
+        # period1 had only 1780 and 1785, both excluded -> zero
+        assert result["period1_n"] == 0
+        # period2 is a range minus excluded -> fewer samples
+        base = compare_speed_groups(
+            period1_years="1780,1785",
+            period2_years="1750/1830",
+            lat_min=-50,
+            lat_max=-30,
+        )
+        assert result["period2_n"] <= base["period2_n"]
+
+    def test_compare_exclude_zeroes_both(self):
+        """Excluding all years from both periods gives zero samples."""
+        result = compare_speed_groups(
+            period1_years="1780/1785",
+            period2_years="1790/1795",
+            lat_min=-50,
+            lat_max=-30,
+            exclude_years="1780/1795",
+        )
+        assert result["period1_n"] == 0
+        assert result["period2_n"] == 0
+
+    def test_did_exclude_years(self):
+        """did_speed_test with exclude_years runs without error."""
+        result = did_speed_test(
+            period1_years="1750/1800",
+            period2_years="1800/1850",
+            lat_min=-50,
+            lat_max=-30,
+            exclude_years="1783",
+            n_bootstrap=100,
+        )
+        assert isinstance(result["did_p_value"], float)
+
+    def test_did_exclude_comma_list(self):
+        """did_speed_test exclude_years with comma list."""
+        result = did_speed_test(
+            period1_years="1750/1830",
+            period2_years="1750/1830",
+            lat_min=-50,
+            lat_max=-30,
+            exclude_years="1720,1728,1747,1761,1775,1783",
+            n_bootstrap=100,
+        )
+        assert isinstance(result["did_estimate"], float)

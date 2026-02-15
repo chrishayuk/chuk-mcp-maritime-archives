@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Wind Analysis Demo -- chuk-mcp-maritime-archives v0.21.0
+Wind Analysis Demo -- chuk-mcp-maritime-archives v0.21.2
 
 Tests the chronometer vs wind change hypothesis using tortuosity analysis
 and (when wind data is available) Beaufort force stratification.
@@ -37,7 +37,7 @@ async def main() -> None:
 
     print("=" * 72)
     print("WIND vs CHRONOMETER ANALYSIS")
-    print("Tortuosity & Beaufort Stratification (v0.21.0)")
+    print("Tortuosity & Beaufort Stratification (v0.21.2)")
     print("=" * 72)
     print()
     print("  The DiD speed analysis found an asymmetric eastbound speed gain")

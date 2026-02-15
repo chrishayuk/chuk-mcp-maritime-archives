@@ -526,6 +526,29 @@ Refinements to tortuosity and wind analytics tools based on data quality review,
 **Quality:**
 - ~1160+ tests across 15 test modules, 96%+ branch coverage
 
+### v0.21.2 -- Non-Contiguous Year Lists & Pagination
+
+LLM-driven enhancements for ENSO analysis: period parameters accept comma-separated year lists, and speed export supports offset-based pagination.
+
+- **Non-contiguous year lists** -- `period1_years` / `period2_years` in `compare_speed_groups`, `did_speed_test`, `aggregate_track_tortuosity`, and `wind_rose` now accept `"YYYY,YYYY,..."` comma-separated year lists in addition to `"YYYY/YYYY"` contiguous ranges. Enables direct ENSO phase comparison (e.g., `"1820,1828,1832,1837,1844"` for El Nino years).
+- **Full date export** -- `maritime_export_speeds` includes ISO date string and day-of-month in observation-level output for lunar phase and tidal analysis
+- **Offset pagination** -- `maritime_export_speeds` supports `offset` parameter with `has_more` / `next_offset` response fields (default page size 500, context-safe for LLM callers)
+
+**Quality:**
+- ~1171+ tests across 15 test modules, 96%+ branch coverage
+
+### v0.21.3 -- Token-Efficient LLM Data Export
+
+CSV output mode and field selection for dramatically smaller LLM payloads, plus exclude-years filtering for cleaner ENSO/volcanic comparisons.
+
+- **CSV output mode** -- `maritime_export_speeds` gains `output_format="csv"` returning compact header+rows instead of JSON arrays (~22x fewer tokens with field selection)
+- **Field selection** -- `maritime_export_speeds` gains `fields` parameter to select only needed columns (e.g., `"year,month,speed_kmday"`) for minimal token payloads
+- **`exclude_years` parameter** -- `maritime_compare_speed_groups` and `maritime_did_speed_test` accept `exclude_years` to drop specific years from both periods (e.g., exclude known volcanic eruption years from baseline)
+- **`enso_investigation_demo.py`** -- new example demonstrating ENSO phase analysis workflow with CSV export, field selection, and exclude-years filtering
+
+**Quality:**
+- ~1183+ tests across 15 test modules, 96%+ branch coverage
+
 ---
 
 ## Planned
@@ -592,7 +615,7 @@ This server is the data layer in a composable stack of MCP servers:
 
 | Server | Tools | Tests | Role |
 |--------|-------|-------|------|
-| chuk-mcp-maritime-archives | 47 | ~1160+ | Voyage, wreck, vessel, crew, cargo, musters, demographics, analytics |
+| chuk-mcp-maritime-archives | 47 | ~1183+ | Voyage, wreck, vessel, crew, cargo, musters, demographics, analytics |
 | chuk-mcp-ocean-drift | 10 | 235 | Forward/backtrack/Monte Carlo drift |
 | chuk-mcp-dem | 4 | 711 | Bathymetry and elevation data |
 | chuk-mcp-stac | 5 | 382 | Satellite imagery via STAC catalogues |
@@ -600,7 +623,7 @@ This server is the data layer in a composable stack of MCP servers:
 | chuk-mcp-tides | 8 | 717 | Tidal current data |
 | chuk-mcp-physics | 66 | 240 | Fluid dynamics computations |
 | chuk-mcp-open-meteo | 6 | 22 | Weather and wind data |
-| **Total** | **151** | **3,584+** | |
+| **Total** | **151** | **3,607+** | |
 
 All servers follow the same patterns: Pydantic v2 models, dual output mode, chuk-artifacts storage.
 

@@ -138,7 +138,7 @@ All data files in `data/` are produced by scripts in `scripts/`:
 
 ### 11. Test Coverage -- 96%+
 
-All modules maintain 96%+ branch coverage (1042+ tests across 15 test modules). Tests use
+All modules maintain 96%+ branch coverage (1171+ tests across 15 test modules). Tests use
 `pytest-asyncio` and mock at the client data boundary (`_load_json`), not at the manager
 level, to exercise the full data flow from tool to client.
 
@@ -233,7 +233,14 @@ server.py                           # CLI entry point (sync)
   |     +-- tools/narratives/api.py       # maritime_search_narratives
   |     +-- tools/analytics/api.py       # maritime_compute_track_speeds,
   |     |                                #   maritime_aggregate_track_speeds,
-  |     |                                #   maritime_compare_speed_groups
+  |     |                                #   maritime_compare_speed_groups,
+  |     |                                #   maritime_did_speed_test,
+  |     |                                #   maritime_track_tortuosity,
+  |     |                                #   maritime_aggregate_track_tortuosity,
+  |     |                                #   maritime_wind_rose,
+  |     |                                #   maritime_export_speeds,
+  |     |                                #   maritime_galleon_transit_times,
+  |     |                                #   maritime_wind_direction_by_year
   |     +-- tools/demographics/api.py    # maritime_crew_demographics,
   |     |                                #   maritime_crew_career,
   |     |                                #   maritime_crew_survival_analysis
@@ -282,6 +289,7 @@ src/chuk_mcp_maritime_archives/
 |   +-- speed_profiles.py      # Speed profiles (loaded from data/speed_profiles.json)
 |   +-- entity_resolution.py   # Fuzzy ship name matching (Levenshtein, Soundex, ShipNameIndex)
 |   +-- cliwoc_tracks.py       # CLIWOC tracks (loaded from data/cliwoc_tracks.json)
+|   +-- galleon_analysis.py    # Manila Galleon transit time analysis
 |   +-- clients/
 |       +-- __init__.py
 |       +-- base.py              # BaseArchiveClient ABC
@@ -318,7 +326,8 @@ src/chuk_mcp_maritime_archives/
     +-- export/        # maritime_export_geojson, maritime_get_statistics
     +-- musters/       # maritime_search_musters, maritime_get_muster, maritime_compare_wages
     +-- narratives/    # maritime_search_narratives
-    +-- analytics/     # maritime_compute_track_speeds, aggregate, compare
+    +-- analytics/     # maritime_compute_track_speeds, aggregate, compare, did,
+    |                  #   tortuosity, wind_rose, export_speeds, galleon, wind_direction
     +-- discovery/     # maritime_capabilities
 ```
 
@@ -352,7 +361,7 @@ Falls back silently if the store is unavailable or any download fails.
 ### `async_server.py`
 
 Creates the `ChukMCPServer` MCP instance, instantiates `ArchiveManager`, and registers
-all tool groups (19 categories, 40 tools). Each tool module receives the MCP instance
+all tool groups (19 categories, 47 tools). Each tool module receives the MCP instance
 and the shared `ArchiveManager`.
 
 ### `core/archive_manager.py`
@@ -501,10 +510,17 @@ nationality/year/ship name filters, `get_track()` for full position history,
 `get_track_by_das_number()` and `find_track_for_voyage()` for cross-archive linking.
 Also provides track analytics: `compute_track_speeds()` for single-voyage haversine-based
 daily speeds, `aggregate_track_speeds()` for bulk speed computation with grouping by
-decade/year/month/direction/nationality and descriptive statistics, and
-`compare_speed_groups()` for Mann-Whitney U significance testing between time periods.
-Useful for finding contextual ship traffic around wreck sites and incidents, and for
-climate proxy research using ship speed as a wind strength indicator.
+decade/year/month/direction/nationality/beaufort and descriptive statistics,
+`compare_speed_groups()` for Mann-Whitney U significance testing between time periods,
+`did_speed_test()` for formal Difference-in-Differences analysis (direction x period),
+`compute_track_tortuosity()` and `aggregate_track_tortuosity()` for route efficiency
+analysis, `wind_rose()` for Beaufort force and wind direction distributions,
+`export_speeds()` for raw speed data with pagination, `galleon_transit_times()` for
+Manila Galleon transit durations, and `wind_direction_by_year()` for year-level wind
+direction trends. Period parameters accept both contiguous ranges (`"YYYY/YYYY"`) and
+comma-separated year lists (`"YYYY,YYYY,..."`) for non-contiguous event-based comparison
+(e.g. ENSO phases). Useful for finding contextual ship traffic around wreck sites and
+incidents, and for climate proxy research using ship speed as a wind strength indicator.
 
 ### `models/maritime.py`
 
