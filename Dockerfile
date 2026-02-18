@@ -3,7 +3,7 @@
 # Multi-stage build for optimal image size
 
 # Build stage
-FROM python:3.11-slim as builder
+FROM python:3.14-slim as builder
 
 WORKDIR /app
 
@@ -28,7 +28,7 @@ RUN uv pip install --system --no-cache .
 RUN python scripts/download_crew.py || echo "Warning: crew download failed, demographics tools will return empty results"
 
 # Runtime stage
-FROM python:3.11-slim
+FROM python:3.14-slim
 
 WORKDIR /app
 
